@@ -248,7 +248,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     <WorkspacePage className="no-print font-sans bg-[#FAFBFD]">
       <WorkspaceHeader
         eyebrow="Redacción Inteligente"
-        title="Generador de Documentos RAG"
+        title="Generador de Documentos"
         description="Selecciona un formato legal, captura la información y genera un borrador fundado en la Ley Federal del Trabajo y del IMSS en segundos."
         icon={<Scale size={26} className="text-legal-gold" />}
         actions={
@@ -337,7 +337,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
               </div>
 
               <div className="space-y-1.5">
-                <label className="ui-label text-[10px]">Hechos o Requerimientos de Ley (Para el RAG)</label>
+                <label className="ui-label text-[10px]">Hechos y Detalles del Caso</label>
                 <textarea
                   value={details}
                   onChange={(event) => setDetails(event.target.value)}

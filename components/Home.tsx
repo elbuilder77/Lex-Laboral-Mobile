@@ -26,7 +26,7 @@ const tools = [
   },
   {
     view: AppView.DRAFTING,
-    title: 'Generador de Documentos RAG',
+    title: 'Generador de Documentos',
     summary: 'Proyecta contratos, actas, convenios y demandas asistidos por IA con búsqueda semántica en la LFT e IMSS.',
     access: 'Por Documento o Plan',
     action: 'Generar Borrador',
