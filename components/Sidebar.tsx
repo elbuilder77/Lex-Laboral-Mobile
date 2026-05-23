@@ -26,7 +26,7 @@ interface SidebarProps {
   isCEO?: boolean;
 }
 
-export const Sidebar = React.memo<SidebarProps>(({ currentView, onChangeView, onNewCase, notify, onOpenPricing, isCEO }) => {
+export const Sidebar = React.memo<SidebarProps>(({ currentView, onChangeView, onNewCase, notify, onOpenPricing, isCEO, user, isGuest }) => {
   const navItems = [
     { id: AppView.HOME, label: 'Inicio', icon: <Home size={18} /> },
     { id: AppView.CALCULATOR, label: 'Liquidación y Finiquito', icon: <Calculator size={18} /> },
