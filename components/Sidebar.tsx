@@ -7,7 +7,9 @@ import {
   Calculator, 
   ShieldCheck, 
   Home,
-  BarChart3
+  BarChart3,
+  Settings,
+  CreditCard
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -98,6 +100,45 @@ export const Sidebar = React.memo<SidebarProps>(({ currentView, onChangeView, on
                     <span>Panel CEO</span>
                   </div>
                   {currentView === AppView.CEO_DASHBOARD && <ChevronRight size={14} className="animate-in fade-in slide-in-from-left-2 duration-300" />}
+                </button>
+              </li>
+            </ul>
+          </>
+        )}
+
+        {/* User Account Settings */}
+        {user && !isGuest && (
+          <>
+            <p className="px-4 text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 mt-6">Mi Cuenta</p>
+            <ul className="space-y-1">
+              <li>
+                <button
+                  onClick={() => {
+                    if (onOpenPricing) onOpenPricing('draft_basic');
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-[13px] font-medium transition-all group text-slate-400 hover:text-white hover:bg-white/5"
+                >
+                  <div className="flex items-center space-x-3">
+                    <span className="text-slate-500 group-hover:text-slate-300">
+                      <CreditCard size={18} />
+                    </span>
+                    <span>Suscripción</span>
+                  </div>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    if (notify) notify('La configuración estará disponible próximamente', 'info', 'Lex Laboral');
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-[13px] font-medium transition-all group text-slate-400 hover:text-white hover:bg-white/5"
+                >
+                  <div className="flex items-center space-x-3">
+                    <span className="text-slate-500 group-hover:text-slate-300">
+                      <Settings size={18} />
+                    </span>
+                    <span>Configuración</span>
+                  </div>
                 </button>
               </li>
             </ul>

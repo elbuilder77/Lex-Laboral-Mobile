@@ -130,13 +130,21 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={onLogin}
-                  className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-legal-gold px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_20px_45px_-12px_rgba(212,175,55,0.35)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_20px_45px_-12px_rgba(255,255,255,0.15)] active:translate-y-0"
-                >
-                  <LogIn size={15} className="text-slate-950 transition-transform group-hover:translate-x-0.5" />
-                  <span>Iniciar sesión</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={onLogin}
+                    className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-legal-gold px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_20px_45px_-12px_rgba(212,175,55,0.35)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_20px_45px_-12px_rgba(255,255,255,0.15)] active:translate-y-0"
+                  >
+                    <LogIn size={15} className="text-slate-950 transition-transform group-hover:translate-x-0.5" />
+                    <span>Iniciar sesión</span>
+                  </button>
+                  <button
+                    onClick={onLogin}
+                    className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-white/5 border border-white/10 px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-0.5 hover:bg-white/10 active:translate-y-0"
+                  >
+                    <span>Crear cuenta</span>
+                  </button>
+                </div>
               )}
             </div>
           </motion.div>
