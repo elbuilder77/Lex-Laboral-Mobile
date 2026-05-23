@@ -61,9 +61,19 @@ Instrucciones extra:
 ${cleanInstructions || 'Ninguna'}
 `;
 
-    let resultText = await executeWithGeminiFallback(genAI, SYSTEM_INSTRUCTION, true, async (model) => {
-      const result = await model.generateContent(promptText);
-      return (await result.response).text();
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    let fullText = '';
+
+    await executeWithGeminiFallback(genAI, SYSTEM_INSTRUCTION, true, async (model) => {
+      const resultStream = await model.generateContentStream(promptText);
+      for await (const chunk of resultStream.stream) {
+        const chunkText = chunk.text();
+        fullText += chunkText;
+        res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+      }
     });
 
     const accessConsumption = await consumeDocumentAccess(user.id);
@@ -76,10 +86,12 @@ ${cleanInstructions || 'Ninguna'}
     }
 
     if ((accessConsumption?.reason || accessStatus.reason) === 'single_document') {
-      resultText += '\n\n---\n*Generado con Inteligencia Artificial por Lex Laboral. Activa un plan para acceso ampliado al generador y a la calculadora IMSS en https://lexlaboral.com.mx*';
+      const footer = '\n\n---\n*Generado con Inteligencia Artificial por Lex Laboral. Activa un plan para acceso ampliado al generador y a la calculadora IMSS en https://lexlaboral.com.mx*';
+      res.write(`data: ${JSON.stringify({ text: footer })}\n\n`);
     }
 
-    res.json({ text: resultText });
+    res.write('data: [DONE]\n\n');
+    res.end();
   } catch (error: any) {
     console.error('Draft API Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });

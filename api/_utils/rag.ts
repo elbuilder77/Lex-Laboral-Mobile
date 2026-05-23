@@ -43,8 +43,8 @@ export async function retrieveRelevantContext(
     console.log('[RAG] Realizando búsqueda semántica de artículos en Supabase...');
     const { data: articles, error } = await supabase.rpc('match_kb_articles', {
       query_embedding: embedding,
-      match_threshold: 0.25, // Nivel óptimo de coincidencia semántica
-      match_count: 3
+      match_threshold: 0.40, // Nivel óptimo de coincidencia semántica incrementado para mayor precisión
+      match_count: 5 // Aumentado para proveer mayor contexto a la IA
     });
 
     if (error) {

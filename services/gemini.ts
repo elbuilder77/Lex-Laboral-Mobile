@@ -13,8 +13,9 @@ interface StreamResponse {
 // NOTE: chat and analyze functions are deprecated and will be removed in next cleanup.
 export const draftLegalDocument = async (
   requirements: string, 
-  customInstructions?: string
-) => {
+  customInstructions?: string,
+  onChunk?: (chunk: string) => void
+): Promise<string> => {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
   const userId = session?.user?.id;
@@ -39,8 +40,48 @@ export const draftLegalDocument = async (
     throw new Error(errorMessage);
   }
 
-  const data = await response.json();
-  return data.text;
+  const reader = response.body?.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+
+  if (!reader) {
+    throw new Error('Response body is not readable');
+  }
+
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    
+    let newlineIndex;
+    while ((newlineIndex = buffer.indexOf('\n\n')) >= 0) {
+      const line = buffer.slice(0, newlineIndex).trim();
+      buffer = buffer.slice(newlineIndex + 2);
+      
+      if (line.startsWith('data: ')) {
+        const dataStr = line.slice(6);
+        if (dataStr === '[DONE]') {
+          // End of stream
+          continue; 
+        }
+        try {
+          const data = JSON.parse(dataStr);
+          if (data.text) {
+            fullText += data.text;
+            if (onChunk) {
+              onChunk(fullText);
+            }
+          }
+        } catch (e) {
+          console.warn('Error parsing SSE data', dataStr);
+        }
+      }
+    }
+  }
+
+  return fullText;
 };
 
 export const checkCalculatorUsage = async (accessToken: string) => {

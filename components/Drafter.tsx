@@ -202,7 +202,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     const file = new Blob([state.generatedDoc], { type: 'text/plain' });
     const element = document.createElement('a');
     element.href = URL.createObjectURL(file);
-    element.download = `LexLaboral_Borrador_${selectedTemplate}_${new Date().toISOString().split('T')[0]}.md`;
+    element.download = `LexLaboral_Borrador_${selectedTemplate}_${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(element);
     element.click();
     notify('Borrador descargado correctamente', 'success');
@@ -232,8 +232,11 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     setIsDrafting(true);
     try {
       notify('Iniciando Inteligencia Jurídica RAG...', 'info', 'Lex Laboral');
-      const document = await draftLegalDocument(prompt, customInstructions);
+      const document = await draftLegalDocument(prompt, customInstructions, (chunk) => {
+        setGeneratedDoc(chunk);
+      });
       await refreshAccess();
+      // Ensure the final state is set just in case
       setGeneratedDoc(document);
       notify('Borrador generado con referencias LFT/IMSS', 'success', 'Listo');
     } catch (error) {
