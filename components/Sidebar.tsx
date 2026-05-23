@@ -47,7 +47,7 @@ export const Sidebar = React.memo<SidebarProps>(({ currentView, onChangeView, on
           onClick={() => onChangeView(AppView.HOME)}
         >
           <div className="w-8 h-8 bg-black/40 border border-white/10 rounded-lg flex items-center justify-center shadow-lg overflow-hidden group-hover:border-legal-gold/50 transition-colors">
-            <img src="/assets/logo.webp" alt="Logo" className="w-full h-full object-cover" loading="lazy" />
+            <img src="/assets/logo.webp" alt="Logo" className="w-full h-full object-contain p-0.5" loading="lazy" />
           </div>
           <h1 className="font-serif font-bold text-lg tracking-tight text-white group-hover:text-legal-gold transition-colors">Lex Laboral</h1>
         </div>

@@ -221,7 +221,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
       <footer className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-white/5 px-6 py-10 text-center md:flex-row md:px-10 md:text-left">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl border border-legal-gold/20 bg-slate-950 p-1">
-            <img src="/assets/logo.webp" alt="Logo" className="h-full w-full object-cover rounded-md" />
+            <img src="/assets/logo.webp" alt="Logo" className="h-full w-full object-contain rounded-md" />
           </div>
           <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">Lex Laboral © 2026</span>
         </div>

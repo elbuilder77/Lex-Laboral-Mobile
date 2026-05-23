@@ -217,7 +217,7 @@ function App() {
               className="flex items-center space-x-2 cursor-pointer"
               onClick={() => handleViewChange(AppView.HOME)}
             >
-               <img src="/assets/logo.webp" alt="Logo" className="w-8 h-8 rounded-lg" loading="lazy" />
+               <img src="/assets/logo.webp" alt="Logo" className="w-8 h-8 rounded-lg object-contain" loading="lazy" />
                <span className="font-serif font-bold text-lg">Lex Laboral</span>
             </div>
             <button 
