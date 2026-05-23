@@ -94,7 +94,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                 />
               </div>
               <p className="max-w-xl text-sm leading-relaxed text-slate-300 font-medium">
-                La suite inteligente para el derecho del trabajo en México. A través de la tecnología **RAG (Generación Aumentada por Recuperación)**, la IA analiza tu caso, localiza en milisegundos los artículos aplicables de la LFT y la Ley del Seguro Social (LSS), y genera borradores con fundamentación legal exacta y personalizada.
+                La suite inteligente para el derecho del trabajo. Mediante tecnología RAG, nuestra Inteligencia Artificial localiza al instante los artículos aplicables de la LFT y LSS para generar borradores con fundamentación jurídica exacta.
               </p>
             </div>
 
