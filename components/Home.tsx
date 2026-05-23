@@ -48,16 +48,16 @@ const tools = [
 
 const supportBlocks = [
   {
-    title: '1. Entrada y Análisis',
-    body: 'Capturas los hechos clave de tu caso en un formulario optimizado para estructurar el escrito.',
+    title: '1. Análisis y Recuperación (RAG)',
+    body: 'A diferencia de una IA genérica que puede inventar información, nuestro motor lee la LFT y LSS en milisegundos para extraer solo los artículos aplicables a tu caso.',
   },
   {
-    title: '2. Consulta Vectorial RAG',
-    body: 'El motor busca en milisegundos los artículos aplicables vigentes de la LFT y la Ley del IMSS (2026) en Supabase.',
+    title: '2. Restricción Legal Estricta',
+    body: 'Nuestra tecnología ancla a la Inteligencia Artificial a la ley. Se le prohíbe usar conocimientos externos o alucinar legislaciones inexistentes.',
   },
   {
-    title: '3. Redacción Fundada',
-    body: 'La IA de Gemini inyecta el contexto de ley extraído directamente en tu borrador final con precisión quirúrgica.',
+    title: '3. Redacción Fundamentada',
+    body: 'La Inteligencia Artificial utiliza exclusivamente los artículos extraídos para redactar tu documento. Obtienes borradores personalizados con precisión legal absoluta.',
   },
 ];
 
@@ -94,7 +94,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                 />
               </div>
               <p className="max-w-xl text-sm leading-relaxed text-slate-300 font-medium">
-                La suite inteligente para el derecho del trabajo. Mediante tecnología RAG, nuestra Inteligencia Artificial localiza al instante los artículos aplicables de la LFT y LSS para generar borradores con fundamentación jurídica exacta.
+                Automatización legal con tecnología RAG. Genera documentos personalizados con fundamentación legal exacta.
               </p>
             </div>
 
