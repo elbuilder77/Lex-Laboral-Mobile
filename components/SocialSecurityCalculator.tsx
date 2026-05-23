@@ -17,7 +17,7 @@ import {
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthProvider';
-import { checkCalculatorUsage } from '../services/gemini';
+
 import { SEOContentSection } from './SEOContentSection';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { WorkspaceEmpty, WorkspaceHeader, WorkspacePage, WorkspacePanel, WorkspaceStat } from './ui/Workspace';
@@ -76,12 +76,6 @@ export const SocialSecurityCalculator: React.FC<{
       notify("Regístrate para continuar", "info");
       return;
     }
-    
-    if (!access.hasActiveSubscription) {
-      if (onRequirePremium) onRequirePremium();
-      notify("Función Exclusiva LexPremium", "warning");
-      return;
-    }
 
     if (sbc <= 0) {
       notify("El Salario Base de Cotización debe ser un número positivo", "error");
@@ -93,13 +87,6 @@ export const SocialSecurityCalculator: React.FC<{
     }
     if (riskClass === 0) {
       notify("Por favor, seleccione una Clase de Riesgo", "error");
-      return;
-    }
-
-    try {
-      await checkCalculatorUsage(session?.access_token || '');
-    } catch (error: any) {
-      notify(error?.message || "No se pudo validar el acceso a IMSS.", "error");
       return;
     }
 

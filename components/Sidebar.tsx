@@ -150,7 +150,7 @@ export const Sidebar = React.memo<SidebarProps>(({ currentView, onChangeView, on
       <div className="p-4 mt-auto border-t border-white/5 bg-black/20">
         <div className="bg-white/5 rounded-xl p-4 border border-white/5 mb-4 text-center">
             <p className="text-[11px] font-bold text-slate-300 mb-1">Acceso Registrado</p>
-            <p className="text-xs text-slate-500">Calculadora laboral gratis. IMSS y generador según tu plan.</p>
+            <p className="text-xs text-slate-500">Calculadoras gratuitas. Generador RAG según tu plan.</p>
         </div>
 
         <div className="flex items-center justify-between px-1 opacity-60">
