@@ -111,12 +111,15 @@ const consumeSingleDocumentUse = async (userId: string): Promise<boolean> => {
 };
 
 const checkDocumentAccessFallback = async (userId: string): Promise<DocumentAccessResult> => {
-  const userRecord = await getUserAccessRow(userId);
+  const [userRecord, currentCount, singleDocumentUsesRemaining] = await Promise.all([
+    getUserAccessRow(userId),
+    getCurrentDocumentUsageCount(userId),
+    getSingleDocumentUsesRemaining(userId)
+  ]);
+
   const subscriptionActive = hasActiveSubscription(userRecord?.is_premium, userRecord?.access_until);
 
   if (subscriptionActive) {
-    const currentCount = await getCurrentDocumentUsageCount(userId);
-
     if (currentCount >= DOCUMENT_MONTHLY_FAIR_USE_LIMIT) {
       return { allowed: false, reason: 'fair_use_limit', currentCount };
     }
@@ -124,7 +127,6 @@ const checkDocumentAccessFallback = async (userId: string): Promise<DocumentAcce
     return { allowed: true, reason: 'subscription', currentCount };
   }
 
-  const singleDocumentUsesRemaining = await getSingleDocumentUsesRemaining(userId);
   if (singleDocumentUsesRemaining > 0) {
     return { allowed: true, reason: 'single_document', remaining: singleDocumentUsesRemaining };
   }
@@ -133,18 +135,20 @@ const checkDocumentAccessFallback = async (userId: string): Promise<DocumentAcce
 };
 
 const consumeDocumentAccessFallback = async (userId: string) => {
-  const userRecord = await getUserAccessRow(userId);
-  const subscriptionActive = hasActiveSubscription(userRecord?.is_premium, userRecord?.access_until);
-
-  if (subscriptionActive) {
-    const currentMonth = getCurrentMonthKey();
-    const usageFetch = await supabaseAdmin
+  const currentMonth = getCurrentMonthKey();
+  const [userRecord, usageFetch] = await Promise.all([
+    getUserAccessRow(userId),
+    supabaseAdmin
       .from('user_usage')
       .select('draft_basic_month_count')
       .eq('user_id', userId)
       .eq('month', currentMonth)
-      .maybeSingle();
+      .maybeSingle()
+  ]);
 
+  const subscriptionActive = hasActiveSubscription(userRecord?.is_premium, userRecord?.access_until);
+
+  if (subscriptionActive) {
     const currentCount = usageFetch.data?.draft_basic_month_count || 0;
     if (currentCount >= DOCUMENT_MONTHLY_FAIR_USE_LIMIT) {
       return { allowed: false, reason: 'fair_use_limit' as const, currentCount };
@@ -168,20 +172,22 @@ const consumeDocumentAccessFallback = async (userId: string) => {
 };
 
 const recordImssUsageFallback = async (userId: string) => {
-  const userRecord = await getUserAccessRow(userId);
+  const currentMonth = getCurrentMonthKey();
+  const [userRecord, usageFetch] = await Promise.all([
+    getUserAccessRow(userId),
+    supabaseAdmin
+      .from('user_usage')
+      .select('calculators_count')
+      .eq('user_id', userId)
+      .eq('month', currentMonth)
+      .maybeSingle()
+  ]);
+
   const subscriptionActive = hasActiveSubscription(userRecord?.is_premium, userRecord?.access_until);
 
   if (!subscriptionActive) {
     return { allowed: false, reason: 'no_subscription' as const, currentCount: 0 };
   }
-
-  const currentMonth = getCurrentMonthKey();
-  const usageFetch = await supabaseAdmin
-    .from('user_usage')
-    .select('calculators_count')
-    .eq('user_id', userId)
-    .eq('month', currentMonth)
-    .maybeSingle();
 
   const currentCount = usageFetch.data?.calculators_count || 0;
   if (currentCount >= IMSS_MONTHLY_FAIR_USE_LIMIT) {
@@ -198,8 +204,10 @@ const recordImssUsageFallback = async (userId: string) => {
 };
 
 export const getUserAccessSnapshot = async (userId: string) => {
-  const userRecord = await getUserAccessRow(userId);
-  const singleDocumentUsesRemaining = await getSingleDocumentUsesRemaining(userId);
+  const [userRecord, singleDocumentUsesRemaining] = await Promise.all([
+    getUserAccessRow(userId),
+    getSingleDocumentUsesRemaining(userId)
+  ]);
 
   return {
     isPremium: Boolean(userRecord?.is_premium),

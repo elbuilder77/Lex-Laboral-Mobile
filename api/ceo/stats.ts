@@ -53,18 +53,17 @@ export default async function handler(req: any, res: any) {
       totalUsersResult,
       premiumUsersResult,
       recentUsersResult,
+      monthlyUsageResult,
+      entitlementsResult,
     ] = await Promise.all([
       supabaseAdmin.from('users').select('id', { count: 'exact', head: true }),
       supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).eq('is_premium', true).gt('access_until', now.toISOString()),
       supabaseAdmin.from('users').select('id, email, is_premium, license_type, access_until, created_at').order('created_at', { ascending: false }).limit(20),
+      supabaseAdmin.from('user_usage_monthly').select('*').eq('month', currentMonth),
+      supabaseAdmin.from('user_entitlements').select('single_document_uses_remaining'),
     ]);
 
     let monthlyUsage: any[] = [];
-    const monthlyUsageResult = await supabaseAdmin
-      .from('user_usage_monthly')
-      .select('*')
-      .eq('month', currentMonth);
-
     if (!monthlyUsageResult.error && monthlyUsageResult.data) {
       monthlyUsage = monthlyUsageResult.data;
     } else {
@@ -80,7 +79,6 @@ export default async function handler(req: any, res: any) {
     );
 
     let oneTimeDocumentsAvailable = 0;
-    const entitlementsResult = await supabaseAdmin.from('user_entitlements').select('single_document_uses_remaining');
     if (!entitlementsResult.error && entitlementsResult.data) {
       oneTimeDocumentsAvailable = entitlementsResult.data.reduce((sum: number, row: any) => sum + (row.single_document_uses_remaining || 0), 0);
     } else {

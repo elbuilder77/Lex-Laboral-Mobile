@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AppView } from '../types';
-import { Calculator, FileText, ChevronRight, ShieldCheck, LogIn, LogOut } from 'lucide-react';
+import { Calculator, FileText, ChevronRight, ShieldCheck, LogIn, LogOut, ArrowUpRight, Scale } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { getPathForView } from '../lib/routes';
 import { SEOContentSection } from './SEOContentSection';
@@ -17,245 +17,259 @@ interface HomeProps {
 const tools = [
   {
     view: AppView.CALCULATOR,
-    title: 'Liquidación y finiquito',
-    summary: 'Calcula finiquito, indemnización y prima de antigüedad con desglose claro.',
-    accent: 'text-blue-600',
-    surface: 'bg-blue-50 text-blue-600',
-    access: 'Gratis con registro',
-    action: 'Abrir calculadora',
-    icon: <Calculator size={24} />,
+    title: 'Liquidación y Finiquito',
+    summary: 'Calculadora completa de indemnizaciones constitucionales, primas de antigüedad y finiquitos de ley.',
+    access: 'Acceso Gratuito con Registro',
+    action: 'Calcular Prestaciones',
+    accent: 'text-legal-gold',
+    badgeStyle: 'border-slate-200/80 bg-slate-50 text-slate-600',
+    icon: <Calculator size={20} className="text-legal-gold" />,
   },
   {
     view: AppView.DRAFTING,
-    title: 'Generador documental',
-    summary: 'Complementa el caso con contratos, convenios y escritos de trabajo.',
-    accent: 'text-amber-600',
-    surface: 'bg-amber-50 text-amber-600',
-    access: 'Documento suelto o plan',
-    action: 'Abrir generador',
-    icon: <FileText size={24} />,
+    title: 'Generador de Documentos RAG',
+    summary: 'Proyecta contratos, actas, convenios y demandas asistidos por IA con búsqueda semántica en la LFT e IMSS.',
+    access: 'Por Documento o Plan',
+    action: 'Generar Borrador',
+    accent: 'text-legal-gold',
+    badgeStyle: 'border-legal-gold/20 bg-legal-gold/5 text-legal-gold',
+    icon: <FileText size={20} className="text-legal-gold" />,
   },
   {
     view: AppView.SOCIAL_SECURITY,
-    title: 'IMSS e INFONAVIT',
-    summary: 'Proyecta cuotas y reparto patrón-trabajador con vista mensual.',
-    accent: 'text-emerald-600',
-    surface: 'bg-emerald-50 text-emerald-600',
-    access: 'Plan activo',
-    action: 'Abrir IMSS',
-    icon: <ShieldCheck size={24} />,
+    title: 'Calculadora IMSS e INFONAVIT',
+    summary: 'Proyección detallada de cuotas obrero-patronales, ramos de seguro social y prima de riesgo de trabajo.',
+    access: 'Plan Premium Activo',
+    action: 'Calcular IMSS',
+    accent: 'text-legal-gold',
+    badgeStyle: 'border-slate-200/80 bg-slate-50 text-slate-600',
+    icon: <ShieldCheck size={20} className="text-legal-gold" />,
   },
 ];
 
 const supportBlocks = [
   {
-    title: 'Gancho inmediato',
-    body: 'Las calculadoras abren primero y entregan valor desde la primera interacción.',
+    title: 'Cálculo Exacto',
+    body: 'Parámetros y tasas de cálculo actualizados para el año 2026 (Salario Mínimo y UMA).',
   },
   {
-    title: 'Vigencia visible',
-    body: 'Los parámetros clave se muestran con referencia operativa 2026.',
+    title: 'Contexto RAG Semántico',
+    body: 'La IA busca y fundamenta automáticamente cada borrador documental en la LFT e IMSS.',
   },
   {
-    title: 'Documento como apoyo',
-    body: 'El generador entra después del cálculo, no como punto de entrada del producto.',
+    title: 'Estilo Homogéneo',
+    body: 'Diseñado bajo la misma línea de alta gama y elegancia jurídica que LexCorporativo.',
   },
 ];
 
 export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout }) => {
-  const handleNavClick = (event: React.MouseEvent<HTMLAnchorElement>, view: AppView) => {
+  const handleNavClick = (event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>, view: AppView) => {
     event.preventDefault();
     onNavigate(view);
   };
 
   return (
-    <div className="animate-fade-in">
-      <section className="relative overflow-hidden border-b border-slate-200/80 bg-[radial-gradient(circle_at_top_left,_rgba(212,175,55,0.18),_transparent_26%),linear-gradient(180deg,_#fdfdfc_0%,_#f7fafc_52%,_#f4f7fb_100%)]">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-legal-gold/70 to-transparent" />
-        <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-legal-gold/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 h-80 w-80 rounded-full bg-slate-200/70 blur-3xl" />
+    <div className="animate-fade-in font-sans bg-[#FAFBFD]">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden border-b border-slate-200/60 bg-[radial-gradient(circle_at_top_left,_rgba(212,175,55,0.12),_transparent_45%),linear-gradient(180deg,_#FDFDFC_0%,_#F8FAFC_60%,_#F1F5F9_100%)] py-12 md:py-20">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-legal-gold/45 to-transparent" />
+        <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-legal-gold/5 blur-[100px]" />
+        <div className="absolute -bottom-10 left-10 h-80 w-80 rounded-full bg-slate-200/40 blur-[80px]" />
 
-        <div className="mx-auto grid max-w-7xl gap-8 px-6 py-10 md:px-10 md:py-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] lg:items-stretch">
+        <div className="mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center md:px-10">
+          
+          {/* Left Column: Heading and Brand */}
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="relative flex flex-col justify-between"
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="flex flex-col space-y-8"
           >
-            <div>
-              <div className="mb-8 flex items-center gap-4">
-                <div className="flex h-18 w-18 items-center justify-center overflow-hidden rounded-[1.8rem] border border-white/60 bg-slate-950 shadow-[0_20px_50px_-24px_rgba(15,23,42,0.8)]">
-                  <img src="/assets/logo.webp" alt="Lex Laboral Logo" className="h-full w-full object-cover" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400">Lex Laboral</p>
-                  <p className="mt-2 text-sm text-slate-500">Liquidación, IMSS y documentos laborales</p>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-legal-gold/30 bg-slate-950 p-[3px] shadow-[0_15px_35px_-12px_rgba(15,23,42,0.65)]">
+                <img src="/assets/logo.webp" alt="Lex Laboral Logo" className="h-full w-full object-cover rounded-[10px]" />
               </div>
-
-              <h1 className="max-w-3xl font-serif text-5xl font-bold leading-[0.95] tracking-tight text-slate-950 md:text-6xl">
-                Liquidación, finiquito e IMSS para México.
-              </h1>
-
-              <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600">
-                Calcula prestaciones y cuotas en minutos. Después, si hace falta, genera el documento.
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                  Liquidación y finiquito
-                </span>
-                <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                  IMSS e INFONAVIT
-                </span>
-                <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
-                  Vigencia 2026
-                </span>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-legal-gold">Lex Laboral</span>
+                <h2 className="text-xs text-slate-500 font-medium">Plataforma Profesional de Inteligencia Laboral</h2>
               </div>
             </div>
 
-            <div className="mt-10 flex flex-wrap items-center gap-4">
+            <div className="space-y-4">
+              <h1 className="font-serif text-4xl font-bold leading-[1.08] tracking-tight text-slate-950 sm:text-5xl md:text-6xl">
+                Cálculos laborales y <br />
+                <span className="bg-gradient-to-r from-slate-950 via-legal-gold to-slate-900 bg-clip-text text-transparent">
+                  documentos asistidos por IA.
+                </span>
+              </h1>
+              <p className="max-w-xl text-base leading-relaxed text-slate-600 font-medium">
+                La suite inteligente para el derecho del trabajo en México. Realiza cálculos exactos de liquidaciones, cuotas IMSS y proyecta escritos con fundamentación semántica (RAG).
+              </p>
+            </div>
+
+            {/* Badges */}
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full border border-legal-gold/20 bg-legal-gold/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-legal-gold">
+                Liquidaciones y Finiquitos
+              </span>
+              <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 shadow-sm">
+                Seguridad Social IMSS
+              </span>
+              <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 shadow-sm">
+                Régimen Vigente 2026
+              </span>
+            </div>
+
+            {/* Actions & Login Status */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               {user ? (
-                <div className="inline-flex items-center gap-3 rounded-[1.5rem] border border-slate-200 bg-white/90 px-5 py-3 shadow-sm">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-legal-gold to-amber-500 text-xs font-bold text-white">
+                <div className="inline-flex items-center gap-3.5 rounded-2xl border border-slate-200 bg-white/80 px-4.5 py-2.5 shadow-sm backdrop-blur-sm">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-slate-950 to-slate-800 text-[11px] font-bold text-legal-gold border border-legal-gold/25 shadow-inner">
                     {user.email?.charAt(0).toUpperCase() || '?'}
                   </div>
-                  <span className="max-w-[220px] truncate text-sm font-medium text-slate-700">{user.email}</span>
+                  <span className="max-w-[180px] truncate text-xs font-semibold text-slate-700">{user.email}</span>
+                  <div className="h-4 w-px bg-slate-200" />
                   <button
                     onClick={onLogout}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 transition-colors hover:text-red-500"
+                    className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 transition-colors hover:text-red-500"
                     title="Cerrar sesión"
                   >
-                    <LogOut size={14} />
+                    <LogOut size={12} />
                     Salir
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={onLogin}
-                  className="group inline-flex items-center gap-3 rounded-[1.4rem] bg-slate-950 px-7 py-4 text-sm font-bold text-white shadow-[0_20px_50px_-28px_rgba(15,23,42,0.85)] transition-all hover:-translate-y-0.5 hover:bg-slate-900"
+                  className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-slate-950 px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_20px_40px_-16px_rgba(15,23,42,0.85)] border border-white/5 transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_45px_-12px_rgba(212,175,55,0.25)] hover:border-legal-gold/30 active:translate-y-0"
                 >
-                  <LogIn size={18} className="transition-transform group-hover:translate-x-0.5" />
-                  Iniciar sesión
+                  <LogIn size={15} className="text-legal-gold transition-transform group-hover:translate-x-0.5" />
+                  <span>Iniciar sesión</span>
                 </button>
               )}
 
-              <a
-                href={getPathForView(AppView.CALCULATOR)}
+              <button
                 onClick={(event) => handleNavClick(event, AppView.CALCULATOR)}
-                className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 transition-colors hover:text-slate-950"
+                className="group inline-flex items-center gap-2 rounded-xl px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-slate-950 transition-colors"
               >
-                Abrir calculadora
-                <ChevronRight size={16} />
-              </a>
+                <span>Calculadora Laboral</span>
+                <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+              </button>
             </div>
           </motion.div>
 
+          {/* Right Column: Interactive Dashboard Panel */}
           <motion.div
-            initial={{ opacity: 0, y: 22 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, ease: 'easeOut', delay: 0.05 }}
+            transition={{ duration: 0.55, ease: 'easeOut', delay: 0.08 }}
           >
-            <WorkspacePanel className="relative overflow-hidden p-4 sm:p-5">
-              <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-legal-gold/8 to-transparent" />
-              <div className="relative rounded-[1.75rem] border border-slate-200/80 bg-slate-950 px-5 py-4 text-white shadow-[0_30px_70px_-40px_rgba(15,23,42,0.9)]">
-                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/45">Flujos principales</p>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-slate-300">
-                  Cada módulo entra con un objetivo claro, una superficie principal y el acceso visible desde el primer vistazo.
+            <WorkspacePanel className="relative overflow-hidden p-6 sm:p-7 border border-slate-200/80 bg-white/60 backdrop-blur-md rounded-[2rem] shadow-[0_30px_70px_-40px_rgba(15,23,42,0.15)]">
+              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-legal-gold/5 to-transparent pointer-events-none" />
+              
+              {/* Box Info */}
+              <div className="relative rounded-2xl border border-slate-200/80 bg-slate-950 px-5.5 py-4.5 text-white shadow-xl">
+                <span className="text-[9px] font-bold uppercase tracking-[0.26em] text-legal-gold/80">Espacio de Trabajo</span>
+                <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
+                  Selecciona uno de los módulos de Lex Laboral a continuación para comenzar tu consulta o redacción semántica RAG.
                 </p>
               </div>
 
-              <div className="relative mt-4 space-y-3">
+              {/* Tools Cards */}
+              <div className="relative mt-5 space-y-3.5">
                 {tools.map((tool, index) => (
                   <a
                     key={tool.view}
                     href={getPathForView(tool.view)}
                     onClick={(event) => handleNavClick(event, tool.view)}
-                    className="group flex items-start gap-4 rounded-[1.75rem] border border-slate-200/80 bg-white/90 px-5 py-5 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
+                    className="group flex items-start gap-4.5 rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.015)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-legal-gold/55 hover:bg-white hover:shadow-[0_20px_45px_-24px_rgba(212,175,55,0.18)]"
                   >
-                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.2rem] ${tool.surface}`}>
+                    {/* Dark Icon Chip Homogeneous with LexCorporativo */}
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.1rem] border border-slate-800 bg-slate-950 shadow-md group-hover:border-legal-gold/50 transition-colors duration-300">
                       {tool.icon}
                     </div>
+
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-[11px] font-bold uppercase tracking-[0.26em] text-slate-400">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-bold text-legal-gold tracking-widest font-mono">
                           {String(index + 1).padStart(2, '0')}
                         </span>
-                        <span className="rounded-full border border-slate-200 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                        <span className={`rounded-full border px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] ${tool.badgeStyle}`}>
                           {tool.access}
                         </span>
                       </div>
-                      <h2 className="mt-3 text-xl font-bold text-slate-950">{tool.title}</h2>
-                      <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">{tool.summary}</p>
+                      <h2 className="mt-2 text-md font-bold text-slate-950 transition-colors group-hover:text-legal-gold">{tool.title}</h2>
+                      <p className="mt-1.5 text-xs leading-relaxed text-slate-500 font-medium">{tool.summary}</p>
                     </div>
-                    <div className={`mt-1 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] ${tool.accent}`}>
-                      <span className="hidden sm:inline">{tool.action}</span>
-                      <ChevronRight size={16} className="transition-transform group-hover:translate-x-1" />
+
+                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-slate-400 group-hover:bg-legal-gold/10 group-hover:text-legal-gold transition-colors duration-300">
+                      <ArrowUpRight size={14} />
                     </div>
                   </a>
                 ))}
               </div>
             </WorkspacePanel>
           </motion.div>
+
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-10 md:px-10">
-        <div className="grid gap-4 lg:grid-cols-3">
+      {/* Support Blocks Section */}
+      <section className="mx-auto max-w-7xl px-6 py-12 md:px-10">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {supportBlocks.map((block) => (
-            <WorkspacePanel key={block.title} className="p-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Sistema</p>
-              <h2 className="mt-3 text-xl font-bold text-slate-950">{block.title}</h2>
-              <p className="mt-3 text-sm leading-7 text-slate-600">{block.body}</p>
+            <WorkspacePanel key={block.title} className="p-6.5 border border-slate-200/50 bg-white/70 shadow-sm rounded-2xl relative overflow-hidden group hover:border-slate-300 transition-colors">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-legal-gold to-slate-900 opacity-80" />
+              <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-slate-400">Garantías Lex</span>
+              <h2 className="mt-2 text-md font-bold text-slate-950">{block.title}</h2>
+              <p className="mt-2.5 text-xs leading-relaxed text-slate-500 font-medium">{block.body}</p>
             </WorkspacePanel>
           ))}
         </div>
 
+        {/* SEO Structured Content */}
         <div className="mt-12">
           <SEOContentSection
             title="Herramientas jurídicas laborales para México"
-            intro="Lex Laboral está orientado a búsquedas prácticas de usuarios que necesitan calcular liquidación, finiquito o cuotas IMSS, así como preparar un borrador documental laboral. La plataforma reúne una calculadora laboral gratuita para usuarios registrados, una calculadora IMSS para planes activos y un generador documental con acceso por plan o por documento suelto."
+            intro="Lex Laboral es un sistema de soporte profesional diseñado para simplificar cálculos indemnizatorios complejos y estructurar borradores jurídicos en materia del Derecho del Trabajo en México. Cada herramienta ha sido programada con referencias técnicas de la LFT y la Ley del Seguro Social vigentes para 2026."
             highlights={[
               {
-                title: 'Calculadora laboral',
-                body: 'Pensada para consultas frecuentes como liquidación por despido injustificado, finiquito, prima de antigüedad, vacaciones y aguinaldo proporcional.',
+                title: 'Calculadora de prestaciones',
+                body: 'Permite desglosar de forma detallada conceptos como indemnización de 3 meses, 20 días por año de servicio, aguinaldos y vacaciones proporcionales.',
               },
               {
-                title: 'Calculadora IMSS',
-                body: 'Enfocada en cuotas obrero-patronales, desglose por ramo de seguro y apoyo para revisar prima de riesgo e INFONAVIT.',
+                title: 'Cálculo de cuotas de IMSS',
+                body: 'Desglose claro por ramo de aseguramiento del régimen obligatorio y prima de riesgo patronal conforme a la Ley del Seguro Social.',
               },
               {
-                title: 'Generador documental',
-                body: 'Útil para construir borradores de documentos laborales frecuentes y partir de una base ordenada antes de la revisión jurídica final.',
+                title: 'Generación semántica asistida',
+                body: 'Escribe borradores formales de contratos y actas administrativas de forma rápida, enriquecidos semánticamente por artículos reales de la ley.',
               },
             ]}
             faqs={[
               {
-                question: 'Lex Laboral sirve para calcular liquidacion y finiquito en Mexico?',
-                answer: 'Sí. La plataforma incluye una calculadora de prestaciones laborales enfocada en escenarios frecuentes conforme a la normativa mexicana.',
+                question: '¿Qué es el motor RAG en Lex Laboral?',
+                answer: 'RAG (Retrieval-Augmented Generation) es un sistema inteligente que vectoriza tu solicitud, busca automáticamente los artículos más relevantes de la Ley Federal del Trabajo y del Seguro Social en Supabase, e inyecta esa fundamentación en la inteligencia de redacción para lograr borradores de extrema precisión.',
               },
               {
-                question: 'Que parte de la app es gratis?',
-                answer: 'La calculadora laboral es gratuita para usuarios registrados. La calculadora IMSS y el generador de documentos dependen del plan activo o del documento suelto.',
-              },
-              {
-                question: 'La plataforma esta dirigida a trabajadores o a abogados?',
-                answer: 'A ambos. Puede ser útil para trabajadores que quieren una estimación inicial y para despachos o áreas de recursos humanos que necesitan una referencia operativa rápida.',
+                question: '¿Es compatible y seguro en producción?',
+                answer: 'Sí. Todas las llamadas se realizan mediante endpoints cifrados y cuentan con rigurosos controles de seguridad, CORS y verificación del origen, alineados con el estándar de LexCorporativo.',
               },
             ]}
           />
         </div>
       </section>
 
-      <footer className="mx-auto mt-8 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-slate-200/80 px-6 py-8 text-center md:flex-row md:px-10 md:text-left">
+      {/* Elegant Homogeneous Footer */}
+      <footer className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-slate-200/60 px-6 py-10 text-center md:flex-row md:px-10 md:text-left">
         <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg bg-slate-950">
-            <img src="/assets/logo.webp" alt="Logo" className="h-full w-full object-cover" />
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl border border-legal-gold/20 bg-slate-950 p-1">
+            <img src="/assets/logo.webp" alt="Logo" className="h-full w-full object-cover rounded-md" />
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">Lex Laboral © 2026</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">Lex Laboral © 2026</span>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-6 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+        <div className="flex flex-wrap items-center justify-center gap-6 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">
           <a href={getPathForView(AppView.TERMS)} onClick={(event) => handleNavClick(event, AppView.TERMS)} className="transition-colors hover:text-slate-900">
             Términos
           </a>
@@ -267,8 +281,8 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
           </a>
         </div>
 
-        <p className="text-xs text-slate-500">
-          Desarrollado por <span className="font-bold text-slate-900">filex dev</span> en Mérida, Yucatán
+        <p className="text-[11px] text-slate-500 font-medium">
+          Desarrollado por <span className="font-bold text-slate-950">filex dev</span>
         </p>
       </footer>
     </div>

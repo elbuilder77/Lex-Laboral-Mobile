@@ -4,6 +4,8 @@ import { getAuthenticatedUser } from './_utils/auth.js';
 import { applyRateLimit } from './_utils/rateLimit.js';
 import { handlePreflight, validateOrigin, sanitizeInput, setSecurityHeaders } from './_utils/security.js';
 import { checkDocumentAccess, consumeDocumentAccess } from '../lib/server-access.js';
+import { supabaseAdmin } from '../lib/supabase-admin.js';
+import { retrieveRelevantContext } from './_utils/rag.js';
 
 export default async function handler(req: any, res: any) {
   // Security: CORS preflight
@@ -43,7 +45,14 @@ export default async function handler(req: any, res: any) {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const promptText = `TAREA: Proyecta el siguiente instrumento jurídico con base en los requerimientos. ES ESTRICTAMENTE OBLIGATORIO que utilices la estructura de [Proemio, Prestaciones o Declaraciones, Hechos o Cláusulas, Derecho, Puntos Resolutivos y Firmas] aplicable al tipo de documento.
+    
+    // RAG: Obtener contexto jurídico relevante basado en los requerimientos
+    const ragContext = await retrieveRelevantContext(supabaseAdmin, genAI, cleanRequirements);
+
+    const promptText = `CONTEXTO JURÍDICO DE REFERENCIA:
+${ragContext || 'No hay contexto de referencia disponible. Utiliza tu base de conocimientos interna.'}
+
+TAREA: Proyecta el siguiente instrumento jurídico con base en los requerimientos. ES ESTRICTAMENTE OBLIGATORIO que utilices la estructura de [Proemio, Prestaciones o Declaraciones, Hechos o Cláusulas, Derecho, Puntos Resolutivos y Firmas] aplicable al tipo de documento.
 
 Requerimientos del usuario:
 ${cleanRequirements}

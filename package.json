@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "test": "vitest"
+    "test": "vitest",
+    "seed:kb": "node supabase/seed-kb.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

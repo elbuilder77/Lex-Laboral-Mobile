@@ -71,12 +71,18 @@ export function validateOrigin(req: any, res: any): boolean {
   const origin = req.headers.origin || '';
   const referer = req.headers.referer || '';
   
+  if (!origin && !referer) {
+    console.warn('[Security] Blocked request with missing origin and referer headers.');
+    res.status(403).json({ error: 'Acceso no autorizado: cabeceras de origen ausentes.' });
+    return true; // blocked
+  }
+  
   const isValidOrigin = ALLOWED_ORIGINS.some(allowed => 
-    origin.startsWith(allowed) || referer.startsWith(allowed)
+    (origin && origin.startsWith(allowed)) || (referer && referer.startsWith(allowed))
   );
   
-  if (!isValidOrigin && origin && !origin.includes('localhost')) {
-    console.warn(`[Security] Blocked unauthorized origin: ${origin}`);
+  if (!isValidOrigin) {
+    console.warn(`[Security] Blocked unauthorized origin: ${origin || 'none'} (referer: ${referer || 'none'})`);
     res.status(403).json({ error: 'Acceso no autorizado desde este dominio.' });
     return true; // blocked
   }
