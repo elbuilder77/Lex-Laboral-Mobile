@@ -212,6 +212,10 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     window.print();
   }, []);
 
+  const setGeneratedDoc = useCallback((document: string) => {
+    setState((prev) => ({ ...prev, generatedDoc: document }));
+  }, [setState]);
+
   const handleDraft = useCallback(async () => {
     if (!prompt.trim()) return;
 
@@ -239,10 +243,6 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
       setIsDrafting(false);
     }
   }, [access, customInstructions, notify, onAuthRequired, onUpgrade, prompt, refreshAccess, setGeneratedDoc, user]);
-
-  const setGeneratedDoc = useCallback((document: string) => {
-    setState((prev) => ({ ...prev, generatedDoc: document }));
-  }, [setState]);
 
   return (
     <WorkspacePage className="no-print font-sans bg-[#FAFBFD]">

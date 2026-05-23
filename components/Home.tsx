@@ -49,16 +49,16 @@ const tools = [
 
 const supportBlocks = [
   {
-    title: 'Cálculo Exacto',
-    body: 'Parámetros y tasas de cálculo actualizados para el año 2026 (Salario Mínimo y UMA).',
+    title: '1. Entrada y Análisis',
+    body: 'Capturas los hechos clave de tu caso en un formulario optimizado para estructurar el escrito.',
   },
   {
-    title: 'Contexto RAG Semántico',
-    body: 'La IA busca y fundamenta automáticamente cada borrador documental en la LFT e IMSS.',
+    title: '2. Consulta Vectorial RAG',
+    body: 'El motor busca en milisegundos los artículos aplicables vigentes de la LFT y la Ley del IMSS (2026) en Supabase.',
   },
   {
-    title: 'Estilo Homogéneo',
-    body: 'Diseñado bajo la misma línea de alta gama y elegancia jurídica que LexCorporativo.',
+    title: '3. Redacción Fundada',
+    body: 'La IA de Gemini inyecta el contexto de ley extraído directamente en tu borrador final con precisión quirúrgica.',
   },
 ];
 
@@ -85,25 +85,18 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
             transition={{ duration: 0.5, ease: 'easeOut' }}
             className="flex flex-col space-y-8"
           >
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-legal-gold/30 bg-slate-950 p-[3px] shadow-[0_15px_35px_-12px_rgba(15,23,42,0.65)]">
-                <img src="/assets/logo.webp" alt="Lex Laboral Logo" className="h-full w-full object-cover rounded-[10px]" />
+            <div className="space-y-6">
+              {/* Premium Large Transparent Logo replacing text headings and subtitles */}
+              <div className="max-w-[440px] select-none animate-in fade-in duration-700">
+                <img 
+                  src="/assets/logo.webp" 
+                  alt="Lex Laboral" 
+                  className="w-full h-auto object-contain drop-shadow-[0_15px_30px_rgba(212,175,55,0.12)]" 
+                  loading="eager"
+                />
               </div>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-legal-gold">Lex Laboral</span>
-                <h2 className="text-xs text-slate-500 font-medium">Plataforma Profesional de Inteligencia Laboral</h2>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h1 className="font-serif text-4xl font-bold leading-[1.08] tracking-tight text-slate-950 sm:text-5xl md:text-6xl">
-                Cálculos laborales y <br />
-                <span className="bg-gradient-to-r from-slate-950 via-legal-gold to-slate-900 bg-clip-text text-transparent">
-                  documentos asistidos por IA.
-                </span>
-              </h1>
-              <p className="max-w-xl text-base leading-relaxed text-slate-600 font-medium">
-                La suite inteligente para el derecho del trabajo en México. Realiza cálculos exactos de liquidaciones, cuotas IMSS y proyecta escritos con fundamentación semántica (RAG).
+              <p className="max-w-xl text-sm leading-relaxed text-slate-600 font-medium">
+                La suite inteligente para el derecho del trabajo en México. A través de la tecnología **RAG (Generación Aumentada por Recuperación)**, la IA analiza tu caso, localiza en milisegundos los artículos aplicables de la LFT y la Ley del Seguro Social (LSS), y genera borradores con fundamentación legal exacta y personalizada.
               </p>
             </div>
 
@@ -147,14 +140,6 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                   <span>Iniciar sesión</span>
                 </button>
               )}
-
-              <button
-                onClick={(event) => handleNavClick(event, AppView.CALCULATOR)}
-                className="group inline-flex items-center gap-2 rounded-xl px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-slate-950 transition-colors"
-              >
-                <span>Calculadora Laboral</span>
-                <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-              </button>
             </div>
           </motion.div>
 
@@ -167,16 +152,8 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
             <WorkspacePanel className="relative overflow-hidden p-6 sm:p-7 border border-slate-200/80 bg-white/60 backdrop-blur-md rounded-[2rem] shadow-[0_30px_70px_-40px_rgba(15,23,42,0.15)]">
               <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-legal-gold/5 to-transparent pointer-events-none" />
               
-              {/* Box Info */}
-              <div className="relative rounded-2xl border border-slate-200/80 bg-slate-950 px-5.5 py-4.5 text-white shadow-xl">
-                <span className="text-[9px] font-bold uppercase tracking-[0.26em] text-legal-gold/80">Espacio de Trabajo</span>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
-                  Selecciona uno de los módulos de Lex Laboral a continuación para comenzar tu consulta o redacción semántica RAG.
-                </p>
-              </div>
-
               {/* Tools Cards */}
-              <div className="relative mt-5 space-y-3.5">
+              <div className="relative space-y-3.5">
                 {tools.map((tool, index) => (
                   <a
                     key={tool.view}
@@ -200,6 +177,12 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                       </div>
                       <h2 className="mt-2 text-md font-bold text-slate-950 transition-colors group-hover:text-legal-gold">{tool.title}</h2>
                       <p className="mt-1.5 text-xs leading-relaxed text-slate-500 font-medium">{tool.summary}</p>
+                      
+                      {/* Premium Information Hierarchy CTA Button */}
+                      <div className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-slate-900 bg-slate-950 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm transition-all duration-300 group-hover:bg-legal-gold group-hover:text-slate-950 group-hover:border-legal-gold group-hover:-translate-y-0.5">
+                        <span>{tool.action}</span>
+                        <ChevronRight size={12} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                      </div>
                     </div>
 
                     <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-slate-400 group-hover:bg-legal-gold/10 group-hover:text-legal-gold transition-colors duration-300">
@@ -220,7 +203,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
           {supportBlocks.map((block) => (
             <WorkspacePanel key={block.title} className="p-6.5 border border-slate-200/50 bg-white/70 shadow-sm rounded-2xl relative overflow-hidden group hover:border-slate-300 transition-colors">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-legal-gold to-slate-900 opacity-80" />
-              <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-slate-400">Garantías Lex</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-legal-gold">Proceso RAG Lex</span>
               <h2 className="mt-2 text-md font-bold text-slate-950">{block.title}</h2>
               <p className="mt-2.5 text-xs leading-relaxed text-slate-500 font-medium">{block.body}</p>
             </WorkspacePanel>
