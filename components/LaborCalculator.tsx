@@ -39,6 +39,7 @@ export const LaborCalculator: React.FC<{
   onOpenImss?: () => void;
   onOpenPricing?: (plan: 'draft_basic' | 'mensualidad' | 'trimestralidad') => void;
 }> = ({ notify, onRequireLogin, onOpenDrafting, onOpenImss, onOpenPricing }) => {
+  const resultsRef = React.useRef<HTMLDivElement>(null);
   const dismissalOptions: Array<{ value: DismissalType; label: string }> = [
     { value: 'injustificado', label: 'Injustificado' },
     { value: 'renuncia', label: 'Renuncia' },
@@ -193,6 +194,9 @@ export const LaborCalculator: React.FC<{
     });
     
     notify("Cálculo generado exitosamente", "success");
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const chartData = useMemo(() => {
@@ -345,16 +349,16 @@ export const LaborCalculator: React.FC<{
 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <label className="ui-label flex items-center gap-2">
+                    <label htmlFor="startDateInput" className="ui-label flex items-center gap-2">
                       <Calendar size={12} className="text-legal-gold" /> Ingreso
                     </label>
-                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="ui-input" />
+                    <input id="startDateInput" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="ui-input" />
                   </div>
                   <div className="space-y-3">
-                    <label className="ui-label flex items-center gap-2">
+                    <label htmlFor="endDateInput" className="ui-label flex items-center gap-2">
                       <Calendar size={12} className="text-legal-gold" /> Baja
                     </label>
-                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="ui-input" />
+                    <input id="endDateInput" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="ui-input" />
                   </div>
                 </div>
 
@@ -399,7 +403,7 @@ export const LaborCalculator: React.FC<{
           </div>
 
           {/* Results Section */}
-          <div className="lg:col-span-7">
+          <div ref={resultsRef} className="lg:col-span-7">
             <AnimatePresence mode="wait">
               {!results ? (
                 <WorkspaceEmpty

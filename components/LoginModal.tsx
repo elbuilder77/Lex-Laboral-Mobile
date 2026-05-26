@@ -134,6 +134,29 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, title =
           </div>
 
           <div className="p-8 sm:p-10 -mt-4 bg-white rounded-t-3xl relative z-10 flex flex-col">
+            {!sent && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className="w-full flex justify-center py-3.5 px-4 rounded-xl border border-slate-200 bg-white shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-all items-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed group font-semibold text-slate-700"
+                >
+                  <GoogleIcon />
+                  <span>Continuar con Google</span>
+                </button>
+
+                <div className="relative mt-6 mb-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white text-slate-400 font-medium tracking-wide">o ingresa con tu correo</span>
+                  </div>
+                </div>
+              </>
+            )}
+
             {sent ? (
               <div className="flex flex-col py-2 transition-all">
                  <div className="w-16 h-16 bg-legal-gold/10 text-legal-gold rounded-full flex items-center justify-center mx-auto mb-4">
@@ -230,29 +253,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, title =
                 </button>
               </form>
             )}
-           
-           {!sent && (
-             <>
-               <div className="relative mt-8 mb-6">
-                 <div className="absolute inset-0 flex items-center">
-                   <div className="w-full border-t border-slate-200" />
-                 </div>
-                 <div className="relative flex justify-center text-sm">
-                   <span className="px-4 bg-white text-slate-500 font-medium tracking-wide">o continúa con</span>
-                 </div>
-               </div>
-
-               <button
-                 type="button"
-                 onClick={handleGoogleLogin}
-                 disabled={loading}
-                 className="w-full flex justify-center py-3.5 px-4 rounded-xl border border-slate-200 bg-white shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-all items-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed group"
-               >
-                 <GoogleIcon />
-                 <span className="text-sm font-semibold text-slate-700">Google</span>
-               </button>
-             </>
-           )}
 
            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
              <p className="text-xs text-slate-500">

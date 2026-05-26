@@ -115,11 +115,17 @@
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 @media print {
-  body {
+  html, body, #root, main, main > div, .WorkspacePage, .WorkspacePanel {
     background: white !important;
-    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
     height: auto !important;
+    overflow: visible !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
   }
+  
   .no-print {
     display: none !important;
   }
@@ -127,15 +133,29 @@
     display: block !important;
   }
   .legal-document-print {
-    padding: 2.5cm !important;
+    position: relative !important;
+    padding: 2.5cm 2cm !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
     font-family: "Georgia", serif !important;
     font-size: 12pt !important;
-    line-height: 1.5 !important;
+    line-height: 1.65 !important;
     color: black !important;
     background: white !important;
     box-shadow: none !important;
     border: none !important;
+    page-break-after: always !important;
   }
+  
+  /* Asegurar que las cabeceras de decoración dorada del papel no salgan en impresión */
+  .legal-document-print::before, 
+  .legal-document-print::after, 
+  .legal-document-print > div[class*="absolute"] {
+    display: none !important;
+  }
+  
   .legal-header {
     border-bottom: 2pt solid #d4af37 !important;
     margin-bottom: 1cm !important;

@@ -147,6 +147,7 @@ const stepLabel = (step: string, title: string, description: string) => (
 
 export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUpgrade, onAuthRequired }) => {
   const { prompt, generatedDoc } = state;
+  const visualizerRef = React.useRef<HTMLDivElement>(null);
   const [isDrafting, setIsDrafting] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { user, access, refreshAccess } = useAuth();
@@ -230,6 +231,9 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     }
 
     setIsDrafting(true);
+    setTimeout(() => {
+      visualizerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
     try {
       notify('Iniciando Inteligencia Jurídica RAG...', 'info', 'Lex Laboral');
       const document = await draftLegalDocument(prompt, customInstructions, (chunk) => {
@@ -239,36 +243,38 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
       // Ensure the final state is set just in case
       setGeneratedDoc(document);
       notify('Borrador generado con referencias LFT/IMSS', 'success', 'Listo');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Drafting Error:', error);
-      notify('Error al contactar con la API de Gemini.', 'error');
+      notify(error?.message || 'Error al contactar con la API de Gemini.', 'error');
     } finally {
       setIsDrafting(false);
     }
   }, [access, customInstructions, notify, onAuthRequired, onUpgrade, prompt, refreshAccess, setGeneratedDoc, user]);
 
   return (
-    <WorkspacePage className="no-print font-sans bg-[#FAFBFD]">
-      <WorkspaceHeader
-        eyebrow="Redacción Inteligente"
-        title="Generador de Documentos"
-        description="Selecciona un formato legal, captura la información y genera un borrador fundado en la Ley Federal del Trabajo y del IMSS en segundos."
-        icon={<Scale size={26} className="text-legal-gold" />}
-        actions={
-          <button
-            onClick={() => onUpgrade?.()}
-            className="group inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:border-legal-gold/40"
-          >
-            <Sparkles size={14} className="text-legal-gold transition-transform group-hover:scale-110" />
-            <span>Ver planes de acceso</span>
-            <ChevronRight size={14} className="text-slate-400 transition-transform group-hover:translate-x-0.5" />
-          </button>
-        }
-      />
+    <WorkspacePage className="font-sans bg-[#FAFBFD]">
+      <div className="no-print">
+        <WorkspaceHeader
+          eyebrow="Redacción Inteligente"
+          title="Generador de Documentos"
+          description="Selecciona un formato legal, captura la información y genera un borrador fundado en la Ley Federal del Trabajo y del IMSS en segundos."
+          icon={<Scale size={26} className="text-legal-gold" />}
+          actions={
+            <button
+              onClick={() => onUpgrade?.()}
+              className="group inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:border-legal-gold/40"
+            >
+              <Sparkles size={14} className="text-legal-gold transition-transform group-hover:scale-110" />
+              <span>Ver planes de acceso</span>
+              <ChevronRight size={14} className="text-slate-400 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          }
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 mt-4">
         {/* Left Column: Input Form & Template Selector */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-5 space-y-6 no-print">
           
           {/* STEP 1: SELECTOR DE PLANTILLA */}
           <WorkspacePanel className="p-6 border border-slate-200/60 bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm space-y-6">
@@ -386,11 +392,11 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
         </div>
 
         {/* Right Column: Premium Legal Workspace Preview */}
-        <div className="lg:col-span-7">
-          <WorkspacePanel className="flex h-full min-h-[760px] flex-col overflow-hidden border border-slate-200/60 bg-[#F4F6F9] rounded-2xl shadow-sm">
+        <div ref={visualizerRef} className="lg:col-span-7">
+          <WorkspacePanel className="flex h-full min-h-[760px] flex-col overflow-hidden border border-slate-200/60 bg-[#F4F6F9] rounded-2xl shadow-sm print:bg-white print:border-none print:shadow-none print:h-auto print:min-h-0">
             
             {/* Output Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 bg-white/90 backdrop-blur-sm px-6 py-4.5">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-white/90 backdrop-blur-sm px-6 py-4.5 no-print">
               <div>
                 <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-slate-400">Estudio Jurídico Digital</span>
                 <h3 className="mt-1 text-md font-bold text-slate-950">
@@ -418,7 +424,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
             </div>
 
             {/* Visualizer Body */}
-            <div className="relative flex-1 overflow-y-auto p-6 sm:p-10 flex justify-center items-start">
+            <div className="relative flex-1 overflow-y-auto p-6 sm:p-10 flex justify-center items-start print:p-0 print:overflow-visible">
               
               {/* INTERACTIVE STEP-BY-STEP RAG SCANNER SCREEN */}
               {isDrafting ? (
@@ -465,7 +471,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
 
               {/* Borrador Generado en Formato Papel Realista */}
               {generatedDoc ? (
-                <div className="w-full max-w-[210mm] min-h-[297mm] rounded-sm border border-slate-200/80 bg-white p-[15mm] sm:p-[20mm] shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700 relative overflow-hidden">
+                <div className="w-full max-w-[210mm] min-h-[297mm] rounded-sm border border-slate-200/80 bg-white p-[15mm] sm:p-[20mm] shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700 relative overflow-hidden legal-document-print">
                   {/* Subtle golden header strip to match LexCorporativo style */}
                   <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-legal-gold/60 to-transparent" />
                   
@@ -515,16 +521,16 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 sm:p-6 backdrop-blur-md animate-fade-in no-print"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 sm:p-6 backdrop-blur-md animate-fade-in print:bg-white print:p-0"
           >
             <motion.div
               initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[#FAFAFA] shadow-[0_30px_70px_rgba(0,0,0,0.5)]"
+              className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[#FAFAFA] shadow-[0_30px_70px_rgba(0,0,0,0.5)] print:h-auto print:max-w-full print:border-none print:shadow-none print:bg-white"
             >
-              <div className="flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4.5">
+              <div className="flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4.5 no-print">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-slate-400">Vista Amplia de Edición</span>
                   <h3 className="mt-1 text-md font-bold text-slate-950">{selectedModel.title}</h3>
@@ -546,8 +552,8 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 sm:p-10 flex justify-center bg-[#FAFAFA]">
-                <div className="w-full max-w-[210mm] min-h-[297mm] rounded-sm border border-slate-200/80 bg-white p-[15mm] sm:p-[20mm] shadow-lg relative overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 sm:p-10 flex justify-center bg-[#FAFAFA] print:p-0 print:bg-white print:overflow-visible">
+                <div className="w-full max-w-[210mm] min-h-[297mm] rounded-sm border border-slate-200/80 bg-white p-[15mm] sm:p-[20mm] shadow-lg relative overflow-hidden legal-document-print">
                   <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-legal-gold/60 to-transparent" />
                   <div className="markdown-body prose prose-slate prose-sm max-w-none md:prose-base prose-headings:font-serif prose-headings:text-slate-950 prose-headings:border-b prose-headings:border-slate-100 prose-headings:pb-1.5 prose-p:leading-[1.85] prose-p:text-justify prose-p:text-slate-800 font-medium">
                     <ReactMarkdown>{generatedDoc}</ReactMarkdown>
