@@ -70,22 +70,22 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
   return (
     <div className="animate-fade-in font-sans bg-[#070b14] text-white min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(212,175,55,0.15),_transparent_55%),linear-gradient(180deg,_#0b0f19_0%,_#070b14_100%)] py-12 md:py-20">
+      <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(212,175,55,0.15),_transparent_55%),linear-gradient(180deg,_#0b0f19_0%,_#070b14_100%)] py-8 md:py-20">
         <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px]" />
         <div className="absolute -bottom-10 left-10 h-80 w-80 rounded-full bg-slate-900/30 blur-[100px]" />
 
-        <div className="mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center md:px-10">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:gap-12 px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center md:px-10">
           
           {/* Left Column: Heading and Brand */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="flex flex-col space-y-8"
+            className="flex flex-col space-y-5 md:space-y-8"
           >
-            <div className="space-y-6">
+            <div className="space-y-5">
               {/* Premium Large Transparent Logo replacing text headings and subtitles */}
-              <div className="max-w-[440px] select-none animate-in fade-in duration-700">
+              <div className="max-w-[280px] sm:max-w-[440px] select-none animate-in fade-in duration-700">
                 <img 
                   src="/assets/logo.webp" 
                   alt="Lex Laboral" 
@@ -93,20 +93,20 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                   loading="eager"
                 />
               </div>
-              <p className="max-w-xl text-sm leading-relaxed text-slate-300 font-medium">
+              <p className="max-w-xl text-[13px] sm:text-sm leading-relaxed text-slate-300 font-medium">
                 Automatización legal con tecnología RAG. Genera documentos personalizados con fundamentación legal exacta.
               </p>
             </div>
 
             {/* Badges */}
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-full border border-legal-gold/20 bg-legal-gold/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-legal-gold">
+            <div className="flex flex-wrap gap-1.5 md:gap-2">
+              <span className="rounded-full border border-legal-gold/20 bg-legal-gold/5 px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-legal-gold">
                 Liquidaciones y Finiquitos
               </span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 shadow-sm">
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 shadow-sm">
                 Seguridad Social IMSS
               </span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 shadow-sm">
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 shadow-sm">
                 Régimen Vigente 2026
               </span>
             </div>

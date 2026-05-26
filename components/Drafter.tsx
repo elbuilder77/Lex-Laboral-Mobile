@@ -147,6 +147,7 @@ const stepLabel = (step: string, title: string, description: string) => (
 
 export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUpgrade, onAuthRequired }) => {
   const { prompt, generatedDoc } = state;
+  const visualizerRef = React.useRef<HTMLDivElement>(null);
   const [isDrafting, setIsDrafting] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { user, access, refreshAccess } = useAuth();
@@ -230,6 +231,9 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     }
 
     setIsDrafting(true);
+    setTimeout(() => {
+      visualizerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
     try {
       notify('Iniciando Inteligencia Jurídica RAG...', 'info', 'Lex Laboral');
       const document = await draftLegalDocument(prompt, customInstructions, (chunk) => {
@@ -388,7 +392,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
         </div>
 
         {/* Right Column: Premium Legal Workspace Preview */}
-        <div className="lg:col-span-7">
+        <div ref={visualizerRef} className="lg:col-span-7">
           <WorkspacePanel className="flex h-full min-h-[760px] flex-col overflow-hidden border border-slate-200/60 bg-[#F4F6F9] rounded-2xl shadow-sm print:bg-white print:border-none print:shadow-none print:h-auto print:min-h-0">
             
             {/* Output Header */}
