@@ -287,8 +287,8 @@ export const SocialSecurityCalculator: React.FC<{
                       <h4 className="text-xs font-bold uppercase tracking-[0.24em] text-slate-900">Desglose de cuotas</h4>
                       <button onClick={handleExport} className="p-2 text-slate-400 hover:text-legal-950 transition-colors"><Download size={20} /></button>
                     </div>
-                    <div className="p-0">
-                      <table className="w-full text-left">
+                    <div className="p-0 overflow-x-auto no-scrollbar">
+                      <table className="w-full text-left min-w-[600px] md:min-w-0">
                         <thead>
                           <tr className="bg-slate-50">
                             <th className="p-6 text-xs font-bold text-slate-400 uppercase tracking-widest text-left">Concepto</th>
