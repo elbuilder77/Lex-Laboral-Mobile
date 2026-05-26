@@ -17,6 +17,19 @@ Para todo escrito legal que proyectes (demandas, contestaciones, convenios, acta
 4. Derecho (Fundamentación y Motivación en Ley Positiva)
 5. Puntos Resolutivos y Firmas
 
+EXCELENCIA EN PRESENTACIÓN Y FORMATO LEGAL (PRÍSTINO Y PROFESIONAL):
+Al redactar cualquier borrador legal, debes seguir rigurosamente estas pautas estéticas y tipográficas:
+1. Cero Conversación: NO incluyas textos de introducción ni de despedida (ej. "Aquí tienes el contrato...", "Espero que te sirva"). Tu respuesta debe iniciar DIRECTAMENTE con el título del documento en negritas y mayúsculas, y terminar exactamente con el bloque de firmas o la última nota legal.
+2. Títulos y Encabezados Claros: Los títulos de las secciones principales deben estar en mayúsculas, negritas y bien estructurados (ej. "### CONTRATO INDIVIDUAL DE TRABAJO", "### DECLARACIONES", "### CLÁUSULAS").
+3. Marcadores de Reemplazo Uniformes: Usa un formato de corchetes en negritas muy claro para cualquier dato variable, fecha o nombre omitido para que el usuario los ubique e identifique al instante (ej. **[Nombre del Trabajador]**, **[Fecha de Inicio]**, **[Monto del Salario]**).
+4. Bloques de Firmas Alineados: Al final de todo documento que lo amerite, diseña una sección de firmas impecable usando guiones bajos y negritas en bloques paralelos o filas limpias que rendericen de forma estética en el papel (ej:
+   
+   __________________________                __________________________
+     **[Nombre del Patrón]**                   **[Nombre del Trabajador]**
+            Por el Patrón                             El Trabajador
+   )
+5. Estructuración de Párrafos y Justificación Visual: Usa viñetas claras y listas numeradas para enumerar declaraciones, hechos o prestaciones. Evita bloques de texto excesivamente largos sin saltos de línea. El documento debe verse limpio y perfectamente espaciado en la hoja virtual.
+
 REGLAS DE OPERACIÓN:
 - SÍNTESIS ESTRATÉGICA: Sintetiza tus respuestas usando viñetas o listas numeradas.
 - FUNDAMENTACIÓN POSITIVA: Sustenta cada párrafo en la LFT, LSS o Jurisprudencia aplicable de la SCJN.
@@ -30,19 +43,35 @@ const FALLBACK_MODELS_FAST = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-fl
 
 const REQUEST_TIMEOUT_MS = 60000;
 
-export async function executeWithGeminiFallback(genAI: any, systemInstruction: string, useThinking: boolean, executeFn: (model: any) => Promise<any>) {
+export async function executeWithGeminiFallback(
+  genAI: any, 
+  systemInstruction: string, 
+  useThinking: boolean, 
+  executeFn: (model: any, onStreamStart: () => void) => Promise<any>
+) {
   const modelsToTry = useThinking ? FALLBACK_MODELS_THINKING : FALLBACK_MODELS_FAST;
   let lastError;
   const failedModels: string[] = [];
+  let streamStarted = false;
+
+  const onStreamStart = () => {
+    streamStarted = true;
+  };
   
   for (const modelName of modelsToTry) {
     try {
       const model = genAI.getGenerativeModel({ model: modelName, systemInstruction: systemInstruction });
-      return await withTimeout(executeFn(model), REQUEST_TIMEOUT_MS, modelName);
+      return await withTimeout(executeFn(model, onStreamStart), REQUEST_TIMEOUT_MS, modelName);
     } catch (error: any) {
       failedModels.push(modelName);
       console.warn(`[Fallback] Model ${modelName} failed:`, error.message);
       lastError = error;
+      
+      if (streamStarted) {
+        console.error(`[Fallback] Stream had already started. Aborting fallback loop to prevent duplicate/corrupted content.`);
+        throw error;
+      }
+      
       if (error.message.includes('Límite') || error.message.includes('Saldo') || error.message.includes('timeout')) {
         throw error;
       }

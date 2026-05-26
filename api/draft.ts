@@ -67,12 +67,13 @@ ${cleanInstructions || 'Ninguna'}
 
     let fullText = '';
 
-    await executeWithGeminiFallback(genAI, SYSTEM_INSTRUCTION, true, async (model) => {
+    await executeWithGeminiFallback(genAI, SYSTEM_INSTRUCTION, true, async (model, onStreamStart) => {
       const resultStream = await model.generateContentStream(promptText);
       for await (const chunk of resultStream.stream) {
         const chunkText = chunk.text();
         fullText += chunkText;
         res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+        onStreamStart(); // Notificar que la transmisión ha iniciado con éxito
       }
     });
 
