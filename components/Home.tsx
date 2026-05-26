@@ -74,16 +74,15 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
         <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px]" />
         <div className="absolute -bottom-10 left-10 h-80 w-80 rounded-full bg-slate-900/30 blur-[100px]" />
 
-        <div className="mx-auto grid max-w-7xl gap-8 lg:gap-12 px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center md:px-10">
-          
+        <div className="mx-auto grid max-w-7xl gap-6 lg:gap-12 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center md:px-10">
           {/* Left Column: Heading and Brand */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="flex flex-col space-y-5 md:space-y-8"
+            className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-5 md:space-y-8"
           >
-            <div className="space-y-5">
+            <div className="w-full flex flex-col items-center lg:items-start space-y-5">
               {/* Premium Large Transparent Logo replacing text headings and subtitles */}
               <div className="max-w-[280px] sm:max-w-[440px] select-none animate-in fade-in duration-700">
                 <img 
@@ -93,13 +92,13 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                   loading="eager"
                 />
               </div>
-              <p className="max-w-xl text-[13px] sm:text-sm leading-relaxed text-slate-300 font-medium">
+              <p className="max-w-xl text-[13px] sm:text-sm leading-relaxed text-slate-300 font-medium text-center lg:text-left">
                 Automatización legal con tecnología RAG. Genera documentos personalizados con fundamentación legal exacta.
               </p>
             </div>
 
             {/* Badges */}
-            <div className="flex flex-wrap gap-1.5 md:gap-2">
+            <div className="flex flex-wrap gap-1.5 md:gap-2 justify-center lg:justify-start">
               <span className="rounded-full border border-legal-gold/20 bg-legal-gold/5 px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-legal-gold">
                 Liquidaciones y Finiquitos
               </span>
@@ -112,7 +111,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
             </div>
 
             {/* Actions & Login Status */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-2 justify-center lg:justify-start">
               {user ? (
                 <div className="inline-flex items-center gap-3.5 rounded-2xl border border-white/10 bg-white/5 px-4.5 py-2.5 shadow-sm backdrop-blur-sm">
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-legal-gold to-yellow-600 text-[11px] font-bold text-slate-950 border border-white/10 shadow-inner">
@@ -130,17 +129,17 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto justify-center lg:justify-start">
                   <button
                     onClick={onLogin}
-                    className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-legal-gold px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_20px_45px_-12px_rgba(212,175,55,0.35)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_20px_45px_-12px_rgba(255,255,255,0.15)] active:translate-y-0"
+                    className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-legal-gold px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_20px_45px_-12px_rgba(212,175,55,0.35)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_20px_45px_-12px_rgba(255,255,255,0.15)] active:translate-y-0 w-full sm:w-auto"
                   >
                     <LogIn size={15} className="text-slate-950 transition-transform group-hover:translate-x-0.5" />
                     <span>Iniciar sesión</span>
                   </button>
                   <button
                     onClick={onLogin}
-                    className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-white/5 border border-white/10 px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-0.5 hover:bg-white/10 active:translate-y-0"
+                    className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-white/5 border border-white/10 px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-0.5 hover:bg-white/10 active:translate-y-0 w-full sm:w-auto"
                   >
                     <span>Crear cuenta</span>
                   </button>
@@ -155,7 +154,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: 'easeOut', delay: 0.08 }}
           >
-            <WorkspacePanel className="relative overflow-hidden p-6 sm:p-7 border border-white/5 bg-slate-950/40 backdrop-blur-md rounded-[2rem] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.7)]">
+            <WorkspacePanel className="relative overflow-hidden p-4 sm:p-7 border border-white/5 bg-slate-950/40 backdrop-blur-md rounded-[2rem] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.7)]">
               <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-legal-gold/5 to-transparent pointer-events-none" />
 
               {/* Tools Cards */}
@@ -165,19 +164,19 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                     key={tool.view}
                     href={getPathForView(tool.view)}
                     onClick={(event) => handleNavClick(event, tool.view)}
-                    className="group flex items-start gap-4.5 rounded-2xl border border-white/5 bg-slate-900/60 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-legal-gold/40 hover:bg-slate-900/80"
+                    className="group flex items-start gap-3 sm:gap-4.5 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-legal-gold/40 hover:bg-slate-900/80"
                   >
                     {/* Dark Icon Chip Homogeneous with LexCorporativo */}
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.1rem] border border-white/10 bg-slate-950 shadow-md group-hover:border-legal-gold/40 transition-colors duration-300">
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-[0.9rem] sm:rounded-[1.1rem] border border-white/10 bg-slate-950 shadow-md group-hover:border-legal-gold/40 transition-colors duration-300">
                       {tool.icon}
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-[10px] font-bold text-legal-gold tracking-widest font-mono">
                           {String(index + 1).padStart(2, '0')}
                         </span>
-                        <span className={`rounded-full border px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] ${tool.badgeStyle}`}>
+                        <span className={`rounded-full border px-2 py-0.5 text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.08em] sm:tracking-[0.16em] ${tool.badgeStyle}`}>
                           {tool.access}
                         </span>
                       </div>
@@ -204,10 +203,10 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
       </section>
 
       {/* Support Blocks Section */}
-      <section className="mx-auto max-w-7xl px-6 py-12 md:px-10">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 py-12 md:px-10">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {supportBlocks.map((block) => (
-            <WorkspacePanel key={block.title} className="p-6.5 border border-white/5 bg-slate-900/40 shadow-sm rounded-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
+            <WorkspacePanel key={block.title} className="p-5 sm:p-6.5 border border-white/5 bg-slate-900/40 shadow-sm rounded-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-legal-gold to-slate-900 opacity-80" />
               <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-legal-gold">Proceso RAG Lex</span>
               <h2 className="mt-2 text-md font-bold text-white">{block.title}</h2>
@@ -218,7 +217,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
       </section>
 
       {/* Elegant Homogeneous Footer */}
-      <footer className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-white/5 px-6 py-10 text-center md:flex-row md:px-10 md:text-left">
+      <footer className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-white/5 px-4 sm:px-6 py-10 text-center md:flex-row md:px-10 md:text-left">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl border border-legal-gold/20 bg-slate-950 p-1">
             <img src="/assets/logo.webp" alt="Logo" className="h-full w-full object-contain rounded-md" />
