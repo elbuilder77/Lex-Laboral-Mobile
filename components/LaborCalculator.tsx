@@ -345,16 +345,16 @@ export const LaborCalculator: React.FC<{
 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <label className="ui-label flex items-center gap-2">
+                    <label htmlFor="startDateInput" className="ui-label flex items-center gap-2">
                       <Calendar size={12} className="text-legal-gold" /> Ingreso
                     </label>
-                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="ui-input" />
+                    <input id="startDateInput" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="ui-input" />
                   </div>
                   <div className="space-y-3">
-                    <label className="ui-label flex items-center gap-2">
+                    <label htmlFor="endDateInput" className="ui-label flex items-center gap-2">
                       <Calendar size={12} className="text-legal-gold" /> Baja
                     </label>
-                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="ui-input" />
+                    <input id="endDateInput" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="ui-input" />
                   </div>
                 </div>
 

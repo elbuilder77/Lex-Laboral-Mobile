@@ -233,9 +233,6 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
           <a href={getPathForView(AppView.PRIVACY)} onClick={(event) => handleNavClick(event, AppView.PRIVACY)} className="transition-colors hover:text-white">
             Privacidad
           </a>
-          <a href="mailto:admin@lexlaboral.com.mx" className="transition-colors hover:text-white">
-            Soporte
-          </a>
         </div>
 
         <p className="text-[11px] text-slate-500 font-medium">

@@ -214,11 +214,10 @@ function App() {
           {/* Mobile Header */}
           <div className="md:hidden flex items-center justify-between px-6 py-4 bg-legal-950 text-white z-40 border-b border-white/5 shadow-2xl">
             <div 
-              className="flex items-center space-x-2 cursor-pointer"
+              className="flex items-center cursor-pointer"
               onClick={() => handleViewChange(AppView.HOME)}
             >
-               <img src="/assets/logo.webp" alt="Logo" className="w-8 h-8 rounded-lg object-contain" loading="lazy" />
-               <span className="font-serif font-bold text-lg">Lex Laboral</span>
+               <img src="/assets/logo.webp" alt="Lex Laboral" className="h-8 w-auto object-contain" loading="lazy" />
             </div>
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}

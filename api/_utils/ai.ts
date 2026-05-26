@@ -25,8 +25,8 @@ REGLAS DE OPERACIÓN:
 - FORMATO LIMPIO: Genera el texto en formato Markdown limpio, destacando elementos importantes.
 `;
 
-const FALLBACK_MODELS_THINKING = ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"];
-const FALLBACK_MODELS_FAST = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
+const FALLBACK_MODELS_THINKING = ["gemini-2.5-pro", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest"];
+const FALLBACK_MODELS_FAST = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-pro"];
 
 const REQUEST_TIMEOUT_MS = 60000;
 

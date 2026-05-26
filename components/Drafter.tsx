@@ -239,9 +239,9 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
       // Ensure the final state is set just in case
       setGeneratedDoc(document);
       notify('Borrador generado con referencias LFT/IMSS', 'success', 'Listo');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Drafting Error:', error);
-      notify('Error al contactar con la API de Gemini.', 'error');
+      notify(error?.message || 'Error al contactar con la API de Gemini.', 'error');
     } finally {
       setIsDrafting(false);
     }
