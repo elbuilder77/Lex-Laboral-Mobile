@@ -5,6 +5,7 @@ export const VIEW_PATHS: Record<AppView, string> = {
   [AppView.DRAFTING]: '/generador-documentos',
   [AppView.CALCULATOR]: '/calculadora-liquidacion',
   [AppView.SOCIAL_SECURITY]: '/calculadora-imss',
+  [AppView.PENSION_CALCULATOR]: '/calculadora-pensiones',
   [AppView.CEO_DASHBOARD]: '/panel-ceo',
   [AppView.TERMS]: '/terminos',
   [AppView.PRIVACY]: '/privacidad',

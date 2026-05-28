@@ -44,6 +44,16 @@ const tools = [
     badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
     icon: <ShieldCheck size={20} className="text-legal-gold" />,
   },
+  {
+    view: AppView.PENSION_CALCULATOR,
+    title: 'Calculadora de Pensiones',
+    summary: 'Estima tu pensión mensual del IMSS según la Ley de 1973 o 1997 basado en tus semanas cotizadas y salario.',
+    access: 'Acceso Gratuito con Registro',
+    action: 'Estimar Pensión',
+    accent: 'text-legal-gold',
+    badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
+    icon: <Calculator size={20} className="text-legal-gold" />,
+  },
 ];
 
 const supportBlocks = [
@@ -68,9 +78,9 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
   };
 
   return (
-    <div className="animate-fade-in font-sans bg-[#070b14] text-white min-h-screen">
+    <div className="animate-fade-in font-sans bg-[#020306] text-white min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(212,175,55,0.15),_transparent_55%),linear-gradient(180deg,_#0b0f19_0%,_#070b14_100%)] py-8 md:py-20">
+      <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(163,124,31,0.1),_transparent_45%),linear-gradient(180deg,_#050811_0%,_#020306_100%)] py-8 md:py-20">
         <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px]" />
         <div className="absolute -bottom-10 left-10 h-80 w-80 rounded-full bg-slate-900/30 blur-[100px]" />
 
@@ -84,11 +94,11 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
           >
             <div className="w-full flex flex-col items-center lg:items-start space-y-5">
               {/* Premium Large Transparent Logo replacing text headings and subtitles */}
-              <div className="max-w-[280px] sm:max-w-[440px] select-none animate-in fade-in duration-700">
+              <div className="max-w-[280px] sm:max-w-[440px] select-none animate-in fade-in duration-700 hue-rotate-[10deg] brightness-125 saturate-150 contrast-125 drop-shadow-[0_0_15px_rgba(224,175,34,0.4)]">
                 <img 
                   src="/assets/logo.webp" 
                   alt="Lex Laboral" 
-                  className="w-full h-auto object-contain drop-shadow-[0_15px_35px_rgba(212,175,55,0.15)]" 
+                  className="w-full h-auto object-contain drop-shadow-[0_15px_35px_rgba(224,175,34,0.15)]"
                   loading="eager"
                 />
               </div>
@@ -206,7 +216,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 py-12 md:px-10">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {supportBlocks.map((block) => (
-            <WorkspacePanel key={block.title} className="p-5 sm:p-6.5 border border-white/5 bg-slate-900/40 shadow-sm rounded-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
+            <WorkspacePanel key={block.title} className="p-5 sm:p-6.5 border border-white/5 bg-slate-950/60 shadow-sm rounded-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-legal-gold to-slate-900 opacity-80" />
               <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-legal-gold">Proceso RAG Lex</span>
               <h2 className="mt-2 text-md font-bold text-white">{block.title}</h2>
