@@ -59,6 +59,13 @@ const SEO_MAP: Record<AppView, SEOConfig> = {
     ogTitle: 'Calculadora de Cuotas IMSS e INFONAVIT en México 2026',
     ogDescription: 'Desglose completo de cuotas de seguridad social para patrones y trabajadores en México.',
   },
+  [AppView.PENSION_CALCULATOR]: {
+    title: `Calculadora de Pensiones IMSS en México | ${SITE_NAME}`,
+    description: 'Calcula tu pensión del IMSS bajo el Régimen 1973 y Régimen 1997. Estima tu monto mensual de pensión de forma rápida y gratuita.',
+    path: getPathForView(AppView.PENSION_CALCULATOR),
+    ogTitle: 'Calculadora de Pensiones IMSS en México (Ley 73 y 97)',
+    ogDescription: 'Calcula la estimación de tu pensión del IMSS basada en tus semanas cotizadas y salario o saldo de AFORE.',
+  },
   [AppView.CEO_DASHBOARD]: {
     title: `Panel de Administración | ${SITE_NAME}`,
     description: 'Panel de control y métricas de Lex Laboral.',
@@ -162,6 +169,7 @@ function buildSchemas(view: AppView, fullUrl: string, title: string, description
     [AppView.CALCULATOR]: ['Inicio', 'Calculadora de Liquidación'],
     [AppView.DRAFTING]: ['Inicio', 'Generador de Documentos'],
     [AppView.SOCIAL_SECURITY]: ['Inicio', 'Calculadora IMSS'],
+    [AppView.PENSION_CALCULATOR]: ['Inicio', 'Calculadora de Pensiones'],
     [AppView.CEO_DASHBOARD]: ['Inicio', 'Panel CEO'],
     [AppView.TERMS]: ['Inicio', 'Términos'],
     [AppView.PRIVACY]: ['Inicio', 'Privacidad'],
@@ -189,7 +197,7 @@ function buildSchemas(view: AppView, fullUrl: string, title: string, description
     offers: {
       '@type': 'Offer',
       priceCurrency: 'MXN',
-      price: view === AppView.CALCULATOR || view === AppView.HOME ? '0' : '0',
+      price: view === AppView.CALCULATOR || view === AppView.HOME || view === AppView.PENSION_CALCULATOR ? '0' : '0',
       availability: 'https://schema.org/InStock',
     },
     provider: {
@@ -257,6 +265,16 @@ function buildSchemas(view: AppView, fullUrl: string, title: string, description
       {
         question: 'La calculadora IMSS es gratuita?',
         answer: 'No, está disponible para usuarios con plan mensual o trimestral activo.',
+      },
+    ],
+    [AppView.PENSION_CALCULATOR]: [
+      {
+        question: '¿Qué ley de IMSS utiliza esta calculadora de pensiones?',
+        answer: 'Soporta cálculos estimados tanto para la Ley del Seguro Social de 1973 (basada en salario promedio y semanas cotizadas) como para la Ley de 1997 (basada en el saldo de la AFORE).',
+      },
+      {
+        question: '¿Es exacta la calculadora de pensiones?',
+        answer: 'Los resultados son estimaciones basadas en las fórmulas generales de la Ley del Seguro Social. Para obtener tu resolución definitiva debes acudir al IMSS.',
       },
     ],
   };

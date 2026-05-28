@@ -31,6 +31,7 @@ export const Sidebar = React.memo<SidebarProps>(({ currentView, onChangeView, on
     { id: AppView.HOME, label: 'Inicio', icon: <Home size={18} /> },
     { id: AppView.CALCULATOR, label: 'Liquidación y Finiquito', icon: <Calculator size={18} /> },
     { id: AppView.SOCIAL_SECURITY, label: 'IMSS e INFONAVIT', icon: <ShieldCheck size={18} /> },
+    { id: AppView.PENSION_CALCULATOR, label: 'Calculadora de Pensiones', icon: <Calculator size={18} /> },
     { id: AppView.DRAFTING, label: 'Generador Documental', icon: <PenTool size={18} /> },
   ];
 
