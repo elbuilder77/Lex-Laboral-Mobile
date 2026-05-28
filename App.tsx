@@ -17,6 +17,7 @@ import { getPathForView, getViewForPath } from './lib/routes';
 const Drafter = lazy(() => import('./components/Drafter').then(module => ({ default: module.Drafter })));
 const LaborCalculator = lazy(() => import('./components/LaborCalculator').then(module => ({ default: module.LaborCalculator })));
 const SocialSecurityCalculator = lazy(() => import('./components/SocialSecurityCalculator').then(module => ({ default: module.SocialSecurityCalculator })));
+const PensionCalculator = lazy(() => import('./components/PensionCalculator').then(module => ({ default: module.PensionCalculator })));
 const CEODashboard = lazy(() => import('./components/CEODashboard').then(module => ({ default: module.CEODashboard })));
 
 import { AppView, AppNotification, NotificationType, DraftingState } from './types';
@@ -188,6 +189,11 @@ function App() {
                     })
                   }
                   onRequirePremium={() => openPricingModal('mensualidad')}
+                />;
+              case AppView.PENSION_CALCULATOR:
+                return <PensionCalculator
+                  notify={notify}
+                  onRequireLogin={() => openLoginModal()}
                 />;
               case AppView.CEO_DASHBOARD:
                 return isCEO ? <CEODashboard /> : <Home onNavigate={handleViewChange} user={user} onLogin={() => openLoginModal()} onLogout={handleLogout} />;
