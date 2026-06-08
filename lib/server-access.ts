@@ -204,6 +204,14 @@ const recordImssUsageFallback = async (userId: string) => {
 };
 
 export const getUserAccessSnapshot = async (userId: string) => {
+  const rpcResult = await supabaseAdmin.rpc('get_access_snapshot', {
+    p_user_id: userId
+  });
+
+  if (!rpcResult.error && rpcResult.data) {
+    return rpcResult.data;
+  }
+
   const [userRecord, singleDocumentUsesRemaining] = await Promise.all([
     getUserAccessRow(userId),
     getSingleDocumentUsesRemaining(userId)

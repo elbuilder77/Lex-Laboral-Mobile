@@ -77,6 +77,12 @@ export const SocialSecurityCalculator: React.FC<{
       return;
     }
 
+    if (!access.hasActiveSubscription) {
+      onRequirePremium?.();
+      notify("Esta calculadora requiere un plan mensual o trimestral activo", "info");
+      return;
+    }
+
     if (sbc <= 0) {
       notify("El Salario Base de Cotización debe ser un número positivo", "error");
       return;

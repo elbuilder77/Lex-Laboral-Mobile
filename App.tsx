@@ -9,7 +9,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAuth } from './components/AuthProvider';
 import { LoginModal } from './components/LoginModal';
 import { trackEvent } from './lib/analytics';
-import { supabase } from './lib/supabase';
 import { updateSEO } from './lib/seo';
 import { getPathForView, getViewForPath } from './lib/routes';
 
@@ -23,8 +22,7 @@ const CEODashboard = lazy(() => import('./components/CEODashboard').then(module 
 import { AppView, AppNotification, NotificationType, DraftingState } from './types';
 import { Menu, X } from 'lucide-react';
 
-// CEO email check — only this email can see the Dashboard
-const CEO_EMAIL = import.meta.env.VITE_CEO_EMAIL || '';
+// CEO check moved to secure backend route
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>(() => getViewForPath(window.location.pathname));
@@ -40,11 +38,11 @@ function App() {
     sourceView?: AppView;
   } | null>(null);
 
-  const { user, access, loading: authLoading } = useAuth();
+  const { user, access, loading: authLoading, session, signOut } = useAuth();
   const previousUserRef = useRef<typeof user>(user);
 
-  // Check if the current user is the CEO
-  const isCEO = CEO_EMAIL !== '' && user?.email?.toLowerCase() === CEO_EMAIL.toLowerCase();
+  // isCEO now fetched from secure backend endpoint
+  const [isCEO, setIsCEO] = useState(false);
 
   const notify = useCallback((message: string, type: NotificationType = 'info', title?: string) => {
     const id = crypto.randomUUID();
@@ -100,10 +98,10 @@ function App() {
   }, []);
 
   const handleLogout = useCallback(async () => {
-    await supabase.auth.signOut();
+    await signOut();
     setCurrentView(AppView.HOME);
     notify('Sesión cerrada correctamente', 'info');
-  }, [notify]);
+  }, [notify, signOut]);
 
   useEffect(() => {
     const hadUser = previousUserRef.current;
@@ -138,6 +136,30 @@ function App() {
     pendingPostLoginAction,
     user,
   ]);
+
+  // Secure CEO check using backend
+  useEffect(() => {
+    if (!user) {
+      setIsCEO(false);
+      return;
+    }
+    const checkCEO = async () => {
+      try {
+        const res = await fetch('/api/ceo/verify', {
+          headers: session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setIsCEO(data.isCEO === true);
+        } else {
+          setIsCEO(false);
+        }
+      } catch {
+        setIsCEO(false);
+      }
+    };
+    checkCEO();
+  }, [session?.access_token, user]);
 
   const renderView = () => {
     return (

@@ -152,11 +152,19 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { user, access, refreshAccess } = useAuth();
 
-  const [selectedTemplate, setSelectedTemplate] = useState('contrato');
-  const [employeeName, setEmployeeName] = useState('');
-  const [position, setPosition] = useState('');
-  const [details, setDetails] = useState('');
-  const [customInstructions, setCustomInstructions] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState(() => localStorage.getItem('draft_template') || 'contrato');
+  const [employeeName, setEmployeeName] = useState(() => localStorage.getItem('draft_employeeName') || '');
+  const [position, setPosition] = useState(() => localStorage.getItem('draft_position') || '');
+  const [details, setDetails] = useState(() => localStorage.getItem('draft_details') || '');
+  const [customInstructions, setCustomInstructions] = useState(() => localStorage.getItem('draft_customInstructions') || '');
+
+  useEffect(() => {
+    localStorage.setItem('draft_template', selectedTemplate);
+    localStorage.setItem('draft_employeeName', employeeName);
+    localStorage.setItem('draft_position', position);
+    localStorage.setItem('draft_details', details);
+    localStorage.setItem('draft_customInstructions', customInstructions);
+  }, [selectedTemplate, employeeName, position, details, customInstructions]);
 
   // RAG Scanner state variables for premium simulation
   const [ragStep, setRagStep] = useState(1);
@@ -240,7 +248,9 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
         setGeneratedDoc(chunk);
       });
       await refreshAccess();
-      // Ensure the final state is set just in case
+      // Clear persistence after successful draft
+      localStorage.removeItem('draft_details');
+      localStorage.removeItem('draft_customInstructions');
       setGeneratedDoc(document);
       notify('Borrador generado con referencias LFT/IMSS', 'success', 'Listo');
     } catch (error: any) {
@@ -477,6 +487,11 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
                   
                   <div className="markdown-body prose prose-slate prose-sm max-w-none md:prose-base prose-headings:font-serif prose-headings:text-slate-950 prose-headings:border-b prose-headings:border-slate-100 prose-headings:pb-1.5 prose-p:leading-[1.85] prose-p:text-justify prose-p:text-slate-800 font-medium">
                     <ReactMarkdown>{generatedDoc}</ReactMarkdown>
+                    <div className="mt-12 pt-6 border-t border-slate-200/60 no-print">
+                      <p className="text-[10px] text-slate-400 font-medium text-center italic">
+                        Generado con Inteligencia Artificial por Lex Laboral. Este documento es un borrador y debe ser revisado por un profesional legal.
+                      </p>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -557,6 +572,11 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
                   <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-legal-gold/60 to-transparent" />
                   <div className="markdown-body prose prose-slate prose-sm max-w-none md:prose-base prose-headings:font-serif prose-headings:text-slate-950 prose-headings:border-b prose-headings:border-slate-100 prose-headings:pb-1.5 prose-p:leading-[1.85] prose-p:text-justify prose-p:text-slate-800 font-medium">
                     <ReactMarkdown>{generatedDoc}</ReactMarkdown>
+                    <div className="mt-12 pt-6 border-t border-slate-200/60 no-print">
+                      <p className="text-[10px] text-slate-400 font-medium text-center italic">
+                        Generado con Inteligencia Artificial por Lex Laboral. Este documento es un borrador y debe ser revisado por un profesional legal.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

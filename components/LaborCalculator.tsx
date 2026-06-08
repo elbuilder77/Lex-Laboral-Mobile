@@ -22,15 +22,16 @@ import {
 } from 'lucide-react';
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { BreakdownChart } from './BreakdownChart';
 import { useAuth } from './AuthProvider';
 import { SEOContentSection } from './SEOContentSection';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { WorkspaceEmpty, WorkspaceHeader, WorkspacePage, WorkspacePanel } from './ui/Workspace';
 
 type DismissalType = 'injustificado' | 'renuncia' | 'rescision_patron' | 'rescision_trabajador';
+
+const LazyBreakdownChart = React.lazy(() =>
+  import('./BreakdownChart').then((module) => ({ default: module.BreakdownChart }))
+);
 
 export const LaborCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
@@ -195,7 +196,9 @@ export const LaborCalculator: React.FC<{
     
     notify("Cálculo generado exitosamente", "success");
     setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (typeof resultsRef.current?.scrollIntoView === 'function') {
+        resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }, 100);
   };
 
@@ -215,6 +218,10 @@ export const LaborCalculator: React.FC<{
   const handleExportPDF = async () => {
     if (!results) return;
     try {
+      const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable'),
+      ]);
       const doc = new jsPDF();
       const primaryColor: [number, number, number] = [30, 41, 59];
       const goldColor: [number, number, number] = [212, 175, 55];
@@ -439,7 +446,9 @@ export const LaborCalculator: React.FC<{
                       <div className="p-10 border-b md:border-b-0 md:border-r border-slate-50">
                         <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">Composición</h4>
                         <div className="h-[280px]">
-                          <BreakdownChart data={chartData} />
+                          <React.Suspense fallback={<div className="h-full rounded-2xl bg-slate-50" />}>
+                            <LazyBreakdownChart data={chartData} />
+                          </React.Suspense>
                         </div>
                       </div>
 

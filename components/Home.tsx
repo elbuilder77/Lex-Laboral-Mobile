@@ -81,8 +81,8 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
     <div className="animate-fade-in font-sans bg-[#020306] text-white min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(163,124,31,0.1),_transparent_45%),linear-gradient(180deg,_#050811_0%,_#020306_100%)] py-8 md:py-20">
-        <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px]" />
-        <div className="absolute -bottom-10 left-10 h-80 w-80 rounded-full bg-slate-900/30 blur-[100px]" />
+        <div className="absolute right-0 top-0 hidden h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px] md:block" />
+        <div className="absolute -bottom-10 left-10 hidden h-80 w-80 rounded-full bg-slate-900/30 blur-[100px] md:block" />
 
         <div className="mx-auto grid max-w-7xl gap-6 lg:gap-12 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center md:px-10">
           {/* Left Column: Heading and Brand */}
@@ -98,8 +98,12 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                 <img 
                   src="/assets/logo.webp" 
                   alt="Lex Laboral" 
+                  width={800}
+                  height={285}
                   className="w-full h-auto object-contain drop-shadow-[0_15px_35px_rgba(224,175,34,0.15)]"
                   loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
                 />
               </div>
               <p className="max-w-xl text-[13px] sm:text-sm leading-relaxed text-slate-300 font-medium text-center lg:text-left">
@@ -230,7 +234,15 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
       <footer className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-white/5 px-4 sm:px-6 py-10 text-center md:flex-row md:px-10 md:text-left">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl border border-legal-gold/20 bg-slate-950 p-1">
-            <img src="/assets/logo.webp" alt="Logo" className="h-full w-full object-contain rounded-md" />
+            <img
+              src="/assets/logo.webp"
+              alt="Logo"
+              width={800}
+              height={285}
+              className="h-full w-full object-contain rounded-md"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
           <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">Lex Laboral © 2026</span>
         </div>

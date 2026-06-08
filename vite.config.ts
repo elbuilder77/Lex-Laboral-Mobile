@@ -19,6 +19,15 @@ export default defineConfig(({ mode }) => {
         }
       },
       build: {
+        modulePreload: {
+          resolveDependencies(_, deps, context) {
+            if (context.hostType !== 'html') return deps;
+
+            return deps.filter((dep) =>
+              !dep.includes('vendor-pdf') && !dep.includes('vendor-charts')
+            );
+          },
+        },
         rollupOptions: {
           output: {
             manualChunks(id) {
