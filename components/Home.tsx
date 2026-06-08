@@ -80,21 +80,21 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
   return (
     <div className="animate-fade-in font-sans bg-[#020306] text-white min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(163,124,31,0.1),_transparent_45%),linear-gradient(180deg,_#050811_0%,_#020306_100%)] py-8 md:py-20">
+      <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(163,124,31,0.1),_transparent_45%),linear-gradient(180deg,_#050811_0%,_#020306_100%)] py-12 md:py-24">
         <div className="absolute right-0 top-0 hidden h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px] md:block" />
         <div className="absolute -bottom-10 left-10 hidden h-80 w-80 rounded-full bg-slate-900/30 blur-[100px] md:block" />
 
-        <div className="mx-auto grid max-w-7xl gap-6 lg:gap-12 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center md:px-10">
-          {/* Left Column: Heading and Brand */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-10 flex flex-col items-center">
+          {/* Centered Brand & Heading */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-5 md:space-y-8"
+            className="flex flex-col items-center text-center space-y-6 md:space-y-8 max-w-3xl"
           >
-            <div className="w-full flex flex-col items-center lg:items-start space-y-5">
-              {/* Premium Large Transparent Logo replacing text headings and subtitles */}
-              <div className="max-w-[280px] sm:max-w-[440px] select-none animate-in fade-in duration-700 hue-rotate-[10deg] brightness-125 saturate-150 contrast-125 drop-shadow-[0_0_15px_rgba(224,175,34,0.4)]">
+            <div className="flex flex-col items-center space-y-5">
+              {/* Premium Large Transparent Logo */}
+              <div className="max-w-[320px] sm:max-w-[480px] select-none animate-in fade-in duration-700 hue-rotate-[10deg] brightness-125 saturate-150 contrast-125 drop-shadow-[0_0_20px_rgba(224,175,34,0.45)]">
                 <img 
                   src="/assets/logo.webp" 
                   alt="Lex Laboral" 
@@ -106,13 +106,13 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                   fetchPriority="high"
                 />
               </div>
-              <p className="max-w-xl text-[13px] sm:text-sm leading-relaxed text-slate-300 font-medium text-center lg:text-left">
+              <p className="max-w-xl text-[13px] sm:text-sm leading-relaxed text-slate-300 font-medium text-center">
                 Automatización legal con tecnología RAG. Genera documentos personalizados con fundamentación legal exacta.
               </p>
             </div>
 
             {/* Badges */}
-            <div className="flex flex-wrap gap-1.5 md:gap-2 justify-center lg:justify-start">
+            <div className="flex flex-wrap gap-1.5 md:gap-2 justify-center">
               <span className="rounded-full border border-legal-gold/20 bg-legal-gold/5 px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-legal-gold">
                 Liquidaciones y Finiquitos
               </span>
@@ -125,7 +125,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
             </div>
 
             {/* Actions & Login Status */}
-            <div className="flex flex-wrap items-center gap-4 pt-2 justify-center lg:justify-start">
+            <div className="flex flex-wrap items-center gap-4 pt-2 justify-center">
               {user ? (
                 <div className="inline-flex items-center gap-3.5 rounded-2xl border border-white/10 bg-white/5 px-4.5 py-2.5 shadow-sm backdrop-blur-sm">
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-legal-gold to-yellow-600 text-[11px] font-bold text-slate-950 border border-white/10 shadow-inner">
@@ -143,7 +143,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                   </button>
                 </div>
               ) : (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto justify-center lg:justify-start">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto justify-center">
                   <button
                     onClick={onLogin}
                     className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-legal-gold px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_20px_45px_-12px_rgba(212,175,55,0.35)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_20px_45px_-12px_rgba(255,255,255,0.15)] active:translate-y-0 w-full sm:w-auto"
@@ -162,17 +162,18 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
             </div>
           </motion.div>
 
-          {/* Right Column: Interactive Dashboard Panel */}
+          {/* Tools Grid Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: 'easeOut', delay: 0.08 }}
+            className="w-full mt-16 max-w-6xl"
           >
-            <WorkspacePanel className="relative overflow-hidden p-4 sm:p-7 border border-white/5 bg-slate-950/40 backdrop-blur-md rounded-[2rem] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.7)]">
+            <WorkspacePanel className="relative overflow-hidden p-6 sm:p-10 border border-white/5 bg-slate-950/40 backdrop-blur-md rounded-[2.5rem] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.7)]">
               <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-legal-gold/5 to-transparent pointer-events-none" />
 
-              {/* Tools Cards */}
-              <div className="relative space-y-3.5">
+              {/* Tools Cards arranged in 2x2 Grid */}
+              <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6">
                 {tools.map((tool, index) => (
                   <a
                     key={tool.view}
@@ -212,7 +213,6 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
               </div>
             </WorkspacePanel>
           </motion.div>
-
         </div>
       </section>
 
