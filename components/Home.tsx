@@ -90,11 +90,11 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="flex flex-col items-center text-center space-y-6 md:space-y-8 max-w-3xl"
+            className="flex flex-col items-center text-center space-y-5 md:space-y-6 max-w-3xl"
           >
-            <div className="flex flex-col items-center space-y-5">
+            <div className="flex flex-col items-center space-y-4">
               {/* Premium Large Transparent Logo */}
-              <div className="max-w-[320px] sm:max-w-[480px] select-none animate-in fade-in duration-700 hue-rotate-[10deg] brightness-125 saturate-150 contrast-125 drop-shadow-[0_0_20px_rgba(224,175,34,0.45)]">
+              <div className="max-w-[360px] sm:max-w-[540px] select-none animate-in fade-in duration-700 hue-rotate-[10deg] brightness-125 saturate-150 contrast-125 drop-shadow-[0_0_20px_rgba(224,175,34,0.45)] -mt-6">
                 <img 
                   src="/assets/logo.webp" 
                   alt="Lex Laboral" 
@@ -106,9 +106,6 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                   fetchPriority="high"
                 />
               </div>
-              <p className="max-w-xl text-[13px] sm:text-sm leading-relaxed text-slate-300 font-medium text-center">
-                Automatización legal con tecnología RAG. Genera documentos personalizados con fundamentación legal exacta.
-              </p>
             </div>
 
             {/* Badges */}
