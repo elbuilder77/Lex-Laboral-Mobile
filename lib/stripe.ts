@@ -12,7 +12,7 @@ export const getStripe = (): Stripe => {
     }
 
     stripeInstance = new Stripe(stripeSecretKey, {
-      apiVersion: '2025-01-27.acacia' as any
+      apiVersion: '2026-02-25.clover' as any
     });
   }
   return stripeInstance;

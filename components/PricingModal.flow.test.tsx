@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PricingModal } from './PricingModal';
+import { PENDING_CHECKOUT_STORAGE_KEY, PricingModal } from './PricingModal';
 
 const { mockAuthState, createCheckoutSessionMock, redirectToCheckoutMock } = vi.hoisted(() => ({
   mockAuthState: {
@@ -30,6 +30,7 @@ describe('PricingModal flow', () => {
     mockAuthState.session = null;
     createCheckoutSessionMock.mockReset();
     redirectToCheckoutMock.mockReset();
+    window.sessionStorage.clear();
   });
 
   it('sends unauthenticated users to login preserving the selected plan', () => {
@@ -79,5 +80,8 @@ describe('PricingModal flow', () => {
     });
 
     expect(redirectToCheckoutMock).toHaveBeenCalledWith('https://checkout.stripe.test');
+    expect(JSON.parse(window.sessionStorage.getItem(PENDING_CHECKOUT_STORAGE_KEY) || '{}')).toMatchObject({
+      plan: 'draft_basic',
+    });
   });
 });

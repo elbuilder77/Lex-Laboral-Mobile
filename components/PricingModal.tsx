@@ -3,13 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Crown, Shield, PenTool, Sparkles, Zap } from 'lucide-react';
 import { createCheckoutSession, redirectToCheckout } from '../services/stripe';
 import { useAuth } from './AuthProvider';
+import type { CheckoutPlan } from '../types';
+
+export const PENDING_CHECKOUT_STORAGE_KEY = 'lexlaboral_pending_checkout';
 
 interface PricingModalProps {
   isOpen: boolean;
   onClose: () => void;
   notify: (m: string, t?: any, tit?: string) => void;
-  initialPlan?: 'draft_basic' | 'mensualidad' | 'trimestralidad';
-  onRequireLogin?: (plan: 'draft_basic' | 'mensualidad' | 'trimestralidad') => void;
+  initialPlan?: CheckoutPlan;
+  onRequireLogin?: (plan: CheckoutPlan) => void;
 }
 
 export const PricingModal: React.FC<PricingModalProps> = ({ 
@@ -22,7 +25,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   const [loading, setLoading] = React.useState<string | null>(null);
   const { user, session } = useAuth();
   
-  const handlePurchase = async (plan: 'draft_basic' | 'mensualidad' | 'trimestralidad') => {
+  const handlePurchase = async (plan: CheckoutPlan) => {
     if (!user) {
       onClose();
       if (onRequireLogin) onRequireLogin(plan);
@@ -38,9 +41,23 @@ export const PricingModal: React.FC<PricingModalProps> = ({
         plan, 
         session?.access_token || ''
       );
+
+      try {
+        window.sessionStorage.setItem(
+          PENDING_CHECKOUT_STORAGE_KEY,
+          JSON.stringify({ plan, startedAt: Date.now() })
+        );
+      } catch {
+        // Session storage is a convenience for post-payment routing, not a source of truth.
+      }
       
       await redirectToCheckout(url);
     } catch (error: any) {
+      try {
+        window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
+      } catch {
+        // Ignore storage cleanup failures.
+      }
       console.error('Stripe error:', error);
       const msg = error?.message || "No se pudo iniciar el proceso de pago.";
       notify(msg, "error", "Error de Stripe");

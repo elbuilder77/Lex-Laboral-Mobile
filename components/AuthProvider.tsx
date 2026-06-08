@@ -2,20 +2,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { hasActiveSubscription } from '../lib/access-policy';
-
-type AccessSnapshot = {
-  hasActiveSubscription: boolean;
-  isPremium: boolean;
-  licenseType: string | null;
-  accessUntil: string | null;
-  singleDocumentUsesRemaining: number;
-};
+import type { AccessSnapshot } from '../types';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   access: AccessSnapshot;
-  refreshAccess: () => Promise<void>;
+  refreshAccess: () => Promise<AccessSnapshot>;
   signOut: () => Promise<void>;
   session: any | null;
 }
@@ -32,7 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   access: defaultAccess,
-  refreshAccess: async () => {},
+  refreshAccess: async () => defaultAccess,
   signOut: async () => {},
   session: null,
 });
@@ -44,7 +37,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [access, setAccess] = useState<AccessSnapshot>(defaultAccess);
+  const accessRef = React.useRef<AccessSnapshot>(defaultAccess);
   const lastAccessFetchKey = React.useRef<string | null>(null);
+
+  const commitAccess = (snapshot: AccessSnapshot) => {
+    accessRef.current = snapshot;
+    setAccess(snapshot);
+  };
 
   const fetchAccessFromSupabase = async (userId: string): Promise<AccessSnapshot> => {
     let singleDocumentUsesRemaining = 0;
@@ -91,9 +90,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
-  const fetchAccess = async (userId: string, accessToken?: string, force = false) => {
+  const fetchAccess = async (userId: string, accessToken?: string, force = false): Promise<AccessSnapshot> => {
     const fetchKey = `${userId}:${accessToken || 'no-token'}`;
-    if (!force && lastAccessFetchKey.current === fetchKey) return;
+    if (!force && lastAccessFetchKey.current === fetchKey) return accessRef.current;
     lastAccessFetchKey.current = fetchKey;
 
     try {
@@ -104,23 +103,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
           if (response.ok) {
-            setAccess(await response.json());
-            return;
+            const snapshot = await response.json() as AccessSnapshot;
+            commitAccess(snapshot);
+            return snapshot;
           }
 
           if (response.status === 401) {
-            setAccess(defaultAccess);
-            return;
+            commitAccess(defaultAccess);
+            return defaultAccess;
           }
         } catch {
           // Vite dev does not serve Vercel API routes; fall back to Supabase.
         }
       }
 
-      setAccess(await fetchAccessFromSupabase(userId));
+      const snapshot = await fetchAccessFromSupabase(userId);
+      commitAccess(snapshot);
+      return snapshot;
     } catch (err) {
       console.error('Error fetching access profile:', err);
-      setAccess(defaultAccess);
+      commitAccess(defaultAccess);
+      return defaultAccess;
     }
   };
 
@@ -145,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           fetchAccess(session.user.id, session.access_token).finally(() => setLoading(false));
         } else {
           lastAccessFetchKey.current = null;
-          setAccess(defaultAccess);
+          commitAccess(defaultAccess);
           setLoading(false);
         }
       }
@@ -155,7 +158,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshAccess = async () => {
-    if (user) await fetchAccess(user.id, session?.access_token, true);
+    if (!user) {
+      commitAccess(defaultAccess);
+      return defaultAccess;
+    }
+
+    return fetchAccess(user.id, session?.access_token, true);
   };
 
   const signOut = async () => {

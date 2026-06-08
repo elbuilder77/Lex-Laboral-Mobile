@@ -4,13 +4,14 @@ import { Sidebar } from './components/Sidebar';
 import { Home } from './components/Home';
 import { LegalView } from './components/LegalView';
 import { NotificationHub } from './components/NotificationHub';
-import { PricingModal } from './components/PricingModal';
+import { PENDING_CHECKOUT_STORAGE_KEY, PricingModal } from './components/PricingModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAuth } from './components/AuthProvider';
 import { LoginModal } from './components/LoginModal';
 import { trackEvent } from './lib/analytics';
 import { updateSEO } from './lib/seo';
 import { getPathForView, getViewForPath } from './lib/routes';
+import { reconcileCheckoutSession } from './services/stripe';
 
 // Lazy loading components
 const Drafter = lazy(() => import('./components/Drafter').then(module => ({ default: module.Drafter })));
@@ -19,10 +20,55 @@ const SocialSecurityCalculator = lazy(() => import('./components/SocialSecurityC
 const PensionCalculator = lazy(() => import('./components/PensionCalculator').then(module => ({ default: module.PensionCalculator })));
 const CEODashboard = lazy(() => import('./components/CEODashboard').then(module => ({ default: module.CEODashboard })));
 
-import { AppView, AppNotification, NotificationType, DraftingState } from './types';
+import { AppView } from './types';
+import type { AccessSnapshot, AppNotification, CheckoutPlan, NotificationType, DraftingState } from './types';
 import { Menu, X } from 'lucide-react';
 
 // CEO check moved to secure backend route
+
+const PAYMENT_RETRY_DELAYS_MS = [0, 1000, 2000, 4000, 8000];
+
+const wait = (delayMs: number) => new Promise(resolve => setTimeout(resolve, delayMs));
+
+const getPaymentReturn = () => {
+  const hash = window.location.hash;
+  if (hash !== '#payment-success' && hash !== '#payment-cancelled') return null;
+
+  const params = new URLSearchParams(window.location.search);
+  return {
+    status: hash === '#payment-success' ? 'success' as const : 'cancelled' as const,
+    checkoutSessionId: params.get('checkout_session_id') || params.get('session_id'),
+  };
+};
+
+const getPendingCheckoutPlan = (): CheckoutPlan | null => {
+  try {
+    const raw = window.sessionStorage.getItem(PENDING_CHECKOUT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.plan === 'draft_basic' || parsed?.plan === 'mensualidad' || parsed?.plan === 'trimestralidad'
+      ? parsed.plan
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const clearPendingCheckout = () => {
+  try {
+    window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
+  } catch {
+    // Ignore storage cleanup failures.
+  }
+};
+
+const isAccessUnlockedForPlan = (snapshot: AccessSnapshot, plan: CheckoutPlan | null) => {
+  if (plan === 'mensualidad' || plan === 'trimestralidad') {
+    return snapshot.hasActiveSubscription;
+  }
+
+  return snapshot.hasActiveSubscription || snapshot.singleDocumentUsesRemaining > 0;
+};
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>(() => getViewForPath(window.location.pathname));
@@ -38,8 +84,9 @@ function App() {
     sourceView?: AppView;
   } | null>(null);
 
-  const { user, access, loading: authLoading, session, signOut } = useAuth();
+  const { user, access, loading: authLoading, session, refreshAccess, signOut } = useAuth();
   const previousUserRef = useRef<typeof user>(user);
+  const paymentReturnHandledRef = useRef(false);
 
   // isCEO now fetched from secure backend endpoint
   const [isCEO, setIsCEO] = useState(false);
@@ -96,6 +143,73 @@ function App() {
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
+
+  useEffect(() => {
+    const paymentReturn = getPaymentReturn();
+    if (!paymentReturn || paymentReturnHandledRef.current || authLoading) return;
+
+    paymentReturnHandledRef.current = true;
+    const pendingPlan = getPendingCheckoutPlan();
+    clearPendingCheckout();
+    window.history.replaceState({}, '', window.location.pathname);
+
+    if (paymentReturn.status === 'cancelled') {
+      notify('Pago cancelado. No se realizó ningún cargo.', 'info', 'Stripe Checkout');
+      return;
+    }
+
+    if (!user || !session?.access_token) {
+      notify('Pago recibido. Inicia sesión para refrescar tu acceso.', 'warning', 'Stripe Checkout');
+      return;
+    }
+
+    let cancelled = false;
+
+    const activateAccess = async () => {
+      notify('Pago recibido. Activando tu acceso...', 'info', 'Stripe Checkout');
+
+      for (const delayMs of PAYMENT_RETRY_DELAYS_MS) {
+        if (cancelled) return;
+        if (delayMs > 0) await wait(delayMs);
+
+        try {
+          const snapshot = paymentReturn.checkoutSessionId
+            ? await reconcileCheckoutSession(paymentReturn.checkoutSessionId, session.access_token)
+            : await refreshAccess();
+
+          if (isAccessUnlockedForPlan(snapshot, pendingPlan)) {
+            notify('Tu acceso ya está activo.', 'success', 'Pago confirmado');
+            if (pendingPlan === 'draft_basic') {
+              handleViewChange(AppView.DRAFTING);
+            }
+            return;
+          }
+        } catch (error) {
+          console.error('Post-payment access activation failed:', error);
+          const snapshot = await refreshAccess();
+          if (isAccessUnlockedForPlan(snapshot, pendingPlan)) {
+            notify('Tu acceso ya está activo.', 'success', 'Pago confirmado');
+            if (pendingPlan === 'draft_basic') {
+              handleViewChange(AppView.DRAFTING);
+            }
+            return;
+          }
+        }
+      }
+
+      notify(
+        'Pago registrado. Estamos terminando de activar tu acceso; vuelve a intentar en unos segundos.',
+        'warning',
+        'Stripe Checkout'
+      );
+    };
+
+    void activateAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, handleViewChange, notify, refreshAccess, session?.access_token, user]);
 
   const handleLogout = useCallback(async () => {
     await signOut();

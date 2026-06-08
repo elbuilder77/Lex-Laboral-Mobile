@@ -31,6 +31,16 @@ export interface AppNotification {
   title?: string;
 }
 
+export type CheckoutPlan = 'draft_basic' | 'mensualidad' | 'trimestralidad';
+
+export interface AccessSnapshot {
+  hasActiveSubscription: boolean;
+  isPremium: boolean;
+  licenseType: string | null;
+  accessUntil: string | null;
+  singleDocumentUsesRemaining: number;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   content: string;

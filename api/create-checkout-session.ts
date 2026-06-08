@@ -4,6 +4,15 @@ import { getAuthenticatedUser } from './_utils/auth.js';
 import { applyRateLimit } from './_utils/rateLimit.js';
 import { handlePreflight, validateOrigin, setSecurityHeaders } from './_utils/security.js';
 
+const buildCheckoutReturnUrl = (clientUrl: string, hash: 'payment-success' | 'payment-cancelled', includeSessionId = false) => {
+  const url = new URL(clientUrl);
+  if (includeSessionId) {
+    url.searchParams.set('checkout_session_id', '{CHECKOUT_SESSION_ID}');
+  }
+  url.hash = hash;
+  return url.toString();
+};
+
 export default async function handler(req: any, res: any) {
   try {
     // Security: CORS preflight
@@ -34,7 +43,7 @@ export default async function handler(req: any, res: any) {
     const priceResolution = getStripePriceId(plan);
     const priceId = priceResolution.value;
     const secretKeyResolution = getStripeSecretKey();
-    const clientUrl = process.env.CLIENT_URL?.trim() || process.env.VITE_CLIENT_URL?.trim() || 'https://lexmexl.vercel.app';
+    const clientUrl = process.env.CLIENT_URL?.trim() || process.env.VITE_CLIENT_URL?.trim() || 'https://lexlaboral.com.mx';
 
     console.log(
       `[Stripe] Creating session for plan: ${plan}, priceSource: ${priceResolution.source || 'missing'}, userId: ${userId}`
@@ -66,7 +75,6 @@ export default async function handler(req: any, res: any) {
     const stripe = getStripe();
     const isSubscription = plan === 'mensualidad' || plan === 'trimestralidad';
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       customer_email: user.email || undefined,
       client_reference_id: user.id,
       metadata: { plan: plan },
@@ -80,8 +88,8 @@ export default async function handler(req: any, res: any) {
           }
         }
       } : {}),
-      success_url: `${clientUrl}/#payment-success`,
-      cancel_url: `${clientUrl}/#payment-cancelled`,
+      success_url: buildCheckoutReturnUrl(clientUrl, 'payment-success', true),
+      cancel_url: buildCheckoutReturnUrl(clientUrl, 'payment-cancelled'),
     });
 
     if (!session.url) {
