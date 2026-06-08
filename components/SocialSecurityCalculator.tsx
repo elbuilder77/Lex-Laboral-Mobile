@@ -110,13 +110,13 @@ export const SocialSecurityCalculator: React.FC<{
     let cesantiaRate = 0.0315; 
     
     if (sbc > minWage) {
-      if (ratio <= 1.50) cesantiaRate = 0.03567;
-      else if (ratio <= 2.00) cesantiaRate = 0.04230;
-      else if (ratio <= 2.50) cesantiaRate = 0.04894;
-      else if (ratio <= 3.00) cesantiaRate = 0.05558;
-      else if (ratio <= 3.50) cesantiaRate = 0.06221;
-      else if (ratio <= 4.00) cesantiaRate = 0.06885;
-      else cesantiaRate = 0.08241; 
+      if (ratio <= 1.50) cesantiaRate = 0.03676;
+      else if (ratio <= 2.00) cesantiaRate = 0.04851;
+      else if (ratio <= 2.50) cesantiaRate = 0.05556;
+      else if (ratio <= 3.00) cesantiaRate = 0.06026;
+      else if (ratio <= 3.50) cesantiaRate = 0.06361;
+      else if (ratio <= 4.00) cesantiaRate = 0.06613;
+      else cesantiaRate = 0.07513; 
     }
     
     const empCesantia = (sbc * cesantiaRate) * days;

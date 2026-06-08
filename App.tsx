@@ -385,11 +385,11 @@ function App() {
               currentView={currentView} 
               onChangeView={(v) => { handleViewChange(v); setIsSidebarOpen(false); }} 
               onNewCase={() => handleViewChange(AppView.HOME)} 
-              onLogout={() => {}}
-              user={null}
+              onLogout={signOut}
+              user={user}
               userData={null}
-              isPremium={false}
-              isGuest={true}
+              isPremium={access.hasActiveSubscription}
+              isGuest={!user}
               notify={notify}
               onOpenPricing={openPricingModal}
               isCEO={isCEO}

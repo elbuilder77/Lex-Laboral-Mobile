@@ -125,22 +125,61 @@ export const upsertSubscriptionState = async ({
     updated_at: new Date().toISOString(),
   };
 
-  const updateWithStripeFields = await supabaseAdmin
+  // Try updating the record first and check if it exists (select 'id')
+  const { data: updatedRows, error: updateError } = await supabaseAdmin
     .from('users')
     .update(payload)
-    .eq('id', userId);
+    .eq('id', userId)
+    .select('id');
 
-  if (!updateWithStripeFields.error) return;
+  if (!updateError && updatedRows && updatedRows.length > 0) {
+    return;
+  }
 
-  await supabaseAdmin
+  // If the row doesn't exist, retrieve the email from auth.users and upsert it
+  let email: string | null = null;
+  try {
+    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    if (!authError && authUser?.user?.email) {
+      email = authUser.user.email;
+    }
+  } catch (error) {
+    console.error('Failed to retrieve email for upsert from auth.users:', error);
+  }
+
+  const upsertPayload = {
+    id: userId,
+    email,
+    ...payload,
+  };
+
+  const { error: upsertError } = await supabaseAdmin
     .from('users')
-    .update({
-      is_premium: isPremium,
-      license_type: plan,
-      access_until: accessUntil,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', userId);
+    .upsert(upsertPayload);
+
+  if (upsertError) {
+    console.error('Failed to upsert subscription state:', upsertError);
+    // Fallback minimal upsert
+    await supabaseAdmin
+      .from('users')
+      .upsert({
+        id: userId,
+        email,
+        is_premium: isPremium,
+        license_type: plan,
+        access_until: accessUntil,
+        updated_at: new Date().toISOString(),
+      });
+  }
+
+  // Ensure user entitlements record also exists
+  try {
+    await supabaseAdmin
+      .from('user_entitlements')
+      .upsert({ user_id: userId, single_document_uses_remaining: 0 }, { onConflict: 'user_id' });
+  } catch (entitlementError) {
+    console.error('Failed to upsert user entitlements:', entitlementError);
+  }
 };
 
 export const getPlanFromStripeSubscription = (subscription: any): StripeSubscriptionPlan | null => {

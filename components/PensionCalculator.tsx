@@ -168,7 +168,7 @@ export const PensionCalculator: React.FC<{
   const calculatePension97 = () => {
     // Basic estimation for Law 97 (Renta Vitalicia simplified)
 
-    const minWeeksRequired = 825; // For 2026
+    const minWeeksRequired = 875; // For 2026
 
     if (age < 60) {
       notify("La edad mínima para pensión por cesantía es 60 años", "warning");
@@ -575,7 +575,7 @@ export const PensionCalculator: React.FC<{
           },
           {
             question: '¿Cuántas semanas necesito para pensionarme?',
-            answer: 'Para la Ley 73 necesitas un mínimo de 500 semanas. Para la Ley 97, en 2026 requieres 825 semanas.',
+            answer: 'Para la Ley 73 necesitas un mínimo de 500 semanas. Para la Ley 97, en 2026 requieres 875 semanas.',
           }
         ]}
       />

@@ -43,6 +43,14 @@ interface DrafterProps {
   onAuthRequired?: () => void;
 }
 
+export interface TemplateField {
+  id: string;
+  label: string;
+  type: 'text' | 'number' | 'textarea' | 'date';
+  placeholder: string;
+  gridSpan?: 'full' | 'half';
+}
+
 type DraftingModel = {
   id: string;
   title: string;
@@ -52,6 +60,7 @@ type DraftingModel = {
   outcome: string;
   detailsPlaceholder: string;
   previewSections: string[];
+  fields?: TemplateField[];
 };
 
 const DRAFTING_MODELS: DraftingModel[] = [
@@ -62,8 +71,14 @@ const DRAFTING_MODELS: DraftingModel[] = [
     basePrompt: 'Contrato individual de trabajo por tiempo indeterminado conforme a la LFT.',
     summary: 'Para iniciar una relación laboral sin fecha fija de término.',
     outcome: 'Se proyectará un contrato base con datos del puesto, condiciones y cláusulas laborales de la LFT.',
-    detailsPlaceholder: 'Ejemplo: sueldo mensual, horario de labores, lugar de trabajo, prestaciones extraordinarias y fecha de inicio.',
+    detailsPlaceholder: 'Ejemplo: detalles de prestaciones extraordinarias (vales de despensa, fondo de ahorro) y periodo de prueba.',
     previewSections: ['Partes y puesto', 'Condiciones de trabajo', 'Cláusulas y firmas base'],
+    fields: [
+      { id: 'start_date', label: 'Fecha de Inicio de Labores', type: 'date', placeholder: '', gridSpan: 'half' },
+      { id: 'salary_monthly', label: 'Sueldo Mensual Bruto (MXN)', type: 'number', placeholder: 'Ej. 18000', gridSpan: 'half' },
+      { id: 'work_schedule', label: 'Jornada y Horario de Trabajo', type: 'text', placeholder: 'Ej. Lunes a Viernes de 9:00 a 18:00 hrs', gridSpan: 'full' },
+      { id: 'work_location', label: 'Domicilio / Lugar de Trabajo', type: 'text', placeholder: 'Ej. Calle Reforma 123, Col. Centro, CDMX', gridSpan: 'full' }
+    ]
   },
   {
     id: 'contrato_determinado',
@@ -72,8 +87,14 @@ const DRAFTING_MODELS: DraftingModel[] = [
     basePrompt: 'Contrato individual de trabajo por tiempo u obra determinada conforme a la LFT.',
     summary: 'Para relaciones con fecha de término o proyecto específico.',
     outcome: 'Se enfocará en temporalidad, causa demostrable de temporalidad y condiciones de salida.',
-    detailsPlaceholder: 'Ejemplo: duración exacta, justificación de temporalidad, puesto, jornada y salario base.',
+    detailsPlaceholder: 'Ejemplo: detalles del proyecto o de la obra temporal, periodo de capacitación inicial.',
     previewSections: ['Causa justificada', 'Condiciones esenciales', 'Fecha de cierre pactada'],
+    fields: [
+      { id: 'start_date', label: 'Fecha de Inicio', type: 'date', placeholder: '', gridSpan: 'half' },
+      { id: 'duration', label: 'Duración Pactada (ej. 3 meses)', type: 'text', placeholder: 'Ej. 6 meses', gridSpan: 'half' },
+      { id: 'justification', label: 'Causa Justificada de Temporalidad (Obligatorio LFT)', type: 'text', placeholder: 'Ej. Sustitución por incapacidad de maternidad de empleada Y / Proyecto temporal Z', gridSpan: 'full' },
+      { id: 'salary_monthly', label: 'Sueldo Mensual Bruto (MXN)', type: 'number', placeholder: 'Ej. 15000', gridSpan: 'half' }
+    ]
   },
   {
     id: 'rescisión',
@@ -82,8 +103,14 @@ const DRAFTING_MODELS: DraftingModel[] = [
     basePrompt: 'Aviso de rescisión de la relación laboral sin responsabilidad para el patrón, artículo 47 LFT.',
     summary: 'Para comunicar una rescisión patronal con causa.',
     outcome: 'El borrador priorizará la cronología de hechos, fecha, conducta atribuida y fundamentación legal en el Art. 47.',
-    detailsPlaceholder: 'Ejemplo: fecha del incumplimiento, descripción de la conducta (ausentismo, faltas de probidad), evidencias y antecedentes.',
+    detailsPlaceholder: 'Ejemplo: descripción cronológica detallada de las conductas específicas o incidentes que motivan el despido.',
     previewSections: ['Narración de hechos', 'Fechas exactas del desacato', 'Fundamento en Artículo 47'],
+    fields: [
+      { id: 'dismissal_date', label: 'Fecha Efectiva de Rescisión', type: 'date', placeholder: '', gridSpan: 'half' },
+      { id: 'offense_date', label: 'Fecha de Comisión de las Faltas', type: 'text', placeholder: 'Ej. 15, 18 y 19 de Mayo de 2026', gridSpan: 'half' },
+      { id: 'lft_fraction', label: 'Fracción Aplicable del Art. 47 LFT', type: 'text', placeholder: 'Ej. Fracción X (más de 3 faltas injustificadas)', gridSpan: 'full' },
+      { id: 'evidence_type', label: 'Pruebas / Evidencias (ej. reporte de asistencia)', type: 'text', placeholder: 'Ej. Reporte biométrico de asistencia y actas administrativas previas', gridSpan: 'full' }
+    ]
   },
   {
     id: 'renuncia',
@@ -92,8 +119,12 @@ const DRAFTING_MODELS: DraftingModel[] = [
     basePrompt: 'Carta de renuncia voluntaria al empleo y ratificación de no adeudo de prestaciones.',
     summary: 'Para formalizar una salida voluntaria.',
     outcome: 'Se redactará un escrito formal que exprese la renuncia voluntaria liberando al patrón de reclamos futuros.',
-    detailsPlaceholder: 'Ejemplo: fecha de renuncia, último día laborado y aclaraciones sobre finiquito pactado.',
+    detailsPlaceholder: 'Ejemplo: si deseas incluir agradecimientos especiales o algún otro detalle aclaratorio.',
     previewSections: ['Voluntad expresa', 'Fecha de salida efectiva', 'Manifestaciones de no adeudo'],
+    fields: [
+      { id: 'last_day', label: 'Último Día Laborado Efectivo', type: 'date', placeholder: '', gridSpan: 'half' },
+      { id: 'reason', label: 'Motivo de la Renuncia (ej. motivos personales)', type: 'text', placeholder: 'Ej. Motivos de superación profesional / personales', gridSpan: 'half' }
+    ]
   },
   {
     id: 'convenio',
@@ -102,8 +133,13 @@ const DRAFTING_MODELS: DraftingModel[] = [
     basePrompt: 'Convenio de terminación de la relación laboral por mutuo consentimiento con desglose de finiquito.',
     summary: 'Para cerrar una relación por acuerdo mutuo.',
     outcome: 'Se integrará un convenio de finiquito formal con desglose de conceptos proporcionales y firmas de conformidad.',
-    detailsPlaceholder: 'Ejemplo: fecha de terminación, monto a entregar, conceptos desglosados y forma de pago.',
+    detailsPlaceholder: 'Ejemplo: detalles específicos del acuerdo bancario, firma ante tribunal conciliatorio, etc.',
     previewSections: ['Datos de terminación', 'Desglose de proporcionales', 'Firmas de ratificación'],
+    fields: [
+      { id: 'end_date', label: 'Fecha de Terminación Pactada', type: 'date', placeholder: '', gridSpan: 'half' },
+      { id: 'finiquito_amount', label: 'Monto Total del Finiquito (MXN)', type: 'number', placeholder: 'Ej. 24500.00', gridSpan: 'half' },
+      { id: 'payment_method', label: 'Forma de Entrega de Pago', type: 'text', placeholder: 'Ej. Transferencia electrónica de fondos / Cheque de caja', gridSpan: 'full' }
+    ]
   },
   {
     id: 'acta_admin',
@@ -112,8 +148,14 @@ const DRAFTING_MODELS: DraftingModel[] = [
     basePrompt: 'Acta administrativa laboral por incumplimiento de obligaciones o faltas al reglamento interior.',
     summary: 'Para documentar faltas o hechos relevantes.',
     outcome: 'Se redactará un acta cronológica formal con asistentes, testigos, declaración del trabajador y medidas disciplinarias.',
-    detailsPlaceholder: 'Ejemplo: fecha de la falta, personas presentes, conducta observada y consecuencias reglamentarias.',
+    detailsPlaceholder: 'Ejemplo: declaración verbal o versión del trabajador ante la falta cometida.',
     previewSections: ['Asistentes y testigos', 'Cronología de hechos', 'Seguimiento disciplinario'],
+    fields: [
+      { id: 'incident_date', label: 'Fecha del Incidente/Falta', type: 'date', placeholder: '', gridSpan: 'half' },
+      { id: 'incident_time', label: 'Hora del Incidente', type: 'text', placeholder: 'Ej. 10:45 AM', gridSpan: 'half' },
+      { id: 'witnesses', label: 'Nombres de Testigos de Asistencia', type: 'text', placeholder: 'Ej. Carlos Méndez (Supervisor) y Sofía Ruiz (Recursos Humanos)', gridSpan: 'full' },
+      { id: 'rule_violated', label: 'Cláusula del Reglamento/Contrato Infringida', type: 'text', placeholder: 'Ej. Artículo 15 Fracción II del Reglamento Interior (uso de celular)', gridSpan: 'full' }
+    ]
   },
   {
     id: 'reglamento',
@@ -122,8 +164,13 @@ const DRAFTING_MODELS: DraftingModel[] = [
     basePrompt: 'Reglamento Interior de Trabajo básico con normas de disciplina, horarios y medidas de seguridad.',
     summary: 'Para crear normas generales de trabajo.',
     outcome: 'Se estructurará un reglamento interior base con capítulos comunes de horarios, faltas y medidas de higiene.',
-    detailsPlaceholder: 'Ejemplo: horarios de entrada/salida, tipos de faltas, medidas de seguridad y descansos semanales.',
+    detailsPlaceholder: 'Ejemplo: políticas de vestimenta, uso de herramientas, periodos vacacionales, normas específicas de la industria.',
     previewSections: ['Horarios y disciplina', 'Seguridad e higiene', 'Catálogo de sanciones'],
+    fields: [
+      { id: 'tolerance_minutes', label: 'Minutos de Tolerancia para Retardo', type: 'number', placeholder: 'Ej. 15', gridSpan: 'half' },
+      { id: 'rest_day', label: 'Día de Descanso Semanal Fijo', type: 'text', placeholder: 'Ej. Domingo', gridSpan: 'half' },
+      { id: 'pay_day', label: 'Días de Pago de Nómina', type: 'text', placeholder: 'Ej. Quincenal (días 15 y 30 de cada mes)', gridSpan: 'full' }
+    ]
   },
   {
     id: 'demanda',
@@ -132,9 +179,15 @@ const DRAFTING_MODELS: DraftingModel[] = [
     basePrompt: 'Escrito inicial de demanda laboral por despido injustificado ante tribunal (indemnización, salarios caídos).',
     summary: 'Para proyectar una demanda inicial.',
     outcome: 'Se priorizarán las prestaciones constitucionales y la narración cronológica del despido con sustento legal de la LFT.',
-    detailsPlaceholder: 'Ejemplo: fecha de contratación, despido, salario diario, puesto, antigüedad y hechos del despido injustificado.',
+    detailsPlaceholder: 'Ejemplo: hechos del despido injustificado (quién despidió, qué palabras se usaron, testigos presenciales).',
     previewSections: ['Hechos de contratación', 'Prestaciones reclamadas', 'Manifestaciones y derecho'],
-  },
+    fields: [
+      { id: 'hire_date', label: 'Fecha de Contratación', type: 'date', placeholder: '', gridSpan: 'half' },
+      { id: 'dismissal_date', label: 'Fecha del Despido', type: 'date', placeholder: '', gridSpan: 'half' },
+      { id: 'salary_daily', label: 'Salario Diario Integrado (MXN)', type: 'number', placeholder: 'Ej. 650.00', gridSpan: 'half' },
+      { id: 'lft_claims', label: 'Prestaciones Reclamadas principales', type: 'text', placeholder: 'Ej. Indemnización Constitucional, aguinaldo, vacaciones y prima de antigüedad', gridSpan: 'full' }
+    ]
+  }
 ];
 
 const stepLabel = (step: string, title: string, description: string) => (
@@ -157,6 +210,14 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
   const [position, setPosition] = useState(() => localStorage.getItem('draft_position') || '');
   const [details, setDetails] = useState(() => localStorage.getItem('draft_details') || '');
   const [customInstructions, setCustomInstructions] = useState(() => localStorage.getItem('draft_customInstructions') || '');
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>(() => {
+    try {
+      const raw = localStorage.getItem('draft_fieldValues');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     localStorage.setItem('draft_template', selectedTemplate);
@@ -164,7 +225,8 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     localStorage.setItem('draft_position', position);
     localStorage.setItem('draft_details', details);
     localStorage.setItem('draft_customInstructions', customInstructions);
-  }, [selectedTemplate, employeeName, position, details, customInstructions]);
+    localStorage.setItem('draft_fieldValues', JSON.stringify(fieldValues));
+  }, [selectedTemplate, employeeName, position, details, customInstructions, fieldValues]);
 
   // RAG Scanner state variables for premium simulation
   const [ragStep, setRagStep] = useState(1);
@@ -183,12 +245,22 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
   useEffect(() => {
     let assembledPrompt = selectedModel.basePrompt;
 
-    if (employeeName.trim()) assembledPrompt += `\nNombre principal: ${employeeName.trim()}`;
+    if (employeeName.trim()) assembledPrompt += `\nNombre principal (persona/empresa): ${employeeName.trim()}`;
     if (position.trim()) assembledPrompt += `\nPuesto o relación: ${position.trim()}`;
-    if (details.trim()) assembledPrompt += `\nHechos del caso:\n${details.trim()}`;
+
+    // Add dynamic field values
+    const activeFields = selectedModel.fields || [];
+    activeFields.forEach((field) => {
+      const val = fieldValues[field.id]?.trim();
+      if (val) {
+        assembledPrompt += `\n${field.label}: ${val}`;
+      }
+    });
+
+    if (details.trim()) assembledPrompt += `\nHechos y detalles adicionales del caso:\n${details.trim()}`;
 
     setState((prev) => ({ ...prev, prompt: assembledPrompt }));
-  }, [selectedModel, employeeName, position, details, setState]);
+  }, [selectedModel, employeeName, position, details, fieldValues, setState]);
 
   // RAG steps animation loop during drafting
   useEffect(() => {
@@ -355,18 +427,52 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
                 </div>
               </div>
 
+              {/* Campos dinámicos específicos de la plantilla */}
+              {selectedModel.fields && selectedModel.fields.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50 border border-slate-200/40 rounded-xl p-4.5">
+                  <div className="col-span-1 sm:col-span-2">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-legal-gold">Variables del documento</span>
+                  </div>
+                  {selectedModel.fields.map((field) => {
+                    const value = fieldValues[field.id] || '';
+                    const isFull = field.gridSpan === 'full';
+                    return (
+                      <div key={field.id} className={cn("space-y-1.5", isFull ? "col-span-1 sm:col-span-2" : "col-span-1")}>
+                        <label className="ui-label text-[10px]">{field.label}</label>
+                        {field.type === 'textarea' ? (
+                          <textarea
+                            value={value}
+                            onChange={(e) => setFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            placeholder={field.placeholder}
+                            className="ui-input w-full min-h-[80px] resize-none px-3.5 py-2.5 rounded-xl border-slate-200/80 leading-relaxed text-xs focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
+                          />
+                        ) : (
+                          <input
+                            type={field.type}
+                            value={value}
+                            onChange={(e) => setFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            placeholder={field.placeholder}
+                            className="ui-input w-full px-3.5 py-2.5 rounded-xl border-slate-200/80 text-xs focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <div className="space-y-1.5">
-                <label className="ui-label text-[10px]">Hechos y Detalles del Caso</label>
+                <label className="ui-label text-[10px]">Hechos o detalles adicionales (Opcional)</label>
                 <textarea
                   value={details}
                   onChange={(event) => setDetails(event.target.value)}
                   placeholder={selectedModel.detailsPlaceholder}
-                  className="ui-input w-full min-h-[120px] resize-none px-4.5 py-3.5 rounded-xl border-slate-200/80 leading-relaxed text-xs focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
+                  className="ui-input w-full min-h-[100px] resize-none px-4.5 py-3.5 rounded-xl border-slate-200/80 leading-relaxed text-xs focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="ui-label text-[10px]">Instrucciones adicionales o Cláusulas extra (Opcional)</label>
+                <label className="ui-label text-[10px]">Instrucciones especiales para la IA (Opcional)</label>
                 <textarea
                   value={customInstructions}
                   onChange={(event) => setCustomInstructions(event.target.value)}
