@@ -18,29 +18,12 @@ const resolveEnv = (...names: string[]): EnvResolution => {
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-let warnedAboutUnsafeStripeAlias = false;
-
-const warnIfUnsafeAlias = (source: string | null) => {
-  if (!source || warnedAboutUnsafeStripeAlias) return;
-
-  if (source.startsWith('VITE_')) {
-    warnedAboutUnsafeStripeAlias = true;
-    console.warn(
-      `[Stripe] Using ${source} on the server. Rename it in Vercel to a non-VITE variable to avoid leaking secrets into the client build.`
-    );
-  }
-};
-
 export const getStripeSecretKey = (): EnvResolution => {
-  const resolution = resolveEnv('STRIPE_SECRET_KEY', 'STRIPE_SECRET', 'VITE_STRIPE_SECRET_KEY');
-  warnIfUnsafeAlias(resolution.source);
-  return resolution;
+  return resolveEnv('STRIPE_SECRET_KEY', 'STRIPE_SECRET');
 };
 
 export const getStripeWebhookSecret = (): EnvResolution => {
-  const resolution = resolveEnv('STRIPE_WEBHOOK_SECRET', 'STRIPE_SIGNING_SECRET', 'VITE_STRIPE_WEBHOOK_SECRET');
-  warnIfUnsafeAlias(resolution.source);
-  return resolution;
+  return resolveEnv('STRIPE_WEBHOOK_SECRET', 'STRIPE_SIGNING_SECRET');
 };
 
 export const getStripePriceId = (plan: string): EnvResolution => {

@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { AppView } from '../types';
 import { Calculator, FileText, ChevronRight, ShieldCheck, LogIn, LogOut, ArrowUpRight } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -86,12 +85,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-10 flex flex-col items-center">
           {/* Centered Brand & Heading */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="flex flex-col items-center text-center space-y-5 md:space-y-6 max-w-3xl"
-          >
+          <div className="flex flex-col items-center text-center space-y-5 md:space-y-6 max-w-3xl animate-fade-in">
             <div className="flex flex-col items-center space-y-4">
               {/* Premium Large Transparent Logo */}
               <div className="max-w-[360px] sm:max-w-[540px] select-none animate-in fade-in duration-700 hue-rotate-[10deg] brightness-125 saturate-150 contrast-125 drop-shadow-[0_0_20px_rgba(224,175,34,0.45)] -mt-6">
@@ -157,15 +151,10 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
 
           {/* Tools Grid Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: 'easeOut', delay: 0.08 }}
-            className="w-full mt-16 max-w-6xl"
-          >
+          <div className="w-full mt-16 max-w-6xl animate-fade-in">
             <WorkspacePanel className="relative overflow-hidden p-6 sm:p-10 border border-white/5 bg-slate-950/40 backdrop-blur-md rounded-[2.5rem] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.7)]">
               <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-legal-gold/5 to-transparent pointer-events-none" />
 
@@ -209,7 +198,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                 ))}
               </div>
             </WorkspacePanel>
-          </motion.div>
+          </div>
         </div>
       </section>
 

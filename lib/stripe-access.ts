@@ -1,6 +1,7 @@
 import type Stripe from 'stripe';
 import { hasActiveSubscription } from './access-policy.js';
 import { supabaseAdmin } from './supabase-admin.js';
+import { adminRpc } from './supabase-rpc.js';
 import { getStripePriceId } from './stripe-config.js';
 import { getStripe } from './stripe.js';
 import {
@@ -51,7 +52,7 @@ const getStripeId = (value: unknown): string | null => {
 };
 
 export const grantSingleDocumentUse = async (userId: string) => {
-  const rpcResult = await supabaseAdmin.rpc('grant_single_document_use', {
+  const rpcResult = await adminRpc('grant_single_document_use', {
     p_user_id: userId,
     p_quantity: 1,
   });

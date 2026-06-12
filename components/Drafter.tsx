@@ -28,7 +28,6 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { motion, AnimatePresence } from 'framer-motion';
 import { draftLegalDocument } from '../services/gemini';
 import { NotificationType, DraftingState } from '../types';
 import { useAuth } from './AuthProvider';
@@ -198,6 +197,18 @@ const stepLabel = (step: string, title: string, description: string) => (
   </div>
 );
 
+const DraftContent = ({ content, plainText }: { content: string; plainText?: boolean }) => {
+  if (plainText) {
+    return (
+      <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-[1.85] text-slate-800">
+        {content}
+      </pre>
+    );
+  }
+
+  return <ReactMarkdown>{content}</ReactMarkdown>;
+};
+
 export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUpgrade, onAuthRequired }) => {
   const { prompt, generatedDoc } = state;
   const visualizerRef = React.useRef<HTMLDivElement>(null);
@@ -220,12 +231,16 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
   });
 
   useEffect(() => {
-    localStorage.setItem('draft_template', selectedTemplate);
-    localStorage.setItem('draft_employeeName', employeeName);
-    localStorage.setItem('draft_position', position);
-    localStorage.setItem('draft_details', details);
-    localStorage.setItem('draft_customInstructions', customInstructions);
-    localStorage.setItem('draft_fieldValues', JSON.stringify(fieldValues));
+    const timeoutId = window.setTimeout(() => {
+      localStorage.setItem('draft_template', selectedTemplate);
+      localStorage.setItem('draft_employeeName', employeeName);
+      localStorage.setItem('draft_position', position);
+      localStorage.setItem('draft_details', details);
+      localStorage.setItem('draft_customInstructions', customInstructions);
+      localStorage.setItem('draft_fieldValues', JSON.stringify(fieldValues));
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
   }, [selectedTemplate, employeeName, position, details, customInstructions, fieldValues]);
 
   // RAG Scanner state variables for premium simulation
@@ -592,7 +607,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
                   <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-legal-gold/60 to-transparent" />
                   
                   <div className="markdown-body prose prose-slate prose-sm max-w-none md:prose-base prose-headings:font-serif prose-headings:text-slate-950 prose-headings:border-b prose-headings:border-slate-100 prose-headings:pb-1.5 prose-p:leading-[1.85] prose-p:text-justify prose-p:text-slate-800 font-medium">
-                    <ReactMarkdown>{generatedDoc}</ReactMarkdown>
+                    <DraftContent content={generatedDoc} plainText={isDrafting} />
                     <div className="mt-12 pt-6 border-t border-slate-200/60 no-print">
                       <p className="text-[10px] text-slate-400 font-medium text-center italic">
                         Generado con Inteligencia Artificial por Lex Laboral. Este documento es un borrador y debe ser revisado por un profesional legal.
@@ -636,20 +651,12 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
       </div>
 
       {/* Vista Amplia Modal Esmerilada */}
-      <AnimatePresence>
-        {isPreviewOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+      {isPreviewOpen && (
+          <div
             className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 sm:p-6 backdrop-blur-md animate-fade-in print:bg-white print:p-0"
           >
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.96, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[#FAFAFA] shadow-[0_30px_70px_rgba(0,0,0,0.5)] print:h-auto print:max-w-full print:border-none print:shadow-none print:bg-white"
+            <div
+              className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[#FAFAFA] shadow-[0_30px_70px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200 print:h-auto print:max-w-full print:border-none print:shadow-none print:bg-white"
             >
               <div className="flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4.5 no-print">
                 <div>
@@ -677,7 +684,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
                 <div className="w-full max-w-[210mm] min-h-[297mm] rounded-sm border border-slate-200/80 bg-white p-[15mm] sm:p-[20mm] shadow-lg relative overflow-hidden legal-document-print">
                   <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-legal-gold/60 to-transparent" />
                   <div className="markdown-body prose prose-slate prose-sm max-w-none md:prose-base prose-headings:font-serif prose-headings:text-slate-950 prose-headings:border-b prose-headings:border-slate-100 prose-headings:pb-1.5 prose-p:leading-[1.85] prose-p:text-justify prose-p:text-slate-800 font-medium">
-                    <ReactMarkdown>{generatedDoc}</ReactMarkdown>
+                    <DraftContent content={generatedDoc} />
                     <div className="mt-12 pt-6 border-t border-slate-200/60 no-print">
                       <p className="text-[10px] text-slate-400 font-medium text-center italic">
                         Generado con Inteligencia Artificial por Lex Laboral. Este documento es un borrador y debe ser revisado por un profesional legal.
@@ -686,10 +693,9 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
                   </div>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
     </WorkspacePage>
   );
 });

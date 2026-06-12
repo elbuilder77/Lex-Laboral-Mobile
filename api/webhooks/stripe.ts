@@ -47,11 +47,16 @@ export default async function handler(req: any, res: any) {
   }
 
   const eventId = typeof event.id === 'string' ? event.id : null;
-  if (eventId) {
-    const acquired = await acquireStripeWebhookEvent(eventId, event.type);
-    if (!acquired) {
-      return res.json({ received: true, duplicate: true });
+  try {
+    if (eventId) {
+      const acquired = await acquireStripeWebhookEvent(eventId, event.type);
+      if (!acquired) {
+        return res.json({ received: true, duplicate: true });
+      }
     }
+  } catch (error) {
+    console.error('Error acquiring Stripe webhook idempotency lock:', error);
+    return res.status(500).json({ error: 'Webhook idempotency lock failed' });
   }
 
   try {

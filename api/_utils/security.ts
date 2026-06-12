@@ -29,6 +29,28 @@ if (process.env.CLIENT_URL) {
   ALLOWED_ORIGINS.push(process.env.CLIENT_URL);
 }
 
+const normalizeOrigin = (value: string): string | null => {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+};
+
+const ALLOWED_ORIGIN_SET = new Set(
+  ALLOWED_ORIGINS
+    .map(normalizeOrigin)
+    .filter((origin): origin is string => Boolean(origin))
+);
+
+export function isAllowedRequestOrigin(origin: string, referer: string): boolean {
+  const originValue = origin ? normalizeOrigin(origin) : null;
+  if (origin) return Boolean(originValue && ALLOWED_ORIGIN_SET.has(originValue));
+
+  const refererValue = referer ? normalizeOrigin(referer) : null;
+  return Boolean(refererValue && ALLOWED_ORIGIN_SET.has(refererValue));
+}
+
 /**
  * Configura los headers CORS en la respuesta.
  * CORS = Cross-Origin Resource Sharing.
@@ -37,8 +59,10 @@ if (process.env.CLIENT_URL) {
 export function setCorsHeaders(req: any, res: any): void {
   const origin = req.headers.origin || '';
   
-  if (ALLOWED_ORIGINS.includes(origin) || process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production') {
     res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  } else if (typeof origin === 'string' && isAllowedRequestOrigin(origin, '')) {
+    res.setHeader('Access-Control-Allow-Origin', normalizeOrigin(origin) || origin);
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -77,9 +101,7 @@ export function validateOrigin(req: any, res: any): boolean {
     return true; // blocked
   }
   
-  const isValidOrigin = ALLOWED_ORIGINS.some(allowed => 
-    (origin && origin.startsWith(allowed)) || (referer && referer.startsWith(allowed))
-  );
+  const isValidOrigin = isAllowedRequestOrigin(origin, referer);
   
   if (!isValidOrigin) {
     console.warn(`[Security] Blocked unauthorized origin: ${origin || 'none'} (referer: ${referer || 'none'})`);
@@ -116,4 +138,5 @@ export function setSecurityHeaders(res: any): void {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
 }

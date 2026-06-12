@@ -2,10 +2,11 @@
  * CEO Dashboard API — Estadísticas de negocio
  * 
  * PROTECCIÓN: Solo accesible si el userId corresponde al email del CEO
- * configurado en la variable de entorno CEO_EMAIL / VITE_CEO_EMAIL.
+ * configurado en la variable de entorno CEO_EMAIL.
  */
 
 import { supabaseAdmin } from '../../lib/supabase-admin.js';
+import { adminRpc } from '../../lib/supabase-rpc.js';
 import { applyRateLimit } from '../_utils/rateLimit.js';
 import { getAuthenticatedUser } from '../_utils/auth.js';
 import { handlePreflight, setSecurityHeaders } from '../_utils/security.js';
@@ -19,7 +20,7 @@ export default async function handler(req: any, res: any) {
   // Rate limit — max 30 requests per minute
   if (applyRateLimit(req, res, 30, 60_000)) return;
 
-  const CEO_EMAIL = process.env.CEO_EMAIL || process.env.VITE_CEO_EMAIL || '';
+  const CEO_EMAIL = process.env.CEO_EMAIL || '';
 
   try {
     const { user, error: authError } = await getAuthenticatedUser(req);
@@ -44,6 +45,13 @@ export default async function handler(req: any, res: any) {
       console.error('CEO Stats: Email mismatch', { userEmail, expected: CEO_EMAIL });
       return res.status(403).json({ error: 'Acceso restringido. Solo el administrador puede ver estas métricas.' });
     }
+
+    const rpcStats = await adminRpc('get_ceo_stats', {});
+    if (!rpcStats.error && rpcStats.data) {
+      return res.json(rpcStats.data);
+    }
+
+    console.warn('CEO Stats: private RPC unavailable, falling back to direct aggregation', rpcStats.error);
 
     // === Fetch all metrics in parallel ===
     const now = new Date();

@@ -1,11 +1,9 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Crown, Shield, PenTool, Sparkles, Zap } from 'lucide-react';
 import { createCheckoutSession, redirectToCheckout } from '../services/stripe';
 import { useAuth } from './AuthProvider';
+import { PENDING_CHECKOUT_STORAGE_KEY } from '../lib/checkout';
 import type { CheckoutPlan } from '../types';
-
-export const PENDING_CHECKOUT_STORAGE_KEY = 'lexlaboral_pending_checkout';
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -117,15 +115,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({
     }
   ];
 
+  if (!isOpen) return null;
+
   return (
-    <AnimatePresence>
-      {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-legal-950/40 backdrop-blur-sm overflow-y-auto">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-slate-50 w-full max-w-5xl rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-white/20 my-auto"
+          <div
+            className="bg-slate-50 w-full max-w-5xl rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-white/20 my-auto animate-in fade-in zoom-in-95 duration-200"
           >
             {/* Header */}
             <div className="p-8 sm:px-12 flex items-center justify-between bg-white border-b border-slate-200">
@@ -196,9 +191,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
-      )}
-    </AnimatePresence>
   );
 };

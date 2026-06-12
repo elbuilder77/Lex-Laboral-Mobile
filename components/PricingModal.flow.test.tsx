@@ -1,7 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PENDING_CHECKOUT_STORAGE_KEY, PricingModal } from './PricingModal';
+import { PENDING_CHECKOUT_STORAGE_KEY } from '../lib/checkout';
+import { PricingModal } from './PricingModal';
 
 const { mockAuthState, createCheckoutSessionMock, redirectToCheckoutMock } = vi.hoisted(() => ({
   mockAuthState: {

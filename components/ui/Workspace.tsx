@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { cn } from '../../lib/cn';
 
 export const WorkspacePage: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
@@ -15,11 +14,8 @@ export const WorkspaceHeader: React.FC<{
   icon: React.ReactNode;
   actions?: React.ReactNode;
 }> = ({ eyebrow, title, description, icon, actions }) => (
-  <motion.header
-    initial={{ opacity: 0, y: 14 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.35, ease: 'easeOut' }}
-    className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"
+  <header
+    className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between animate-fade-in"
   >
     <div className="max-w-3xl">
       {eyebrow ? <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-slate-400">{eyebrow}</p> : null}
@@ -32,7 +28,7 @@ export const WorkspaceHeader: React.FC<{
       </div>
     </div>
     {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
-  </motion.header>
+  </header>
 );
 
 export const WorkspacePanel: React.FC<{ children: React.ReactNode; className?: string; muted?: boolean }> = ({

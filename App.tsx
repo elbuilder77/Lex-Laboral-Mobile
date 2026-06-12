@@ -1,19 +1,20 @@
 
 import React, { useState, useCallback, useEffect, Suspense, lazy, useRef } from 'react';
-import { Sidebar } from './components/Sidebar';
 import { Home } from './components/Home';
-import { LegalView } from './components/LegalView';
 import { NotificationHub } from './components/NotificationHub';
-import { PENDING_CHECKOUT_STORAGE_KEY, PricingModal } from './components/PricingModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAuth } from './components/AuthProvider';
-import { LoginModal } from './components/LoginModal';
 import { trackEvent } from './lib/analytics';
+import { PENDING_CHECKOUT_STORAGE_KEY } from './lib/checkout';
 import { updateSEO } from './lib/seo';
 import { getPathForView, getViewForPath } from './lib/routes';
 import { reconcileCheckoutSession } from './services/stripe';
 
 // Lazy loading components
+const Sidebar = lazy(() => import('./components/Sidebar').then(module => ({ default: module.Sidebar })));
+const LegalView = lazy(() => import('./components/LegalView').then(module => ({ default: module.LegalView })));
+const PricingModal = lazy(() => import('./components/PricingModal').then(module => ({ default: module.PricingModal })));
+const LoginModal = lazy(() => import('./components/LoginModal').then(module => ({ default: module.LoginModal })));
 const Drafter = lazy(() => import('./components/Drafter').then(module => ({ default: module.Drafter })));
 const LaborCalculator = lazy(() => import('./components/LaborCalculator').then(module => ({ default: module.LaborCalculator })));
 const SocialSecurityCalculator = lazy(() => import('./components/SocialSecurityCalculator').then(module => ({ default: module.SocialSecurityCalculator })));
@@ -381,19 +382,21 @@ function App() {
           <div className={`fixed inset-y-0 left-0 z-[70] transition-transform duration-300 transform md:relative md:translate-x-0 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}>
-            <Sidebar 
-              currentView={currentView} 
-              onChangeView={(v) => { handleViewChange(v); setIsSidebarOpen(false); }} 
-              onNewCase={() => handleViewChange(AppView.HOME)} 
-              onLogout={signOut}
-              user={user}
-              userData={null}
-              isPremium={access.hasActiveSubscription}
-              isGuest={!user}
-              notify={notify}
-              onOpenPricing={openPricingModal}
-              isCEO={isCEO}
-            />
+            <Suspense fallback={null}>
+              <Sidebar
+                currentView={currentView}
+                onChangeView={(v) => { handleViewChange(v); setIsSidebarOpen(false); }}
+                onNewCase={() => handleViewChange(AppView.HOME)}
+                onLogout={signOut}
+                user={user}
+                userData={null}
+                isPremium={access.hasActiveSubscription}
+                isGuest={!user}
+                notify={notify}
+                onOpenPricing={openPricingModal}
+                isCEO={isCEO}
+              />
+            </Suspense>
           </div>
         </>
       )}
@@ -404,24 +407,26 @@ function App() {
         </div>
       </main>
 
-      <PricingModal 
-        isOpen={isPricingModalOpen} 
-        onClose={() => setIsPricingModalOpen(false)} 
-        notify={notify} 
-        initialPlan={selectedPlan}
-        onRequireLogin={(plan) =>
-          openLoginModal({
-            type: 'resume_pricing',
-            plan,
-            sourceView: currentView,
-          })
-        }
-      />
+      <Suspense fallback={null}>
+        <PricingModal
+          isOpen={isPricingModalOpen}
+          onClose={() => setIsPricingModalOpen(false)}
+          notify={notify}
+          initialPlan={selectedPlan}
+          onRequireLogin={(plan) =>
+            openLoginModal({
+              type: 'resume_pricing',
+              plan,
+              sourceView: currentView,
+            })
+          }
+        />
 
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
-      />
+        <LoginModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+        />
+      </Suspense>
       </div>
     </ErrorBoundary>
   );

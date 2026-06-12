@@ -1,16 +1,9 @@
 
-import { ChatMessage, AnalyzedDocumentHistory } from "../types";
 import { supabase } from "../lib/supabase";
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
+const STREAM_RENDER_INTERVAL_MS = 100;
 
-interface StreamResponse {
-  response: {
-    text: () => string;
-  };
-}
-
-// NOTE: chat and analyze functions are deprecated and will be removed in next cleanup.
 export const draftLegalDocument = async (
   requirements: string, 
   customInstructions?: string,
@@ -43,6 +36,18 @@ export const draftLegalDocument = async (
   const reader = response.body?.getReader();
   const decoder = new TextDecoder();
   let fullText = '';
+  let streamError: string | null = null;
+  let lastProgressEmit = 0;
+
+  const emitProgress = (force = false) => {
+    if (!onChunk) return;
+
+    const now = Date.now();
+    if (force || now - lastProgressEmit >= STREAM_RENDER_INTERVAL_MS) {
+      onChunk(fullText);
+      lastProgressEmit = now;
+    }
+  };
 
   if (!reader) {
     throw new Error('Response body is not readable');
@@ -68,17 +73,25 @@ export const draftLegalDocument = async (
         }
         try {
           const data = JSON.parse(dataStr);
+          if (data.error) {
+            streamError = data.error;
+            continue;
+          }
           if (data.text) {
             fullText += data.text;
-            if (onChunk) {
-              onChunk(fullText);
-            }
+            emitProgress();
           }
         } catch (e) {
           console.warn('Error parsing SSE data', dataStr);
         }
       }
     }
+  }
+
+  emitProgress(true);
+
+  if (streamError) {
+    throw new Error(streamError);
   }
 
   return fullText;

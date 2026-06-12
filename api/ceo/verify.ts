@@ -10,7 +10,7 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   if (applyRateLimit(req, res, 30, 60_000)) return;
 
-  const CEO_EMAIL = process.env.CEO_EMAIL || process.env.VITE_CEO_EMAIL || '';
+  const CEO_EMAIL = process.env.CEO_EMAIL || '';
 
   try {
     const { user, error: authError } = await getAuthenticatedUser(req);

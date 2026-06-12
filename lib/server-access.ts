@@ -1,5 +1,6 @@
 import { DOCUMENT_MONTHLY_FAIR_USE_LIMIT, IMSS_MONTHLY_FAIR_USE_LIMIT, getCurrentMonthKey, hasActiveSubscription } from './access-policy.js';
 import { supabaseAdmin } from './supabase-admin.js';
+import { adminRpc } from './supabase-rpc.js';
 
 export type DocumentAccessResult = {
   allowed: boolean;
@@ -136,11 +137,11 @@ const checkDocumentAccessFallback = async (userId: string): Promise<DocumentAcce
 
 const consumeDocumentAccessFallback = async (userId: string) => {
   const currentMonth = getCurrentMonthKey();
-  const [userRecord, usageFetch] = await Promise.all([
+  const [userRecord, monthlyUsageFetch] = await Promise.all([
     getUserAccessRow(userId),
     supabaseAdmin
-      .from('user_usage')
-      .select('draft_basic_month_count')
+      .from('user_usage_monthly')
+      .select('documents_generated_count')
       .eq('user_id', userId)
       .eq('month', currentMonth)
       .maybeSingle()
@@ -149,6 +150,27 @@ const consumeDocumentAccessFallback = async (userId: string) => {
   const subscriptionActive = hasActiveSubscription(userRecord?.is_premium, userRecord?.access_until);
 
   if (subscriptionActive) {
+    if (!monthlyUsageFetch.error) {
+      const currentCount = monthlyUsageFetch.data?.documents_generated_count || 0;
+      if (currentCount >= DOCUMENT_MONTHLY_FAIR_USE_LIMIT) {
+        return { allowed: false, reason: 'fair_use_limit' as const, currentCount };
+      }
+
+      await supabaseAdmin.from('user_usage_monthly').upsert({
+        user_id: userId,
+        month: currentMonth,
+        documents_generated_count: currentCount + 1
+      }, { onConflict: 'user_id,month' });
+
+      return { allowed: true, reason: 'subscription' as const, currentCount: currentCount + 1 };
+    }
+
+    const usageFetch = await supabaseAdmin
+      .from('user_usage')
+      .select('draft_basic_month_count')
+      .eq('user_id', userId)
+      .eq('month', currentMonth)
+      .maybeSingle();
     const currentCount = usageFetch.data?.draft_basic_month_count || 0;
     if (currentCount >= DOCUMENT_MONTHLY_FAIR_USE_LIMIT) {
       return { allowed: false, reason: 'fair_use_limit' as const, currentCount };
@@ -173,11 +195,11 @@ const consumeDocumentAccessFallback = async (userId: string) => {
 
 const recordImssUsageFallback = async (userId: string) => {
   const currentMonth = getCurrentMonthKey();
-  const [userRecord, usageFetch] = await Promise.all([
+  const [userRecord, monthlyUsageFetch] = await Promise.all([
     getUserAccessRow(userId),
     supabaseAdmin
-      .from('user_usage')
-      .select('calculators_count')
+      .from('user_usage_monthly')
+      .select('imss_calculations_count')
       .eq('user_id', userId)
       .eq('month', currentMonth)
       .maybeSingle()
@@ -189,6 +211,27 @@ const recordImssUsageFallback = async (userId: string) => {
     return { allowed: false, reason: 'no_subscription' as const, currentCount: 0 };
   }
 
+  if (!monthlyUsageFetch.error) {
+    const currentCount = monthlyUsageFetch.data?.imss_calculations_count || 0;
+    if (currentCount >= IMSS_MONTHLY_FAIR_USE_LIMIT) {
+      return { allowed: false, reason: 'fair_use_limit' as const, currentCount };
+    }
+
+    await supabaseAdmin.from('user_usage_monthly').upsert({
+      user_id: userId,
+      month: currentMonth,
+      imss_calculations_count: currentCount + 1
+    }, { onConflict: 'user_id,month' });
+
+    return { allowed: true, reason: 'subscription' as const, currentCount: currentCount + 1 };
+  }
+
+  const usageFetch = await supabaseAdmin
+    .from('user_usage')
+    .select('calculators_count')
+    .eq('user_id', userId)
+    .eq('month', currentMonth)
+    .maybeSingle();
   const currentCount = usageFetch.data?.calculators_count || 0;
   if (currentCount >= IMSS_MONTHLY_FAIR_USE_LIMIT) {
     return { allowed: false, reason: 'fair_use_limit' as const, currentCount };
@@ -204,7 +247,7 @@ const recordImssUsageFallback = async (userId: string) => {
 };
 
 export const getUserAccessSnapshot = async (userId: string) => {
-  const rpcResult = await supabaseAdmin.rpc('get_access_snapshot', {
+  const rpcResult = await adminRpc('get_access_snapshot', {
     p_user_id: userId
   });
 
@@ -227,7 +270,7 @@ export const getUserAccessSnapshot = async (userId: string) => {
 };
 
 export const checkDocumentAccess = async (userId: string): Promise<DocumentAccessResult> => {
-  const rpcResult = await supabaseAdmin.rpc('check_document_access', {
+  const rpcResult = await adminRpc('check_document_access', {
     p_user_id: userId,
     p_monthly_limit: DOCUMENT_MONTHLY_FAIR_USE_LIMIT
   });
@@ -240,7 +283,7 @@ export const checkDocumentAccess = async (userId: string): Promise<DocumentAcces
 };
 
 export const consumeDocumentAccess = async (userId: string) => {
-  const rpcResult = await supabaseAdmin.rpc('consume_document_access', {
+  const rpcResult = await adminRpc('consume_document_access', {
     p_user_id: userId,
     p_monthly_limit: DOCUMENT_MONTHLY_FAIR_USE_LIMIT
   });
@@ -252,8 +295,71 @@ export const consumeDocumentAccess = async (userId: string) => {
   return consumeDocumentAccessFallback(userId);
 };
 
+const refundDocumentAccessFallback = async (
+  userId: string,
+  consumedReason: 'subscription' | 'single_document'
+) => {
+  const currentMonth = getCurrentMonthKey();
+
+  if (consumedReason === 'single_document') {
+    const current = await supabaseAdmin
+      .from('user_entitlements')
+      .select('single_document_uses_remaining')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!current.error && current.data) {
+      await supabaseAdmin
+        .from('user_entitlements')
+        .update({ single_document_uses_remaining: (current.data.single_document_uses_remaining || 0) + 1 })
+        .eq('user_id', userId);
+
+      return { refunded: true, reason: consumedReason };
+    }
+
+    await supabaseAdmin
+      .from('user_entitlements')
+      .insert({ user_id: userId, single_document_uses_remaining: 1 });
+
+    return { refunded: true, reason: consumedReason };
+  }
+
+  const usage = await supabaseAdmin
+    .from('user_usage_monthly')
+    .select('documents_generated_count')
+    .eq('user_id', userId)
+    .eq('month', currentMonth)
+    .maybeSingle();
+
+  if (!usage.error && usage.data) {
+    await supabaseAdmin
+      .from('user_usage_monthly')
+      .update({ documents_generated_count: Math.max((usage.data.documents_generated_count || 0) - 1, 0) })
+      .eq('user_id', userId)
+      .eq('month', currentMonth);
+  }
+
+  return { refunded: true, reason: consumedReason };
+};
+
+export const refundDocumentAccess = async (
+  userId: string,
+  consumedReason: 'subscription' | 'single_document'
+) => {
+  const rpcResult = await adminRpc('refund_document_access', {
+    p_user_id: userId,
+    p_consumed_reason: consumedReason
+  });
+
+  if (!rpcResult.error && rpcResult.data) {
+    return rpcResult.data;
+  }
+
+  return refundDocumentAccessFallback(userId, consumedReason);
+};
+
 export const recordImssUsage = async (userId: string) => {
-  const rpcResult = await supabaseAdmin.rpc('record_imss_usage', {
+  const rpcResult = await adminRpc('record_imss_usage', {
     p_user_id: userId,
     p_monthly_limit: IMSS_MONTHLY_FAIR_USE_LIMIT
   });

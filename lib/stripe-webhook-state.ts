@@ -20,13 +20,11 @@ export const acquireStripeWebhookEvent = async (eventId: string, eventType: stri
   }
 
   if (isMissingStripeWebhookTableError(insertResult.error)) {
-    console.warn('[Stripe webhook] stripe_webhook_events table is missing; duplicate suppression is disabled.');
-    return true;
+    throw new Error('[Stripe webhook] stripe_webhook_events table is missing; refusing to process without idempotency.');
   }
 
   if (!isDuplicateInsertError(insertResult.error)) {
-    console.error('[Stripe webhook] Unexpected error acquiring webhook event lock.', insertResult.error);
-    return true;
+    throw new Error(`[Stripe webhook] Unexpected error acquiring webhook event lock: ${insertResult.error.message || insertResult.error.code || 'unknown'}`);
   }
 
   const existingEventResult = await supabaseAdmin
@@ -37,8 +35,7 @@ export const acquireStripeWebhookEvent = async (eventId: string, eventType: stri
 
   if (existingEventResult.error) {
     if (isMissingStripeWebhookTableError(existingEventResult.error)) {
-      console.warn('[Stripe webhook] stripe_webhook_events table is missing while reading an existing event.');
-      return true;
+      throw new Error('[Stripe webhook] stripe_webhook_events table is missing while reading an existing event.');
     }
 
     console.error('[Stripe webhook] Could not read existing webhook event state.', existingEventResult.error);
@@ -57,8 +54,7 @@ export const acquireStripeWebhookEvent = async (eventId: string, eventType: stri
 
     if (releaseStaleResult.error) {
       if (isMissingStripeWebhookTableError(releaseStaleResult.error)) {
-        console.warn('[Stripe webhook] stripe_webhook_events table disappeared while releasing a stale event.');
-        return true;
+        throw new Error('[Stripe webhook] stripe_webhook_events table disappeared while releasing a stale event.');
       }
 
       console.error('[Stripe webhook] Could not release stale webhook event state.', releaseStaleResult.error);
@@ -71,13 +67,11 @@ export const acquireStripeWebhookEvent = async (eventId: string, eventType: stri
     }
 
     if (isMissingStripeWebhookTableError(retryInsertResult.error)) {
-      console.warn('[Stripe webhook] stripe_webhook_events table is missing on stale retry insert.');
-      return true;
+      throw new Error('[Stripe webhook] stripe_webhook_events table is missing on stale retry insert.');
     }
 
     if (!isDuplicateInsertError(retryInsertResult.error)) {
-      console.error('[Stripe webhook] Unexpected error re-acquiring stale webhook event lock.', retryInsertResult.error);
-      return true;
+      throw new Error(`[Stripe webhook] Unexpected error re-acquiring stale webhook event lock: ${retryInsertResult.error.message || retryInsertResult.error.code || 'unknown'}`);
     }
   }
 
