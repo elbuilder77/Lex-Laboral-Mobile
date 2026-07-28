@@ -33,6 +33,7 @@ import { NotificationType, DraftingState } from '../types';
 import { useAuth } from './AuthProvider';
 import { WorkspaceEmpty, WorkspaceHeader, WorkspacePage, WorkspacePanel } from './ui/Workspace';
 import { cn } from '../lib/cn';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DrafterProps {
   state: DraftingState;
@@ -189,14 +190,6 @@ const DRAFTING_MODELS: DraftingModel[] = [
   }
 ];
 
-const stepLabel = (step: string, title: string, description: string) => (
-  <div>
-    <span className="text-[9px] font-bold uppercase tracking-[0.26em] text-legal-gold bg-legal-gold/5 px-2.5 py-1 rounded-md border border-legal-gold/20">{step}</span>
-    <h3 className="mt-3.5 text-sm font-bold text-slate-950">{title}</h3>
-    <p className="mt-1 text-xs leading-relaxed text-slate-500 font-medium">{description}</p>
-  </div>
-);
-
 const DraftContent = ({ content, plainText }: { content: string; plainText?: boolean }) => {
   if (plainText) {
     return (
@@ -215,6 +208,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
   const [isDrafting, setIsDrafting] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { user, access, refreshAccess } = useAuth();
+  const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   const [selectedTemplate, setSelectedTemplate] = useState(() => localStorage.getItem('draft_template') || 'contrato');
   const [employeeName, setEmployeeName] = useState(() => localStorage.getItem('draft_employeeName') || '');
@@ -243,7 +237,6 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     return () => window.clearTimeout(timeoutId);
   }, [selectedTemplate, employeeName, position, details, customInstructions, fieldValues]);
 
-  // RAG Scanner state variables for premium simulation
   const [ragStep, setRagStep] = useState(1);
 
   const selectedModel = useMemo(
@@ -252,10 +245,10 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
   );
 
   const accessCopy = access.hasActiveSubscription
-    ? 'Tienes acceso Premium activo. Puedes generar borradores ilimitados.'
+    ? 'Premium activo. Borradores ilimitados.'
     : access.singleDocumentUsesRemaining > 0
-      ? `Tienes ${access.singleDocumentUsesRemaining} saldo${access.singleDocumentUsesRemaining === 1 ? '' : 's'} disponible${access.singleDocumentUsesRemaining === 1 ? '' : 's'} para generar.`
-      : 'Requiere saldo documental o un plan mensual activo para generar.';
+      ? `Tienes ${access.singleDocumentUsesRemaining} saldo${access.singleDocumentUsesRemaining === 1 ? '' : 's'} disponible${access.singleDocumentUsesRemaining === 1 ? '' : 's'}.`
+      : 'Requiere saldo o plan mensual.';
 
   useEffect(() => {
     let assembledPrompt = selectedModel.basePrompt;
@@ -263,7 +256,6 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     if (employeeName.trim()) assembledPrompt += `\nNombre principal (persona/empresa): ${employeeName.trim()}`;
     if (position.trim()) assembledPrompt += `\nPuesto o relación: ${position.trim()}`;
 
-    // Add dynamic field values
     const activeFields = selectedModel.fields || [];
     activeFields.forEach((field) => {
       const val = fieldValues[field.id]?.trim();
@@ -277,7 +269,6 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     setState((prev) => ({ ...prev, prompt: assembledPrompt }));
   }, [selectedModel, employeeName, position, details, fieldValues, setState]);
 
-  // RAG steps animation loop during drafting
   useEffect(() => {
     if (!isDrafting) {
       setRagStep(1);
@@ -325,6 +316,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
       return;
     }
 
+    setActiveTab('results');
     setIsDrafting(true);
     setTimeout(() => {
       visualizerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -335,7 +327,6 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
         setGeneratedDoc(chunk);
       });
       await refreshAccess();
-      // Clear persistence after successful draft
       localStorage.removeItem('draft_details');
       localStorage.removeItem('draft_customInstructions');
       setGeneratedDoc(document);
@@ -343,123 +334,127 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     } catch (error: any) {
       console.error('Drafting Error:', error);
       notify(error?.message || 'Error al contactar con la API de Gemini.', 'error');
+      setActiveTab('form');
     } finally {
       setIsDrafting(false);
     }
   }, [access, customInstructions, notify, onAuthRequired, onUpgrade, prompt, refreshAccess, setGeneratedDoc, user]);
 
   return (
-    <WorkspacePage className="font-sans bg-[#FAFBFD]">
-      <div className="no-print">
-        <WorkspaceHeader
-          eyebrow="Redacción Inteligente"
-          title="Generador de Documentos"
-          description="Selecciona un formato legal, captura la información y genera un borrador fundado en la Ley Federal del Trabajo y del IMSS en segundos."
-          icon={<Scale size={26} className="text-legal-gold" />}
-          actions={
-            <button
-              onClick={() => onUpgrade?.()}
-              className="group inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:border-legal-gold/40"
-            >
-              <Sparkles size={14} className="text-legal-gold transition-transform group-hover:scale-110" />
-              <span>Ver planes de acceso</span>
-              <ChevronRight size={14} className="text-slate-400 transition-transform group-hover:translate-x-0.5" />
-            </button>
-          }
-        />
+    <div className="min-h-screen bg-slate-50 pb-32">
+      <div className="bg-slate-950 px-6 pt-12 pb-6 shadow-md rounded-b-[2rem]">
+        <h1 className="text-2xl font-serif font-bold text-white">Generador de Documentos</h1>
+        <p className="text-sm text-slate-400 mt-1">Redacta con IA fundamentada en la LFT</p>
+        
+        {/* Tabs */}
+        <div className="flex bg-slate-900 rounded-full p-1 mt-6 border border-slate-800">
+          <button 
+            onClick={() => setActiveTab('form')}
+            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'form' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Formulario
+          </button>
+          <button 
+            onClick={() => setActiveTab('results')}
+            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'results' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Borrador
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 mt-4">
-        {/* Left Column: Input Form & Template Selector */}
-        <div className="lg:col-span-5 space-y-6 no-print">
-          
-          {/* STEP 1: SELECTOR DE PLANTILLA */}
-          <WorkspacePanel className="p-6 border border-slate-200/60 bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm space-y-6">
-            {stepLabel('Paso 1', 'Selecciona la plantilla legal', 'Elige el formato básico que necesitas proyectar.')}
+      <div className="px-4 mt-6 max-w-lg mx-auto">
+        {(!access.hasActiveSubscription && access.singleDocumentUsesRemaining <= 0) && (
+          <div className="bg-slate-900 rounded-[1.5rem] p-5 shadow-lg border border-legal-gold/20 mb-4">
+            <h4 className="text-legal-gold text-sm font-bold flex items-center gap-2 uppercase tracking-widest"><ShieldAlert size={16}/> Acceso Restringido</h4>
+            <p className="text-slate-300 text-xs mt-2 leading-relaxed">
+              No cuentas con saldo para generar documentos.
+            </p>
+            <button
+              onClick={() => onUpgrade?.('draft_basic')}
+              className="mt-4 w-full bg-legal-gold text-slate-950 py-3 rounded-xl text-xs font-bold uppercase tracking-widest"
+            >
+              Comprar Saldo
+            </button>
+          </div>
+        )}
 
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              {DRAFTING_MODELS.map((model) => {
-                const isActive = selectedTemplate === model.id;
-                return (
-                  <button
-                    key={model.id}
-                    onClick={() => setSelectedTemplate(model.id)}
-                    className={cn(
-                      'rounded-xl border p-4.5 text-left transition-all duration-200 flex flex-col justify-between h-full min-h-[96px]',
-                      isActive
-                        ? 'border-slate-900 bg-slate-950 text-white shadow-[0_15px_30px_-16px_rgba(15,23,42,0.95)]'
-                        : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-slate-50'
-                    )}
-                  >
-                    <div className="flex items-start gap-3.5 w-full">
-                      {/* Cohesive Dark/Gold Icon Chip matching LexCorporativo */}
-                      <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border', isActive ? 'bg-white/10 border-white/15 text-legal-gold' : 'bg-slate-50 border-slate-200 text-slate-500')}>
-                        {model.icon}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className={cn('text-xs font-bold tracking-wide', isActive ? 'text-white' : 'text-slate-950')}>{model.title}</h3>
-                        <p className={cn('mt-1.5 text-[10px] leading-relaxed font-medium', isActive ? 'text-slate-300' : 'text-slate-500')}>{model.summary}</p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </WorkspacePanel>
-
-          {/* STEP 2: CAPTURA DE DATOS */}
-          <WorkspacePanel className="p-6 border border-slate-200/60 bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm space-y-6">
-            {stepLabel('Paso 2', 'Captura los hechos y detalles clave', 'Escribe los datos indispensables y deja que la IA haga el resto.')}
-
-            <div className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <label className="ui-label text-[10px]">Persona / Empresa Principal</label>
-                  <div className="relative">
-                    <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      value={employeeName}
-                      onChange={(event) => setEmployeeName(event.target.value)}
-                      placeholder="Ej. Juan Pérez / Empresa S.A."
-                      className="ui-input w-full pl-11 pr-4 py-3 rounded-xl border-slate-200/80 focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="ui-label text-[10px]">Puesto / Relación</label>
-                  <div className="relative">
-                    <Briefcase size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      value={position}
-                      onChange={(event) => setPosition(event.target.value)}
-                      placeholder="Ej. Gerente de Ventas / Chofer"
-                      className="ui-input w-full pl-11 pr-4 py-3 rounded-xl border-slate-200/80 focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
-                    />
-                  </div>
+        <AnimatePresence mode="wait">
+          {activeTab === 'form' ? (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-4"
+            >
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Plantilla Legal</label>
+                <div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar">
+                  {DRAFTING_MODELS.map((model) => {
+                    const isActive = selectedTemplate === model.id;
+                    return (
+                      <button
+                        key={model.id}
+                        onClick={() => setSelectedTemplate(model.id)}
+                        className={cn(
+                          'flex-none w-[140px] rounded-[1.2rem] p-4 text-left transition-all',
+                          isActive
+                            ? 'bg-slate-950 text-white shadow-md'
+                            : 'bg-slate-50 border border-slate-100 text-slate-600 hover:bg-slate-100'
+                        )}
+                      >
+                        <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center mb-3', isActive ? 'bg-white/10 text-legal-gold' : 'bg-slate-200/50 text-slate-400')}>
+                          {model.icon}
+                        </div>
+                        <h3 className="text-xs font-bold leading-tight">{model.title}</h3>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Campos dinámicos específicos de la plantilla */}
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Persona / Empresa</label>
+                  <input
+                    type="text"
+                    value={employeeName}
+                    onChange={(e) => setEmployeeName(e.target.value)}
+                    placeholder="Ej. Juan Pérez / Empresa S.A."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Puesto / Relación</label>
+                  <input
+                    type="text"
+                    value={position}
+                    onChange={(e) => setPosition(e.target.value)}
+                    placeholder="Ej. Gerente de Ventas"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none"
+                  />
+                </div>
+              </div>
+
               {selectedModel.fields && selectedModel.fields.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50 border border-slate-200/40 rounded-xl p-4.5">
-                  <div className="col-span-1 sm:col-span-2">
-                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-legal-gold">Variables del documento</span>
-                  </div>
+                <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 space-y-4">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-legal-gold block mb-2">Variables del formato</span>
                   {selectedModel.fields.map((field) => {
                     const value = fieldValues[field.id] || '';
-                    const isFull = field.gridSpan === 'full';
                     return (
-                      <div key={field.id} className={cn("space-y-1.5", isFull ? "col-span-1 sm:col-span-2" : "col-span-1")}>
-                        <label className="ui-label text-[10px]">{field.label}</label>
+                      <div key={field.id} className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">{field.label}</label>
                         {field.type === 'textarea' ? (
                           <textarea
                             value={value}
                             onChange={(e) => setFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
                             placeholder={field.placeholder}
-                            className="ui-input w-full min-h-[80px] resize-none px-3.5 py-2.5 rounded-xl border-slate-200/80 leading-relaxed text-xs focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
+                            className="w-full min-h-[80px] resize-none bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none"
                           />
                         ) : (
                           <input
@@ -467,7 +462,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
                             value={value}
                             onChange={(e) => setFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
                             placeholder={field.placeholder}
-                            className="ui-input w-full px-3.5 py-2.5 rounded-xl border-slate-200/80 text-xs focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none"
                           />
                         )}
                       </div>
@@ -476,227 +471,97 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
                 </div>
               )}
 
-              <div className="space-y-1.5">
-                <label className="ui-label text-[10px]">Hechos o detalles adicionales (Opcional)</label>
-                <textarea
-                  value={details}
-                  onChange={(event) => setDetails(event.target.value)}
-                  placeholder={selectedModel.detailsPlaceholder}
-                  className="ui-input w-full min-h-[100px] resize-none px-4.5 py-3.5 rounded-xl border-slate-200/80 leading-relaxed text-xs focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="ui-label text-[10px]">Instrucciones especiales para la IA (Opcional)</label>
-                <textarea
-                  value={customInstructions}
-                  onChange={(event) => setCustomInstructions(event.target.value)}
-                  placeholder="Ej. Tono formal, incluir cláusula de confidencialidad, sueldo integrado, etc."
-                  className="ui-input w-full min-h-[80px] resize-none px-4.5 py-3.5 rounded-xl border-slate-200/80 leading-relaxed text-xs focus:border-legal-gold/60 focus:ring-4 focus:ring-legal-gold/5"
-                />
-              </div>
-
-              <div className="h-px bg-slate-200/80 my-2" />
-
-              <div className="grid gap-3.5 sm:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-white/50 p-4">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Estado de Saldo</span>
-                  <p className="mt-1 text-[11px] leading-relaxed text-slate-600 font-semibold">{accessCopy}</p>
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Hechos Adicionales (Opcional)</label>
+                  <textarea
+                    value={details}
+                    onChange={(e) => setDetails(e.target.value)}
+                    placeholder={selectedModel.detailsPlaceholder}
+                    className="w-full min-h-[100px] resize-none bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs text-slate-900 font-medium focus:border-legal-gold outline-none"
+                  />
                 </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Instrucciones para la IA (Opcional)</label>
+                  <textarea
+                    value={customInstructions}
+                    onChange={(e) => setCustomInstructions(e.target.value)}
+                    placeholder="Ej. Tono formal, incluir cláusula de confidencialidad"
+                    className="w-full min-h-[80px] resize-none bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs text-slate-900 font-medium focus:border-legal-gold outline-none"
+                  />
+                </div>
+              </div>
 
+              <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+80px)] left-0 w-full px-4 z-40 md:relative md:bottom-auto md:px-0 mt-6 flex gap-2 items-center">
+                <div className="bg-white rounded-full px-4 py-3 shadow-md flex-1 overflow-hidden">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 block">Saldo</span>
+                  <span className="text-[11px] font-bold text-slate-900 truncate block">{accessCopy}</span>
+                </div>
                 <button
                   onClick={handleDraft}
                   disabled={isDrafting || !prompt.trim()}
-                  className="group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/5 px-5 py-4 text-xs font-bold uppercase tracking-wider text-white shadow-md transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 hover:shadow-[0_15px_30px_-12px_rgba(212,175,55,0.25)]"
+                  className="bg-slate-950 text-legal-gold h-12 w-12 rounded-full shadow-lg flex items-center justify-center shrink-0 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
                 >
-                  <div className="absolute inset-0 bg-white/5 opacity-0 transition-opacity group-hover:opacity-100" />
-                  {isDrafting ? (
-                    <RefreshCw className="animate-spin text-legal-gold" size={16} />
-                  ) : (
-                    <Send size={15} className="text-legal-gold transition-transform group-hover:translate-x-0.5" />
-                  )}
-                  <span>{isDrafting ? 'Escaneando RAG...' : 'Generar Borrador'}</span>
+                  <Send size={18} />
                 </button>
               </div>
-            </div>
-          </WorkspacePanel>
-        </div>
-
-        {/* Right Column: Premium Legal Workspace Preview */}
-        <div ref={visualizerRef} className="lg:col-span-7">
-          <WorkspacePanel className="flex h-full min-h-[760px] flex-col overflow-hidden border border-slate-200/60 bg-[#F4F6F9] rounded-2xl shadow-sm print:bg-white print:border-none print:shadow-none print:h-auto print:min-h-0">
-            
-            {/* Output Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 bg-white/90 backdrop-blur-sm px-6 py-4.5 no-print">
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-slate-400">Estudio Jurídico Digital</span>
-                <h3 className="mt-1 text-md font-bold text-slate-950">
-                  {generatedDoc ? 'Borrador Redactado con Precisión RAG' : selectedModel.title}
-                </h3>
-              </div>
-
-              {generatedDoc ? (
-                <div className="flex gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 shadow-sm backdrop-blur-sm">
-                  <button onClick={() => setIsPreviewOpen(true)} className="rounded-lg bg-white border border-slate-200/50 px-3 py-1.5 text-[10px] font-bold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-1.5 shadow-sm">
-                    <Eye size={13} className="text-slate-500" />
-                    <span>Vista amplia</span>
-                  </button>
-                  <button onClick={handleCopy} className="rounded-lg p-2 text-slate-500 hover:bg-white hover:text-slate-950 hover:shadow-sm transition-all" title="Copiar texto">
-                    <Copy size={15} />
-                  </button>
-                  <button onClick={handlePrint} className="rounded-lg p-2 text-slate-500 hover:bg-white hover:text-slate-950 hover:shadow-sm transition-all" title="Imprimir borrador">
-                    <Printer size={15} />
-                  </button>
-                  <button onClick={handleDownload} className="rounded-lg p-2 text-legal-gold hover:bg-white hover:shadow-sm transition-all" title="Descargar borrador">
-                    <Download size={15} />
-                  </button>
-                </div>
-              ) : null}
-            </div>
-
-            {/* Visualizer Body */}
-            <div className="relative flex-1 overflow-y-auto p-6 sm:p-10 flex justify-center items-start print:p-0 print:overflow-visible">
-              
-              {/* INTERACTIVE STEP-BY-STEP RAG SCANNER SCREEN */}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="space-y-4"
+              ref={visualizerRef}
+            >
               {isDrafting ? (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950/92 backdrop-blur-md text-white px-8 py-12 animate-in fade-in duration-300">
-                  <div className="relative flex h-28 w-28 items-center justify-center">
-                    
-                    {/* Glowing gold radar effect */}
+                <div className="flex flex-col items-center justify-center py-20 bg-slate-900 rounded-[1.5rem] border border-slate-800 text-white">
+                  <div className="relative flex h-24 w-24 items-center justify-center mb-6">
                     <div className="absolute inset-0 rounded-full border border-legal-gold/20 animate-radar" />
-                    <div className="absolute inset-2 rounded-full border border-legal-gold/30 animate-pulse-soft" />
                     <div className="absolute inset-0 rounded-full border-2 border-legal-gold border-t-transparent animate-spin" />
-                    
-                    {/* Scanner line overlay */}
-                    <div className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-legal-gold to-transparent animate-scan" />
-                    
-                    <Scale size={32} className="text-legal-gold" />
+                    <Scale size={28} className="text-legal-gold" />
                   </div>
-
-                  <h4 className="mt-8 text-lg font-serif font-bold tracking-wide text-white">
-                    Escaneando Base de Conocimiento
-                  </h4>
-                  <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-legal-gold/80">
-                    Sistema RAG Integrado Lex
-                  </p>
-
-                  {/* Sequential Steps Display */}
-                  <div className="mt-8 w-full max-w-[280px] space-y-4 text-left border border-white/5 bg-white/[0.02] p-5 rounded-2xl">
-                    <div className={cn("flex items-center gap-3 transition-opacity duration-300", ragStep >= 1 ? "opacity-100" : "opacity-30")}>
-                      {ragStep > 1 ? <CheckCircle2 size={16} className="text-legal-gold shrink-0" /> : <Layers size={16} className="text-legal-gold/80 animate-pulse shrink-0" />}
-                      <span className="text-[11px] font-semibold">🧬 Vectorizando requerimientos...</span>
+                  <h4 className="text-lg font-serif font-bold text-white mb-2">Generando...</h4>
+                  <div className="space-y-2 text-left">
+                    <div className={cn("flex items-center gap-2 transition-opacity duration-300", ragStep >= 1 ? "opacity-100" : "opacity-30")}>
+                      <CheckCircle2 size={12} className={ragStep > 1 ? "text-legal-gold" : "text-legal-gold/50"} />
+                      <span className="text-[10px] font-medium text-slate-300">Vectorizando requerimientos</span>
                     </div>
-
-                    <div className={cn("flex items-center gap-3 transition-opacity duration-300", ragStep >= 2 ? "opacity-100" : "opacity-30")}>
-                      {ragStep > 2 ? <CheckCircle2 size={16} className="text-legal-gold shrink-0" /> : <Database size={16} className="text-legal-gold/80 animate-pulse shrink-0" />}
-                      <span className="text-[11px] font-semibold">🔍 Buscando en LFT y Ley del IMSS...</span>
+                    <div className={cn("flex items-center gap-2 transition-opacity duration-300", ragStep >= 2 ? "opacity-100" : "opacity-30")}>
+                      <CheckCircle2 size={12} className={ragStep > 2 ? "text-legal-gold" : "text-legal-gold/50"} />
+                      <span className="text-[10px] font-medium text-slate-300">Consultando LFT / IMSS</span>
                     </div>
-
-                    <div className={cn("flex items-center gap-3 transition-opacity duration-300", ragStep >= 3 ? "opacity-100" : "opacity-30")}>
-                      {ragStep >= 3 ? <Cpu size={16} className="text-legal-gold shrink-0 animate-spin" /> : <div className="w-4 h-4 rounded-full border border-white/10 shrink-0" />}
-                      <span className="text-[11px] font-semibold">📥 Inyectando contexto semántico...</span>
+                    <div className={cn("flex items-center gap-2 transition-opacity duration-300", ragStep >= 3 ? "opacity-100" : "opacity-30")}>
+                      <CheckCircle2 size={12} className={ragStep >= 3 ? "text-legal-gold" : "text-legal-gold/50"} />
+                      <span className="text-[10px] font-medium text-slate-300">Redactando borrador</span>
                     </div>
                   </div>
                 </div>
-              ) : null}
-
-              {/* Borrador Generado en Formato Papel Realista */}
-              {generatedDoc ? (
-                <div className="w-full max-w-[210mm] min-h-[297mm] rounded-sm border border-slate-200/80 bg-white p-[15mm] sm:p-[20mm] shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700 relative overflow-hidden legal-document-print">
-                  {/* Subtle golden header strip to match LexCorporativo style */}
-                  <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-legal-gold/60 to-transparent" />
-                  
-                  <div className="markdown-body prose prose-slate prose-sm max-w-none md:prose-base prose-headings:font-serif prose-headings:text-slate-950 prose-headings:border-b prose-headings:border-slate-100 prose-headings:pb-1.5 prose-p:leading-[1.85] prose-p:text-justify prose-p:text-slate-800 font-medium">
-                    <DraftContent content={generatedDoc} plainText={isDrafting} />
-                    <div className="mt-12 pt-6 border-t border-slate-200/60 no-print">
-                      <p className="text-[10px] text-slate-400 font-medium text-center italic">
-                        Generado con Inteligencia Artificial por Lex Laboral. Este documento es un borrador y debe ser revisado por un profesional legal.
-                      </p>
-                    </div>
+              ) : generatedDoc ? (
+                <>
+                  <div className="flex gap-2 justify-end no-print">
+                    <button onClick={handleCopy} className="rounded-xl bg-white p-3 shadow-sm border border-slate-100 text-slate-600 hover:text-slate-900 active:scale-95"><Copy size={16} /></button>
+                    <button onClick={handleDownload} className="rounded-xl bg-slate-950 p-3 shadow-sm border border-slate-800 text-legal-gold active:scale-95"><Download size={16} /></button>
                   </div>
-                </div>
+                  <div className="w-full rounded-sm border border-slate-200/80 bg-white p-6 shadow-sm overflow-hidden text-sm markdown-body prose prose-slate">
+                    <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-legal-gold/60 to-transparent" />
+                    <DraftContent content={generatedDoc} />
+                  </div>
+                </>
               ) : (
-                <div className="w-full space-y-6">
-                  <WorkspaceEmpty
-                    icon={<FileText size={38} className="text-slate-300 animate-pulse-soft" />}
-                    title="Espacio de Previsualización"
-                    description="Captura los requerimientos en el formulario de la izquierda. Tras el análisis semántico vectorizado de LFT/IMSS, aquí se renderizará tu borrador formal con tipografía legal y diseño realista de hoja de papel listo para descargar o imprimir."
-                    className="min-h-[280px] border border-dashed border-slate-200 bg-white rounded-2xl p-8"
-                  />
-
-                  {/* Guidelines Box */}
-                  <div className="border border-slate-200/60 bg-white/80 p-6 rounded-2xl space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 border border-slate-800 text-legal-gold">
-                        <Sparkles size={12} />
-                      </div>
-                      <h4 className="text-xs font-bold text-slate-950 uppercase tracking-wide">Estructura del Studio RAG</h4>
-                    </div>
-                    <p className="text-xs leading-relaxed text-slate-600 font-medium">{selectedModel.outcome}</p>
-
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      {selectedModel.previewSections.map((section) => (
-                        <div key={section} className="rounded-xl border border-slate-100 bg-white p-3.5 flex flex-col justify-between">
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Sección LFT</span>
-                          <p className="mt-1 text-xs font-bold text-slate-950 leading-snug">{section}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                <div className="text-center py-20 bg-white rounded-[1.5rem] border border-slate-100">
+                  <FileText size={48} className="mx-auto text-slate-300 mb-4" />
+                  <h3 className="font-serif font-bold text-xl text-slate-900">Vista de Documento</h3>
+                  <p className="text-sm text-slate-500 mt-2 px-6">Llena el formulario y oprime el botón de generar para ver tu borrador aquí.</p>
+                  <button onClick={() => setActiveTab('form')} className="mt-6 px-6 py-3 bg-slate-950 text-white rounded-full text-xs font-bold uppercase tracking-widest">Ir al Formulario</button>
                 </div>
               )}
-            </div>
-          </WorkspacePanel>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-
-      {/* Vista Amplia Modal Esmerilada */}
-      {isPreviewOpen && (
-          <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 sm:p-6 backdrop-blur-md animate-fade-in print:bg-white print:p-0"
-          >
-            <div
-              className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[#FAFAFA] shadow-[0_30px_70px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200 print:h-auto print:max-w-full print:border-none print:shadow-none print:bg-white"
-            >
-              <div className="flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4.5 no-print">
-                <div>
-                  <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-slate-400">Vista Amplia de Edición</span>
-                  <h3 className="mt-1 text-md font-bold text-slate-950">{selectedModel.title}</h3>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button onClick={handleCopy} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-950 transition-all" title="Copiar">
-                    <Copy size={16} />
-                  </button>
-                  <button onClick={handlePrint} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-950 transition-all" title="Imprimir">
-                    <Printer size={16} />
-                  </button>
-                  <button onClick={handleDownload} className="rounded-lg p-2 text-legal-gold hover:bg-slate-100 transition-all" title="Descargar">
-                    <Download size={16} />
-                  </button>
-                  <div className="w-px h-5 bg-slate-200 mx-1.5" />
-                  <button onClick={() => setIsPreviewOpen(false)} className="rounded-lg bg-slate-900 border border-slate-800 text-white hover:bg-slate-800 p-2 transition-all" title="Cerrar">
-                    <X size={15} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6 sm:p-10 flex justify-center bg-[#FAFAFA] print:p-0 print:bg-white print:overflow-visible">
-                <div className="w-full max-w-[210mm] min-h-[297mm] rounded-sm border border-slate-200/80 bg-white p-[15mm] sm:p-[20mm] shadow-lg relative overflow-hidden legal-document-print">
-                  <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-legal-gold/60 to-transparent" />
-                  <div className="markdown-body prose prose-slate prose-sm max-w-none md:prose-base prose-headings:font-serif prose-headings:text-slate-950 prose-headings:border-b prose-headings:border-slate-100 prose-headings:pb-1.5 prose-p:leading-[1.85] prose-p:text-justify prose-p:text-slate-800 font-medium">
-                    <DraftContent content={generatedDoc} />
-                    <div className="mt-12 pt-6 border-t border-slate-200/60 no-print">
-                      <p className="text-[10px] text-slate-400 font-medium text-center italic">
-                        Generado con Inteligencia Artificial por Lex Laboral. Este documento es un borrador y debe ser revisado por un profesional legal.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-    </WorkspacePage>
+    </div>
   );
 });
 
