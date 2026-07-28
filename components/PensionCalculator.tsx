@@ -4,31 +4,25 @@ import {
   RefreshCw,
   Settings2,
   ChevronDown,
-  TrendingUp,
   User,
   FileDown,
   Info,
-  Building
+  Building,
+  ArrowRight
 } from 'lucide-react';
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthProvider';
-import { SEOContentSection } from './SEOContentSection';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
-import { WorkspaceEmpty, WorkspaceHeader, WorkspacePage, WorkspacePanel } from './ui/Workspace';
 
 type PensionRegime = '1973' | '1997';
-
-const LazyBreakdownChart = React.lazy(() =>
-  import('./BreakdownChart').then((module) => ({ default: module.BreakdownChart }))
-);
 
 export const PensionCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
   onRequireLogin?: () => void;
 }> = ({ notify, onRequireLogin }) => {
-  const resultsRef = React.useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   const [regime, setRegime] = useState<PensionRegime>('1973');
   const [age, setAge] = useState<number>(60);
@@ -59,8 +53,6 @@ export const PensionCalculator: React.FC<{
   } | null>(null);
 
   const calculatePension73 = () => {
-    // Basic rules for Law 73 (Approximations for estimation)
-    // Age percentage
     let agePercentage = 0;
     if (age === 60) agePercentage = 0.75;
     else if (age === 61) agePercentage = 0.80;
@@ -83,10 +75,7 @@ export const PensionCalculator: React.FC<{
       return null;
     }
 
-    // Salary divided by UMA to find factors
     const salaryUMA = averageSalary / umaValue;
-
-    // Simplified table logic (approximation)
     let basicPercentage = 0;
     let incrementPercentage = 0;
 
@@ -109,13 +98,11 @@ export const PensionCalculator: React.FC<{
       basicPercentage = 0.35;
       incrementPercentage = 0.023;
     } else {
-      basicPercentage = 0.20; // Flattened for higher salaries, simplified
+      basicPercentage = 0.20;
       incrementPercentage = 0.0245;
     }
 
-    // Topado a 25 UMAS
     const cappedSalary = Math.min(averageSalary, umaValue * 25);
-
     const basicAmountAnnual = cappedSalary * 365 * basicPercentage;
     const basicAmountMonthly = basicAmountAnnual / 12;
 
@@ -127,22 +114,16 @@ export const PensionCalculator: React.FC<{
 
     const subtotal = basicAmountMonthly + annualIncrementsAmountMonthly;
 
-    // Asignaciones familiares
     let familyFactor = 0;
     if (hasSpouse) familyFactor += 0.15;
     familyFactor += (childrenCount * 0.10);
-
-    // Asistencia asistencial si no tiene dependientes (15% por ley)
     if (familyFactor === 0) familyFactor = 0.15;
 
     const familyAllowancesAmount = subtotal * familyFactor;
-
     const totalBeforeAge = subtotal + familyAllowancesAmount;
-
     let monthlyPension = totalBeforeAge * agePercentage;
-
-    // Garantía de pensión mínima (1 salario mínimo mensual aprox)
-    const minPension = minWage * 30; // Approx
+    
+    const minPension = minWage * 30;
     if (monthlyPension < minPension) {
       monthlyPension = minPension;
     }
@@ -166,32 +147,24 @@ export const PensionCalculator: React.FC<{
   };
 
   const calculatePension97 = () => {
-    // Basic estimation for Law 97 (Renta Vitalicia simplified)
-
-    const minWeeksRequired = 875; // For 2026
-
+    const minWeeksRequired = 875;
     if (age < 60) {
       notify("La edad mínima para pensión por cesantía es 60 años", "warning");
       return null;
     }
-
     if (weeks < minWeeksRequired) {
       notify(`Para el año 2026 se requieren al menos ${minWeeksRequired} semanas cotizadas`, "warning");
       return null;
     }
-
     if (aforeBalance <= 0) {
       notify("Ingrese el saldo estimado en su AFORE", "warning");
       return null;
     }
 
-    // Simplificación extrema: Tasa de retiro programado/anualidad aprox 5% anual sobre saldo
     const estimatedAnnualRate = 0.05;
     const estimatedAnnualPension = aforeBalance * estimatedAnnualRate;
     let monthlyPension = estimatedAnnualPension / 12;
-
-    // Garantizada
-    const guaranteedPension = minWage * 30; // Approx mínima garantizada
+    const guaranteedPension = minWage * 30;
 
     if (monthlyPension < guaranteedPension) {
        monthlyPension = guaranteedPension;
@@ -232,28 +205,10 @@ export const PensionCalculator: React.FC<{
     if (result) {
       setResults(result);
       notify("Cálculo generado exitosamente", "success");
-      setTimeout(() => {
-        if (typeof resultsRef.current?.scrollIntoView === 'function') {
-          resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
+      setActiveTab('results');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-
-  const chartData = useMemo(() => {
-    if (!results) return [];
-    if (results.regimeUsed === '1997') {
-      return [
-        { name: 'Pensión AFORE', value: results.monthlyPension, color: '#0f172a' }
-      ];
-    }
-
-    return [
-      { name: 'Cuantía Básica', value: results.basicAmount, color: '#94a3b8' },
-      { name: 'Incrementos Anuales', value: results.annualIncrementsAmount, color: '#64748b' },
-      { name: 'Asignaciones Familiares', value: results.familyAllowancesAmount, color: '#d4af37' },
-    ].filter(d => d.value > 0);
-  }, [results]);
 
   const handleExportPDF = async () => {
     if (!results) return;
@@ -322,263 +277,226 @@ export const PensionCalculator: React.FC<{
   };
 
   return (
-    <WorkspacePage>
-      <WorkspaceHeader
-        eyebrow="Calculadora de Pensiones"
-        title="Estimación IMSS"
-        description="Calcula el estimado de tu pensión mensual bajo el régimen de 1973 o 1997."
-        icon={<Building size={28} />}
-        actions={
-          <div className="flex flex-wrap rounded-[1.35rem] border border-slate-200/80 bg-white/90 p-1.5 shadow-sm">
-            {(['1973', '1997'] as const).map((r) => (
-              <button
-                key={r}
-                onClick={() => setRegime(r)}
-                className={`rounded-[1rem] px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] transition-all ${
-                  regime === r
-                    ? 'bg-slate-950 text-legal-gold shadow-[0_18px_40px_-24px_rgba(15,23,42,0.9)]'
-                    : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
-                }`}
-              >
-                Ley {r}
-              </button>
-            ))}
-          </div>
-        }
-      />
+    <div className="min-h-screen bg-slate-50 pb-32">
+      <div className="bg-slate-950 px-6 pt-12 pb-6 shadow-md rounded-b-[2rem]">
+        <h1 className="text-2xl font-serif font-bold text-white">Pensiones IMSS</h1>
+        <p className="text-sm text-slate-400 mt-1">Simula tu pensión Ley 73 o 97</p>
+        
+        {/* Android Native-like Tabs */}
+        <div className="flex bg-slate-900 rounded-full p-1 mt-6 border border-slate-800">
+          <button 
+            onClick={() => setActiveTab('form')}
+            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'form' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Formulario
+          </button>
+          <button 
+            onClick={() => setActiveTab('results')}
+            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'results' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Resultados
+          </button>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-        <div className="lg:col-span-5 space-y-8">
-          <WorkspacePanel className="space-y-8 p-8">
-            <div className="flex items-center gap-3 text-slate-900">
-              <div className="ui-icon-chip h-11 w-11 rounded-[1rem]"><User size={18} className="text-legal-gold" /></div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-950">Datos de Cotización</h3>
-                <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">Régimen {regime}</p>
+      <div className="px-4 mt-6 max-w-lg mx-auto">
+        <AnimatePresence mode="wait">
+          {activeTab === 'form' ? (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-4"
+            >
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Régimen</label>
+                <div className="flex gap-2">
+                  {(['1973', '1997'] as const).map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setRegime(r)}
+                      className={`flex-1 py-4 rounded-xl border transition-all ${
+                        regime === r
+                          ? 'bg-slate-950 border-slate-950 text-legal-gold font-bold shadow-md'
+                          : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      Ley {r}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="ui-label">Edad (años)</label>
-                  <input type="number" value={age || ''} onChange={(e) => setAge(Number(e.target.value))} className="ui-input-lg w-full px-4" placeholder="60" min="60" />
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Edad (Años)</label>
+                  <input type="number" value={age || ''} onChange={(e) => setAge(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" min="60" />
                 </div>
                 <div className="space-y-2">
-                  <label className="ui-label">Semanas Cotizadas</label>
-                  <input type="number" value={weeks || ''} onChange={(e) => setWeeks(Number(e.target.value))} className="ui-input-lg w-full px-4" placeholder="500" />
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Semanas Cot.</label>
+                  <input type="number" value={weeks || ''} onChange={(e) => setWeeks(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" />
                 </div>
               </div>
 
               {regime === '1973' ? (
-                <div className="ui-subtle-block space-y-4 p-6">
-                  <label className="ui-label">Salario Diario Promedio (Últimos 5 años)</label>
-                  <div className="relative group">
+                <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Salario Promedio Diario (Últimos 5 años)</label>
+                  <div className="relative">
                     <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                    <input type="number" value={averageSalary || ''} onChange={(e) => setAverageSalary(Number(e.target.value))} className="ui-input-lg w-full pl-10 pr-4" placeholder="0.00" />
+                    <input type="number" value={averageSalary || ''} onChange={(e) => setAverageSalary(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 pl-10 pr-4 text-slate-900 font-bold focus:border-legal-gold focus:ring-1 outline-none transition-all" placeholder="0.00" />
                   </div>
                 </div>
               ) : (
-                <div className="ui-subtle-block space-y-4 p-6">
-                  <label className="ui-label">Saldo Acumulado AFORE</label>
-                  <div className="relative group">
+                <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Saldo Acumulado AFORE</label>
+                  <div className="relative">
                     <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                    <input type="number" value={aforeBalance || ''} onChange={(e) => setAforeBalance(Number(e.target.value))} className="ui-input-lg w-full pl-10 pr-4" placeholder="0.00" />
+                    <input type="number" value={aforeBalance || ''} onChange={(e) => setAforeBalance(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 pl-10 pr-4 text-slate-900 font-bold focus:border-legal-gold focus:ring-1 outline-none transition-all" placeholder="0.00" />
                   </div>
                 </div>
               )}
 
-              <button onClick={() => setShowAdvanced(!showAdvanced)} className="ui-subtle-block flex w-full items-center justify-between p-4 text-slate-500 transition-all hover:bg-slate-100">
-                <div className="flex items-center gap-3">
-                  <Settings2 size={16} />
-                  <span className="text-xs font-bold uppercase tracking-[0.2em]">Configuración Adicional</span>
-                </div>
-                <ChevronDown size={16} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-              </button>
-
-              <AnimatePresence>
-                {showAdvanced && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="ui-subtle-block grid grid-cols-2 gap-6 overflow-hidden p-6">
-                    {regime === '1973' && (
-                      <>
-                        <div className="space-y-2 col-span-2 flex items-center justify-between">
-                          <label className="ui-label mb-0">¿Tiene Cónyuge?</label>
-                          <input type="checkbox" checked={hasSpouse} onChange={(e) => setHasSpouse(e.target.checked)} className="w-5 h-5 rounded border-slate-300 text-legal-gold focus:ring-legal-gold" />
-                        </div>
-                        <div className="space-y-2 col-span-2">
-                          <label className="ui-label">Hijos (menores de 16 o estudiantes hasta 25)</label>
-                          <input type="number" value={childrenCount === 0 ? '' : childrenCount} onChange={(e) => setChildrenCount(Number(e.target.value))} className="ui-input w-full px-4 py-3 text-xs" placeholder="0" />
-                        </div>
-                      </>
-                    )}
-                    <div className="space-y-2">
-                      <label className="ui-label">Salario Mínimo</label>
-                      <input type="number" value={minWage || ''} onChange={(e) => setMinWage(Number(e.target.value))} className="ui-input w-full px-4 py-3 text-xs" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="ui-label">Valor UMA</label>
-                      <input type="number" value={umaValue || ''} onChange={(e) => setUmaValue(Number(e.target.value))} className="ui-input w-full px-4 py-3 text-xs" />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <button onClick={calculate} className="w-full py-5 bg-gradient-to-r from-legal-950 to-slate-900 text-legal-gold rounded-[1.5rem] font-bold shadow-2xl shadow-legal-950/20 hover:shadow-legal-950/40 hover:-translate-y-0.5 transition-all active:scale-[0.98] flex items-center justify-center gap-3 group relative overflow-hidden">
-                <div className="absolute inset-0 w-full h-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <TrendingUp size={20} className="group-hover:translate-x-1 transition-transform" />
-                <span className="tracking-wide">Calcular Pensión</span>
-              </button>
-            </div>
-          </WorkspacePanel>
-        </div>
-
-        <div ref={resultsRef} className="lg:col-span-7">
-          <AnimatePresence mode="wait">
-            {!results ? (
-              <WorkspaceEmpty
-                icon={<Building size={44} />}
-                title="Estimación de Pensión"
-                description="Ingresa tus datos para ver un estimado de tu pensión mensual según la ley seleccionada."
-                className="min-h-[600px]"
-              />
-            ) : (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                <WorkspacePanel className="overflow-hidden rounded-[2.4rem]">
-                  <div className="p-10 border-b border-slate-50 bg-gradient-to-br from-slate-900 to-legal-950 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                    <div>
-                      <span className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Pensión Mensual (Aprox)</span>
-                      <div className="flex items-baseline gap-3 mt-2">
-                        <h3 className="text-5xl font-serif font-bold text-legal-gold">
-                          ${results.monthlyPension.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                        </h3>
-                        <span className="text-slate-400 font-bold text-sm">MXN</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <button onClick={handleExportPDF} className="flex items-center gap-3 px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl transition-all border border-white/10 active:scale-95 text-xs">
-                        <FileDown size={18} /> <span>PDF</span>
-                      </button>
-                      <button onClick={() => setResults(null)} className="p-3.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-2xl transition-all">
-                        <RefreshCw size={18} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2">
-                    <div className="p-10 border-b md:border-b-0 md:border-r border-slate-50">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">Composición</h4>
-                      <div className="h-[280px]">
-                        <React.Suspense fallback={<div className="h-full rounded-2xl bg-slate-50" />}>
-                          <LazyBreakdownChart data={chartData} />
-                        </React.Suspense>
-                      </div>
-                    </div>
-
-                    <div className="p-10 space-y-4 max-h-[500px] overflow-y-auto no-scrollbar">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Desglose</h4>
-
-                      {results.regimeUsed === '1973' && (
+              <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden">
+                <button onClick={() => setShowAdvanced(!showAdvanced)} className="w-full p-5 flex items-center justify-between text-slate-500 hover:bg-slate-50 transition-colors">
+                  <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2"><Settings2 size={16}/> Configuración</span>
+                  <ChevronDown size={16} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {showAdvanced && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-5 pb-5 space-y-4">
+                      {regime === '1973' && (
                         <>
-                          <div className="group">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-xs font-bold text-slate-700">Cuantía Básica</span>
-                              <span className="text-sm font-serif font-bold text-slate-900">${results.basicAmount.toLocaleString()}</span>
-                            </div>
-                            <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-500 font-mono leading-relaxed border border-slate-100 whitespace-pre-wrap">
-                              {results.formulas.basic}
-                            </div>
+                          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                            <label className="text-xs font-bold text-slate-600">¿Tiene Cónyuge?</label>
+                            <input type="checkbox" checked={hasSpouse} onChange={(e) => setHasSpouse(e.target.checked)} className="w-5 h-5 rounded border-slate-300 text-legal-gold" />
                           </div>
-
-                          <div className="group mt-4">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-xs font-bold text-slate-700">Incrementos Anuales</span>
-                              <span className="text-sm font-serif font-bold text-slate-900">${results.annualIncrementsAmount.toLocaleString()}</span>
-                            </div>
-                            <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-500 font-mono leading-relaxed border border-slate-100 whitespace-pre-wrap">
-                              {results.formulas.increments}
-                            </div>
-                          </div>
-
-                          <div className="group mt-4">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-xs font-bold text-slate-700">Asignaciones Familiares / Asistencial</span>
-                              <span className="text-sm font-serif font-bold text-slate-900">${results.familyAllowancesAmount.toLocaleString()}</span>
-                            </div>
-                            <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-500 font-mono leading-relaxed border border-slate-100 whitespace-pre-wrap">
-                              {results.formulas.family}
-                            </div>
-                          </div>
-
-                          <div className="group mt-4">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-xs font-bold text-slate-700">Factor de Edad ({age} años)</span>
-                              <span className="text-sm font-serif font-bold text-slate-900">{results.agePercentage}%</span>
-                            </div>
-                            <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-500 font-mono leading-relaxed border border-slate-100 whitespace-pre-wrap">
-                              {results.formulas.ageFactor}
-                            </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hijos Dependientes</label>
+                            <input type="number" value={childrenCount === 0 ? '' : childrenCount} onChange={(e) => setChildrenCount(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold" placeholder="0" />
                           </div>
                         </>
                       )}
-
-                      {results.regimeUsed === '1997' && (
-                        <div className="group">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-bold text-slate-700">Pensión Estimada</span>
-                            <span className="text-sm font-serif font-bold text-slate-900">${results.monthlyPension.toLocaleString()}</span>
-                          </div>
-                          <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-500 font-mono leading-relaxed border border-slate-100 whitespace-pre-wrap">
-                            {results.formulas.basic}
-                          </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Salario Mínimo</label>
+                          <input type="number" value={minWage || ''} onChange={(e) => setMinWage(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold" />
                         </div>
-                      )}
-
-                      <div className="mt-8 p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3">
-                        <Info size={16} className="text-orange-500 shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-xs font-bold text-orange-800 tracking-wide uppercase">Cálculo Estimado</span>
-                          <p className="text-xs text-orange-600/80 mt-1 leading-relaxed">
-                            Este resultado es una <strong>estimación</strong>. El cálculo oficial debe ser emitido por el Instituto Mexicano del Seguro Social. Se aplican redondeos y factores simplificados para propósitos ilustrativos.
-                          </p>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valor UMA</label>
+                          <input type="number" value={umaValue || ''} onChange={(e) => setUmaValue(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold" />
                         </div>
                       </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+80px)] left-0 w-full px-4 z-40 md:relative md:bottom-auto md:px-0 mt-6">
+                <button onClick={calculate} className="w-full py-5 bg-gradient-to-r from-slate-950 to-slate-900 text-legal-gold rounded-[2rem] font-bold shadow-2xl shadow-slate-950/40 flex items-center justify-center gap-3 active:scale-95 transition-all relative overflow-hidden">
+                  <div className="absolute inset-0 bg-white/10 opacity-0 active:opacity-100 transition-opacity" />
+                  <Building size={20} />
+                  <span className="uppercase tracking-widest text-sm">Calcular Pensión</span>
+                </button>
+              </div>
+
+            </motion.div>
+          ) : (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="space-y-4"
+            >
+              {!results ? (
+                <div className="text-center py-20 bg-white rounded-[1.5rem] border border-slate-100">
+                  <Building size={48} className="mx-auto text-slate-300 mb-4" />
+                  <h3 className="font-serif font-bold text-xl text-slate-900">Sin Datos</h3>
+                  <p className="text-sm text-slate-500 mt-2">Vuelve al formulario para ingresar datos.</p>
+                  <button onClick={() => setActiveTab('form')} className="mt-6 px-6 py-3 bg-slate-950 text-white rounded-full text-xs font-bold uppercase tracking-widest">Ir al Formulario</button>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-legal-gold/10 rounded-full blur-3xl" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-legal-gold">Pensión Mensual Aprox.</span>
+                    <div className="mt-3 text-5xl font-serif font-bold text-legal-gold flex items-baseline gap-2">
+                      ${results.monthlyPension.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                      <span className="text-sm font-sans text-slate-400">MXN</span>
+                    </div>
+                    
+                    <div className="mt-8 flex gap-3">
+                      <button onClick={handleExportPDF} className="flex-1 bg-white/10 hover:bg-white/20 border border-white/10 py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-all">
+                        <FileDown size={16} /> Descargar PDF
+                      </button>
                     </div>
                   </div>
-                </WorkspacePanel>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
 
-      <SEOContentSection
-        title="Calculadora de Pensiones IMSS (Ley 73 y 97)"
-        intro="Estima tu pensión mensual del IMSS según el régimen al que pertenezcas. Si cotizaste antes del 1 de julio de 1997, puedes optar por la Ley del 73; si cotizaste después, te aplica la Ley del 97."
-        highlights={[
-          {
-            title: 'Régimen de 1973',
-            body: 'Basado en el promedio de tu salario de los últimos 5 años (250 semanas) y el total de semanas cotizadas. Entre más semanas y mayor salario, mejor pensión.',
-          },
-          {
-            title: 'Régimen de 1997',
-            body: 'Tu pensión depende enteramente de los recursos que hayas acumulado en tu cuenta individual de AFORE.',
-          },
-          {
-            title: 'Edad de Retiro',
-            body: 'La edad mínima para pensión por cesantía es de 60 años (obteniendo el 75% en Ley 73) y por vejez a los 65 años (100%).',
-          },
-        ]}
-        faqs={[
-          {
-            question: '¿Qué régimen de pensión me corresponde?',
-            answer: 'Si empezaste a cotizar al IMSS antes del 1 de julio de 1997, te corresponde la Ley del 73. Si empezaste después de esa fecha, te corresponde la Ley del 97.',
-          },
-          {
-            question: '¿Cuántas semanas necesito para pensionarme?',
-            answer: 'Para la Ley 73 necesitas un mínimo de 500 semanas. Para la Ley 97, en 2026 requieres 875 semanas.',
-          }
-        ]}
-      />
-    </WorkspacePage>
+                  <div className="bg-white rounded-[1.5rem] p-6 shadow-sm border border-slate-100">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Desglose de Pensión</h4>
+                    <div className="space-y-4">
+                      {results.regimeUsed === '1973' && (
+                        <>
+                          <div className="border-b border-slate-50 pb-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-bold text-slate-700">Cuantía Básica</span>
+                              <span className="text-base font-serif font-bold text-slate-900">${results.basicAmount.toLocaleString()}</span>
+                            </div>
+                            <div className="mt-1 text-[10px] text-slate-400 font-mono">{results.formulas.basic.replace(/\n/g, ' • ')}</div>
+                          </div>
+                          <div className="border-b border-slate-50 pb-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-bold text-slate-700">Incrementos Anuales</span>
+                              <span className="text-base font-serif font-bold text-slate-900">${results.annualIncrementsAmount.toLocaleString()}</span>
+                            </div>
+                            <div className="mt-1 text-[10px] text-slate-400 font-mono">{results.formulas.increments.replace(/\n/g, ' • ')}</div>
+                          </div>
+                          <div className="border-b border-slate-50 pb-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-bold text-slate-700">Asignaciones Familiares</span>
+                              <span className="text-base font-serif font-bold text-slate-900">${results.familyAllowancesAmount.toLocaleString()}</span>
+                            </div>
+                            <div className="mt-1 text-[10px] text-slate-400 font-mono">{results.formulas.family.replace(/\n/g, ' • ')}</div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-bold text-slate-700">Factor de Edad</span>
+                              <span className="text-base font-serif font-bold text-slate-900">{results.agePercentage}%</span>
+                            </div>
+                            <div className="mt-1 text-[10px] text-slate-400 font-mono">{results.formulas.ageFactor.replace(/\n/g, ' • ')}</div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {results.regimeUsed === '1997' && (
+                        <div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-slate-700">Pensión Estimada</span>
+                            <span className="text-base font-serif font-bold text-slate-900">${results.monthlyPension.toLocaleString()}</span>
+                          </div>
+                          <div className="mt-1 text-[10px] text-slate-400 font-mono">{results.formulas.basic.replace(/\n/g, ' • ')}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-2 p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3">
+                    <Info size={16} className="text-orange-500 shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-orange-700 leading-relaxed font-bold">
+                      Este resultado es una estimación. El cálculo oficial debe ser emitido por el IMSS.
+                    </p>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 };

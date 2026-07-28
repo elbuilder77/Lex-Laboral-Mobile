@@ -67,6 +67,7 @@ export const LaborCalculator: React.FC<{
   const [minWage, setMinWage] = useState<number>(MEXICO_LABOR_DEFAULTS_2026.minWage);
   const [umaValue, setUmaValue] = useState<number>(MEXICO_LABOR_DEFAULTS_2026.uma);
   const [showErrors, setShowErrors] = useState(false);
+  const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   React.useEffect(() => {
     if (baseSalary > 0) {
@@ -115,6 +116,7 @@ export const LaborCalculator: React.FC<{
     total: number;
     finiquito: number;
     liquidacion: number;
+    isr: number;
     formulas: {
       aguinaldo: string;
       vacations: string;
@@ -190,13 +192,12 @@ export const LaborCalculator: React.FC<{
 
     const liquidacion = indemnity90 + indemnity20 + seniorityPremium;
     
-    // Cálculo de ISR (Estimación basada en Art. 95/96 LISR)
     const aguinaldoExento = Math.min(aguinaldo, 30 * umaValue);
     const primaVacacionalExenta = Math.min(vPremium, 15 * umaValue);
     const baseGravableFiniquito = Math.max(0, (aguinaldo - aguinaldoExento) + vacations + (vPremium - primaVacacionalExenta) + totalOvertime);
     const isrFiniquito = calculateMonthlyISR(baseGravableFiniquito);
 
-    const exentoLiquidacion = 90 * umaValue * Math.floor(totalYears); // 90 UMAS por cada año de servicio completo
+    const exentoLiquidacion = 90 * umaValue * Math.floor(totalYears);
     const baseGravableLiquidacion = Math.max(0, liquidacion - exentoLiquidacion);
 
     const sueldoMensual = dailySalary * 30.4;
@@ -233,11 +234,8 @@ export const LaborCalculator: React.FC<{
     });
     
     notify("Cálculo generado exitosamente", "success");
-    setTimeout(() => {
-      if (typeof resultsRef.current?.scrollIntoView === 'function') {
-        resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
+    setActiveTab('results');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const chartData = useMemo(() => {
@@ -333,297 +331,213 @@ export const LaborCalculator: React.FC<{
   };
 
   return (
-    <WorkspacePage>
-      <WorkspaceHeader
-        eyebrow="Calculadora laboral"
-        title="Liquidación y finiquito"
-        description="Calcula finiquito, indemnización y total estimado en una sola vista."
-        icon={<Calculator size={28} />}
-        actions={
-          <div className="flex flex-wrap rounded-[1.35rem] border border-slate-200/80 bg-white/90 p-1.5 shadow-sm">
-            {dismissalOptions.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setDismissalType(option.value)}
-                className={`rounded-[1rem] px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] transition-all ${
-                  dismissalType === option.value
-                    ? 'bg-slate-950 text-legal-gold shadow-[0_18px_40px_-24px_rgba(15,23,42,0.9)]'
-                    : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        }
-      />
+    <div className="min-h-screen bg-slate-50 pb-32">
+      <div className="bg-slate-950 px-6 pt-12 pb-6 shadow-md rounded-b-[2rem]">
+        <h1 className="text-2xl font-serif font-bold text-white">Liquidación y Finiquito</h1>
+        <p className="text-sm text-slate-400 mt-1">Simula escenarios conforme a la LFT</p>
+        
+        {/* Android Native-like Tabs */}
+        <div className="flex bg-slate-900 rounded-full p-1 mt-6 border border-slate-800">
+          <button 
+            onClick={() => setActiveTab('form')}
+            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'form' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Formulario
+          </button>
+          <button 
+            onClick={() => setActiveTab('results')}
+            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'results' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Resultados
+          </button>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-          {/* Inputs Section */}
-          <div className="lg:col-span-5 space-y-8">
-            <WorkspacePanel className="space-y-8 p-8">
-              <div className="flex items-center gap-3 text-slate-900">
-                <div className="ui-icon-chip h-11 w-11 rounded-[1rem]"><User size={18} className="text-legal-gold" /></div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-950">Datos del caso</h3>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">Cálculo inmediato</p>
+      <div className="px-4 mt-6 max-w-lg mx-auto">
+        <AnimatePresence mode="wait">
+          {activeTab === 'form' ? (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-4"
+            >
+              {/* Card: Tipo de Despido */}
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Motivo de Separación</label>
+                <div className="grid grid-cols-1 gap-2">
+                  {dismissalOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setDismissalType(option.value)}
+                      className={`w-full text-left px-5 py-4 rounded-xl border transition-all ${
+                        dismissalType === option.value
+                          ? 'bg-slate-950 border-slate-950 text-legal-gold font-bold shadow-md'
+                          : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <div className="ui-subtle-block space-y-4 p-6">
-                   <div className="flex items-center justify-between">
-                      <label className="ui-label">Periodo de pago</label>
-                      <div className="flex gap-1">
-                        {(['daily', 'weekly', 'biweekly', 'monthly'] as const).map((p) => (
-                          <button key={p} onClick={() => setSalaryPeriod(p)} className={`px-2 py-1 text-xs font-bold rounded-md transition-all ${salaryPeriod === p ? 'bg-legal-950 text-white' : 'text-slate-400 hover:bg-white'}`}>
-                            {p === 'daily' ? 'D' : p === 'weekly' ? 'S' : p === 'biweekly' ? 'Q' : 'M'}
-                          </button>
-                        ))}
-                      </div>
-                   </div>
-                   <div className="relative group">
-                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                      <input type="number" value={baseSalary || ''} onChange={(e) => setBaseSalary(Number(e.target.value))} className="ui-input-lg w-full pl-10 pr-4" placeholder="0.00" />
-                   </div>
-                   {isSdiCalculated && baseSalary > 0 && (
-                      <div className="flex items-center justify-between px-2 pt-1">
-                        <span className="text-xs text-slate-400 font-medium">SDI Integrado:</span>
-                        <span className="text-xs font-bold text-emerald-600">${dailySalary.toFixed(2)}</span>
-                      </div>
-                   )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <label htmlFor="startDateInput" className="ui-label flex items-center gap-2">
-                      <Calendar size={12} className="text-legal-gold" /> Ingreso
-                    </label>
-                    <input id="startDateInput" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="ui-input" />
-                  </div>
-                  <div className="space-y-3">
-                    <label htmlFor="endDateInput" className="ui-label flex items-center gap-2">
-                      <Calendar size={12} className="text-legal-gold" /> Baja
-                    </label>
-                    <input id="endDateInput" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="ui-input" />
+              {/* Card: Salario */}
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Salario Base</label>
+                  <div className="flex bg-slate-100 rounded-lg p-1">
+                    {(['daily', 'weekly', 'biweekly', 'monthly'] as const).map((p) => (
+                      <button 
+                        key={p} 
+                        onClick={() => setSalaryPeriod(p)} 
+                        className={`px-3 py-1.5 text-[10px] font-bold rounded-md uppercase tracking-wider transition-all ${salaryPeriod === p ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                      >
+                        {p === 'daily' ? 'Diario' : p === 'weekly' ? 'Sem' : p === 'biweekly' ? 'Quin' : 'Mes'}
+                      </button>
+                    ))}
                   </div>
                 </div>
-
-                <button onClick={() => setShowAdvanced(!showAdvanced)} className="ui-subtle-block flex w-full items-center justify-between p-4 text-slate-500 transition-all hover:bg-slate-100">
-                  <div className="flex items-center gap-3">
-                    <Settings2 size={16} />
-                    <span className="text-xs font-bold uppercase tracking-[0.2em]">Más opciones</span>
+                <div className="relative">
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                  <input type="number" value={baseSalary || ''} onChange={(e) => setBaseSalary(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 pl-10 pr-4 text-slate-900 font-bold focus:border-legal-gold focus:ring-1 outline-none transition-all" placeholder="0.00" />
+                </div>
+                {isSdiCalculated && baseSalary > 0 && (
+                  <div className="mt-3 flex justify-between items-center bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg text-xs font-bold border border-emerald-100">
+                    <span>SDI Integrado</span>
+                    <span>${dailySalary.toFixed(2)}</span>
                   </div>
+                )}
+              </div>
+
+              {/* Card: Fechas */}
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ingreso</label>
+                  <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Baja</label>
+                  <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" />
+                </div>
+              </div>
+
+              {/* Card: Opciones Avanzadas */}
+              <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden">
+                <button onClick={() => setShowAdvanced(!showAdvanced)} className="w-full p-5 flex items-center justify-between text-slate-500 hover:bg-slate-50 transition-colors">
+                  <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2"><Settings2 size={16}/> Avanzado</span>
                   <ChevronDown size={16} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
                 </button>
-
                 <AnimatePresence>
                   {showAdvanced && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="ui-subtle-block grid grid-cols-2 gap-6 overflow-hidden p-6">
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-5 pb-5 grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="ui-label">Aguinaldo (Días)</label>
-                        <input type="number" value={aguinaldoDays} onChange={(e) => setAguinaldoDays(Number(e.target.value))} className="ui-input px-4 py-3 text-xs" />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aguinaldo</label>
+                        <input type="number" value={aguinaldoDays} onChange={(e) => setAguinaldoDays(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold" />
                       </div>
                       <div className="space-y-2">
-                        <label className="ui-label">Vacaciones (Días)</label>
-                        <input type="number" value={vacationDays} onChange={(e) => setVacationDays(Number(e.target.value))} className="ui-input px-4 py-3 text-xs" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="ui-label">Salario mínimo vigente</label>
-                        <input type="number" value={minWage} onChange={(e) => setMinWage(Number(e.target.value))} className="ui-input px-4 py-3 text-xs" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="ui-label">UMA vigente</label>
-                        <input type="number" value={umaValue} onChange={(e) => setUmaValue(Number(e.target.value))} className="ui-input px-4 py-3 text-xs" />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vacaciones</label>
+                        <input type="number" value={vacationDays} onChange={(e) => setVacationDays(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold" />
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
+              </div>
 
-                <button onClick={calculate} className="w-full py-5 bg-gradient-to-r from-legal-950 to-slate-900 text-legal-gold rounded-[1.5rem] font-bold shadow-2xl shadow-legal-950/20 hover:shadow-legal-950/40 hover:-translate-y-0.5 transition-all active:scale-[0.98] flex items-center justify-center gap-3 group relative overflow-hidden">
-                  <div className="absolute inset-0 w-full h-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <TrendingUp size={20} className="group-hover:translate-x-1 transition-transform" />
-                  <span className="tracking-wide">Calcular</span>
+              {/* Sticky FAB para Calcular */}
+              <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+80px)] left-0 w-full px-4 z-40 md:relative md:bottom-auto md:px-0 mt-6">
+                <button onClick={calculate} className="w-full py-5 bg-gradient-to-r from-slate-950 to-slate-900 text-legal-gold rounded-[2rem] font-bold shadow-2xl shadow-slate-950/40 flex items-center justify-center gap-3 active:scale-95 transition-all relative overflow-hidden">
+                  <div className="absolute inset-0 bg-white/10 opacity-0 active:opacity-100 transition-opacity" />
+                  <Calculator size={20} />
+                  <span className="uppercase tracking-widest text-sm">Calcular Liquidación</span>
                 </button>
               </div>
-            </WorkspacePanel>
-          </div>
 
-          {/* Results Section */}
-          <div ref={resultsRef} className="lg:col-span-7">
-            <AnimatePresence mode="wait">
+            </motion.div>
+          ) : (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="space-y-4"
+            >
               {!results ? (
-                <WorkspaceEmpty
-                  icon={<Calculator size={44} />}
-                  title="Tu cálculo aparecerá aquí"
-                  description="Captura sueldo y fechas para ver finiquito, liquidación y total."
-                  className="min-h-[600px]"
-                />
+                <div className="text-center py-20 bg-white rounded-[1.5rem] border border-slate-100">
+                  <Calculator size={48} className="mx-auto text-slate-300 mb-4" />
+                  <h3 className="font-serif font-bold text-xl text-slate-900">Calculadora Vacía</h3>
+                  <p className="text-sm text-slate-500 mt-2">Vuelve al formulario para ingresar datos.</p>
+                  <button onClick={() => setActiveTab('form')} className="mt-6 px-6 py-3 bg-slate-950 text-white rounded-full text-xs font-bold uppercase tracking-widest">Llenar Formulario</button>
+                </div>
               ) : (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                  <WorkspacePanel className="overflow-hidden rounded-[2.4rem]">
-                    <div className="p-10 border-b border-slate-50 bg-gradient-to-br from-slate-900 to-legal-950 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                      <div>
-                        <span className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Total estimado</span>
-                        <div className="flex items-baseline gap-3 mt-2">
-                          <h3 className="text-5xl font-serif font-bold text-legal-gold">
-                            ${results.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                          </h3>
-                          <span className="text-slate-400 font-bold text-sm">MXN</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-3">
-                        <button onClick={handleExportPDF} className="flex items-center gap-3 px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl transition-all border border-white/10 active:scale-95 text-xs">
-                          <FileDown size={18} /> <span>PDF</span>
-                        </button>
-                        <button onClick={() => setResults(null)} className="p-3.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-2xl transition-all">
-                          <RefreshCw size={18} />
-                        </button>
-                      </div>
+                <>
+                  <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-legal-gold/10 rounded-full blur-3xl" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-legal-gold">Total Estimado</span>
+                    <div className="mt-3 text-5xl font-serif font-bold text-legal-gold flex items-baseline gap-2">
+                      ${results.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                      <span className="text-sm font-sans text-slate-400">MXN</span>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-                      <div className="p-10 border-b md:border-b-0 md:border-r border-slate-50">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">Composición</h4>
-                        <div className="h-[280px]">
-                          <React.Suspense fallback={<div className="h-full rounded-2xl bg-slate-50" />}>
-                            <LazyBreakdownChart data={chartData} />
-                          </React.Suspense>
-                        </div>
-                      </div>
-
-                      <div className="p-10 space-y-4 max-h-[500px] overflow-y-auto no-scrollbar">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Desglose</h4>
-                        {[
-                          { key: 'aguinaldo', label: 'Aguinaldo', val: results.aguinaldo, f: results.formulas.aguinaldo },
-                          { key: 'vacations', label: 'Vacaciones', val: results.vacations, f: results.formulas.vacations },
-                          { key: 'indemnity90', label: 'Indemnización 90 días', val: results.indemnity90, f: results.formulas.indemnity90 },
-                          { key: 'indemnity20', label: 'Indemnización 20 días/año', val: results.indemnity20, f: results.formulas.indemnity20 },
-                          { key: 'seniorityPremium', label: 'Prima de Antigüedad', val: results.seniorityPremium, f: results.formulas.seniorityPremium },
-                        ].filter(i => i.val > 0).map(item => (
-                          <div key={item.key} className="group">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-xs font-bold text-slate-700">{item.label}</span>
-                              <span className={`text-sm font-serif font-bold ${item.key === 'isr' ? 'text-red-700' : 'text-slate-900'}`}>
-                                {item.key === 'isr' ? '-' : ''}${item.val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                              </span>
-                            </div>
-                            <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-500 font-mono leading-relaxed border border-slate-100 whitespace-pre-wrap">
-                              {item.f}
-                            </div>
-                          </div>
-                        ))}
-                        
-                        {results.isr > 0 && (
-                          <div className="group">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-xs font-bold text-red-700">Retención de ISR</span>
-                              <span className="text-sm font-serif font-bold text-red-700">-${results.isr.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                            </div>
-                            <div className="p-3 bg-red-50 rounded-xl text-xs text-red-700/80 font-mono leading-relaxed border border-red-100 whitespace-pre-wrap">
-                              {results.formulas.isr}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="mt-8 p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3">
-                          <Info size={16} className="text-orange-500 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="text-xs font-bold text-orange-800 tracking-wide uppercase">Cálculo de ISR</span>
-                            <p className="text-xs text-orange-600/80 mt-1 leading-relaxed">
-                              Se ha estimado una retención total de ISR de <strong className="font-bold text-orange-700">${results.isr.toLocaleString(undefined, {minimumFractionDigits: 2})}</strong> aplicando la tasa efectiva sobre indemnizaciones y la tarifa mensual sobre el finiquito gravable.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                    
+                    <div className="mt-8 flex gap-3">
+                      <button onClick={handleExportPDF} className="flex-1 bg-white/10 hover:bg-white/20 border border-white/10 py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-all">
+                        <FileDown size={16} /> Descargar PDF
+                      </button>
                     </div>
-                  </WorkspacePanel>
+                  </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <button
-                      onClick={handleDraftingNextStep}
-                      className="group relative overflow-hidden rounded-[2rem] bg-blue-900 p-8 text-left text-white shadow-2xl shadow-blue-900/20 transition-all hover:-translate-y-0.5"
-                    >
-                      <div className="absolute top-0 right-0 h-48 w-48 rounded-full bg-white/5 blur-2xl" />
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-3">
-                          <Sparkles className="text-legal-gold" size={20} />
-                          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-blue-200">Documento</span>
+                  <div className="bg-white rounded-[1.5rem] p-6 shadow-sm border border-slate-100">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Desglose Detallado</h4>
+                    <div className="space-y-4">
+                      {[
+                        { key: 'aguinaldo', label: 'Aguinaldo', val: results.aguinaldo, f: results.formulas.aguinaldo },
+                        { key: 'vacations', label: 'Vacaciones', val: results.vacations, f: results.formulas.vacations },
+                        { key: 'vacationPremium', label: 'Prima Vac.', val: results.vacationPremium, f: results.formulas.vacationPremium },
+                        { key: 'indemnity90', label: 'Indemnización 90', val: results.indemnity90, f: results.formulas.indemnity90 },
+                        { key: 'indemnity20', label: 'Indemnización 20', val: results.indemnity20, f: results.formulas.indemnity20 },
+                        { key: 'seniorityPremium', label: 'Prima Antigüedad', val: results.seniorityPremium, f: results.formulas.seniorityPremium },
+                      ].filter(i => i.val > 0).map(item => (
+                        <div key={item.key} className="border-b border-slate-50 pb-3 last:border-0 last:pb-0">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-slate-700">{item.label}</span>
+                            <span className="text-base font-serif font-bold text-slate-900">${item.val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                          </div>
+                          <div className="mt-1 text-[10px] text-slate-400 font-mono">
+                            {item.f.replace(/\n/g, ' • ')}
+                          </div>
                         </div>
-                        <h4 className="mt-4 text-lg font-bold">
-                          {access.hasActiveSubscription || access.singleDocumentUsesRemaining > 0 ? 'Abrir generador' : 'Comprar documento'}
-                        </h4>
-                        <p className="mt-2 text-sm leading-6 text-blue-100">
-                          Convierte este cálculo en convenio, renuncia o aviso con la misma base del caso.
-                        </p>
-                        <div className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-legal-gold">
-                          Continuar
-                          <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                      ))}
+                      {results.isr > 0 && (
+                        <div className="border-b border-slate-50 pb-3 last:border-0 last:pb-0">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-red-600">Retención ISR</span>
+                            <span className="text-base font-serif font-bold text-red-600">-${results.isr.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={handleImssNextStep}
-                      className="group rounded-[2rem] border border-slate-200/80 bg-white p-8 text-left shadow-[0_24px_70px_-40px_rgba(15,23,42,0.45)] transition-all hover:-translate-y-0.5"
-                    >
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <button onClick={handleDraftingNextStep} className="bg-blue-900 rounded-[1.5rem] p-5 text-left shadow-md relative overflow-hidden flex items-center justify-between active:scale-95 transition-all">
                       <div>
-                        <div className="flex items-center gap-3">
-                          <Scale className="text-emerald-600" size={20} />
-                          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">IMSS</span>
-                        </div>
-                        <h4 className="mt-4 text-lg font-bold text-slate-950">
-                          {access.hasActiveSubscription ? 'Abrir IMSS' : 'Desbloquear IMSS'}
-                        </h4>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">
-                          Revisa cuotas e impacto patronal para completar el análisis del caso.
-                        </p>
-                        <div className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-600">
-                          Continuar
-                          <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                        </div>
+                        <h4 className="text-white font-bold text-base flex items-center gap-2"><Sparkles className="text-legal-gold" size={16} /> Generar Documento</h4>
+                        <p className="text-blue-200 text-xs mt-1">Descarga el convenio o renuncia.</p>
                       </div>
+                      <ArrowRight size={20} className="text-blue-200" />
                     </button>
                   </div>
-                </motion.div>
+                </>
               )}
-            </AnimatePresence>
-          </div>
-        </div>
-      
-
-      <SEOContentSection
-        title="Calculadora de liquidación y finiquito en México"
-        intro="Esta calculadora laboral está pensada para estimar finiquito, liquidación e indemnizaciones con criterios alineados a la Ley Federal del Trabajo. Te permite proyectar escenarios de despido injustificado, renuncia o rescisión, y revisar conceptos como aguinaldo proporcional, vacaciones, prima vacacional, prima de antigüedad e ISR sobre indemnización."
-        highlights={[
-          {
-            title: 'Liquidación laboral',
-            body: 'Incluye indemnización constitucional de 3 meses, 20 días por año cuando aplica y prima de antigüedad topada conforme al marco legal mexicano.',
-          },
-          {
-            title: 'Finiquito proporcional',
-            body: 'Desglosa aguinaldo, vacaciones, prima vacacional y horas extra a partir de fechas de ingreso y baja, salario y tipo de separación.',
-          },
-          {
-            title: 'Uso práctico',
-            body: 'Sirve como simulador para trabajadores, áreas de RH, despachos laborales y patrones que necesitan una referencia rápida antes de revisar el caso a detalle.',
-          },
-        ]}
-        faqs={[
-          {
-            question: 'Que incluye una liquidacion por despido injustificado en Mexico?',
-            answer: 'Normalmente incluye 3 meses de salario, 20 días por año cuando corresponde, prima de antigüedad y las partes proporcionales del finiquito como aguinaldo, vacaciones y prima vacacional.',
-          },
-          {
-            question: 'La calculadora laboral de Lex Laboral es gratis?',
-            answer: 'Sí. La calculadora de prestaciones está disponible para usuarios registrados sin necesidad de contratar un plan de pago.',
-          },
-          {
-            question: 'Este resultado sustituye asesoria legal profesional?',
-            answer: 'No. Funciona como una estimación técnica útil para análisis preliminar, pero cada caso debe revisarse con sus hechos, documentos y estrategia jurídica específica.',
-          },
-        ]}
-      />
-    </WorkspacePage>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 };

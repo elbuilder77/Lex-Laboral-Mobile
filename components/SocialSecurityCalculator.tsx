@@ -1,35 +1,26 @@
-
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { 
   ShieldCheck, 
   Activity, 
-  Heart, 
-  Baby, 
-  Home, 
   TrendingUp, 
   Download, 
-  AlertCircle,
-  Stethoscope,
-  Settings2,
-  Users,
-  Zap
+  Settings2
 } from 'lucide-react';
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthProvider';
-
-import { SEOContentSection } from './SEOContentSection';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
-import { WorkspaceEmpty, WorkspaceHeader, WorkspacePage, WorkspacePanel, WorkspaceStat } from './ui/Workspace';
 
 export const SocialSecurityCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
   onRequireLogin?: () => void;
   onRequirePremium?: () => void;
 }> = ({ notify, onRequireLogin, onRequirePremium }) => {
-  const { user, session, access } = useAuth();
+  const { user, access } = useAuth();
+  const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
+
   const [sbc, setSbc] = useState<number>(0);
   const [riskClass, setRiskClass] = useState<number>(0); 
   const [days, setDays] = useState<number>(30);
@@ -160,6 +151,8 @@ export const SocialSecurityCalculator: React.FC<{
     });
 
     notify("Cálculo finalizado", "success");
+    setActiveTab('results');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const calculateAnnualRisk = () => {
@@ -218,189 +211,184 @@ export const SocialSecurityCalculator: React.FC<{
   };
 
   return (
-    <WorkspacePage>
-      <WorkspaceHeader
-        eyebrow="Calculadora IMSS"
-        title="IMSS e INFONAVIT"
-        description="Proyecta cuotas y reparto patrón-trabajador con vigencia 2026."
-        icon={<ShieldCheck size={28} />}
-      />
+    <div className="min-h-screen bg-slate-50 pb-32">
+      <div className="bg-slate-950 px-6 pt-12 pb-6 shadow-md rounded-b-[2rem]">
+        <h1 className="text-2xl font-serif font-bold text-white">IMSS e INFONAVIT</h1>
+        <p className="text-sm text-slate-400 mt-1">Cuotas obrero-patronales</p>
+        
+        {/* Tabs */}
+        <div className="flex bg-slate-900 rounded-full p-1 mt-6 border border-slate-800">
+          <button 
+            onClick={() => setActiveTab('form')}
+            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'form' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Formulario
+          </button>
+          <button 
+            onClick={() => setActiveTab('results')}
+            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'results' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Resultados
+          </button>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-          <div className="lg:col-span-4 space-y-8">
-            <WorkspacePanel className="space-y-8 p-8">
-              <div>
-                <h3 className="text-sm font-bold text-slate-950">Datos de cotización</h3>
-                <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">Proyección rápida</p>
+      <div className="px-4 mt-6 max-w-lg mx-auto">
+        {!access.hasActiveSubscription && (
+          <div className="bg-slate-900 rounded-[1.5rem] p-5 shadow-lg border border-legal-gold/20 mb-4">
+            <h4 className="text-legal-gold text-sm font-bold flex items-center gap-2 uppercase tracking-widest"><ShieldCheck size={16}/> Acceso Premium</h4>
+            <p className="text-slate-300 text-xs mt-2 leading-relaxed">
+              Esta calculadora requiere una suscripción activa para generar resultados.
+            </p>
+            <button
+              onClick={() => onRequirePremium?.()}
+              className="mt-4 w-full bg-legal-gold text-slate-950 py-3 rounded-xl text-xs font-bold uppercase tracking-widest"
+            >
+              Ver Planes
+            </button>
+          </div>
+        )}
+
+        <AnimatePresence mode="wait">
+          {activeTab === 'form' ? (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="space-y-4"
+            >
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Salario Base de Cotización (SBC)</label>
+                <div className="relative">
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                  <input type="number" value={sbc || ''} onChange={(e) => setSbc(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 pl-10 pr-4 text-slate-900 font-bold focus:border-legal-gold outline-none" placeholder="0.00" />
+                </div>
               </div>
-              {!access.hasActiveSubscription ? (
-                <div className="ui-subtle-block p-5">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Acceso</p>
-                  <p className="mt-3 text-sm leading-7 text-slate-700">
-                    Esta calculadora forma parte del plan mensual o trimestral.
-                  </p>
-                  <button
-                    onClick={() => onRequirePremium?.()}
-                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-legal-gold transition-all hover:bg-slate-900"
-                  >
-                    Ver planes
-                  </button>
-                </div>
-              ) : null}
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <label className="ui-label">Salario Base de Cotización (SBC)</label>
-                  <div className="relative group">
-                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 font-bold">$</span>
-                    <input type="number" value={sbc || ''} onChange={(e) => setSbc(Number(e.target.value))} className="ui-input w-full pl-10 pr-4 text-lg font-bold" placeholder="0.00" />
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center px-1">
-                    <label className="ui-label px-0">Clase de riesgo</label>
-                    <button onClick={() => setShowRiskCalc(!showRiskCalc)} className="text-xs font-bold text-legal-gold hover:underline">Variable</button>
-                  </div>
-                  <select value={riskClass} onChange={(e) => setRiskClass(Number(e.target.value))} className="ui-input">
-                    <option value={0}>Seleccione clase...</option>
-                    <option value={0.54355}>Clase I (0.54355%)</option>
-                    <option value={1.13065}>Clase II (1.13065%)</option>
-                    <option value={2.59840}>Clase III (2.59840%)</option>
-                    <option value={4.65325}>Clase IV (4.65325%)</option>
-                    <option value={7.58875}>Clase V (7.58875%)</option>
+              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Días</label>
+                  <input type="number" value={days || ''} onChange={(e) => setDays(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Riesgo (%)</label>
+                  <select value={riskClass} onChange={(e) => setRiskClass(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none">
+                    <option value={0}>Seleccione...</option>
+                    <option value={0.54355}>Clase I (0.54)</option>
+                    <option value={1.13065}>Clase II (1.13)</option>
+                    <option value={2.59840}>Clase III (2.59)</option>
+                    <option value={4.65325}>Clase IV (4.65)</option>
+                    <option value={7.58875}>Clase V (7.58)</option>
                   </select>
                 </div>
+              </div>
 
-                <div className="space-y-3">
-                  <label className="ui-label">Días</label>
-                  <input type="number" value={days} onChange={(e) => setDays(Number(e.target.value))} className="ui-input" />
-                </div>
-
-                <button onClick={() => setShowAdvanced(!showAdvanced)} className="ui-subtle-block flex w-full items-center justify-between p-4 text-slate-500 transition-all hover:bg-slate-100">
-                  <div className="flex items-center gap-3">
-                    <Settings2 size={16} />
-                    <span className="text-xs font-bold uppercase tracking-[0.2em]">Constantes 2026</span>
-                  </div>
+              <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden">
+                <button onClick={() => setShowAdvanced(!showAdvanced)} className="w-full p-5 flex items-center justify-between text-slate-500 hover:bg-slate-50 transition-colors">
+                  <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2"><Settings2 size={16}/> Constantes 2026</span>
+                  <ChevronDown size={16} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
                 </button>
-
                 <AnimatePresence>
                   {showAdvanced && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="ui-subtle-block space-y-4 overflow-hidden p-6">
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-5 pb-5 grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="ui-label">Salario mínimo vigente</label>
-                        <input type="number" value={minWage} onChange={(e) => setMinWage(Number(e.target.value))} className="ui-input px-4 py-3 text-xs" />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SMG</label>
+                        <input type="number" value={minWage || ''} onChange={(e) => setMinWage(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold" />
                       </div>
                       <div className="space-y-2">
-                        <label className="ui-label">UMA vigente</label>
-                        <input type="number" value={umaValue} onChange={(e) => setUmaValue(Number(e.target.value))} className="ui-input px-4 py-3 text-xs" />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">UMA</label>
+                        <input type="number" value={umaValue || ''} onChange={(e) => setUmaValue(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold" />
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
+              </div>
 
-                <button onClick={calculate} className="w-full py-5 bg-gradient-to-r from-legal-950 to-slate-900 text-legal-gold rounded-[1.5rem] font-bold shadow-2xl shadow-legal-950/20 hover:shadow-legal-950/40 hover:-translate-y-0.5 transition-all active:scale-[0.98] flex items-center justify-center gap-3 group relative overflow-hidden">
-                  <div className="absolute inset-0 w-full h-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <TrendingUp size={20} className="group-hover:translate-x-1 transition-transform" />
-                  <span className="tracking-wide">Calcular cuotas</span>
+              <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+80px)] left-0 w-full px-4 z-40 md:relative md:bottom-auto md:px-0 mt-6">
+                <button onClick={calculate} className="w-full py-5 bg-gradient-to-r from-slate-950 to-slate-900 text-legal-gold rounded-[2rem] font-bold shadow-2xl shadow-slate-950/40 flex items-center justify-center gap-3 active:scale-95 transition-all relative overflow-hidden">
+                  <div className="absolute inset-0 bg-white/10 opacity-0 active:opacity-100 transition-opacity" />
+                  <TrendingUp size={20} />
+                  <span className="uppercase tracking-widest text-sm">Calcular Cuotas</span>
                 </button>
               </div>
-            </WorkspacePanel>
-          </div>
-
-          <div className="lg:col-span-8">
-            <AnimatePresence mode="wait">
+            </motion.div>
+          ) : (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="space-y-4"
+            >
               {!results ? (
-                <WorkspaceEmpty
-                  icon={<Activity size={42} />}
-                  title="Tu proyección aparecerá aquí"
-                  description="Captura SBC, riesgo y días para ver cuotas patronales y obreras."
-                />
+                <div className="text-center py-20 bg-white rounded-[1.5rem] border border-slate-100">
+                  <Activity size={48} className="mx-auto text-slate-300 mb-4" />
+                  <h3 className="font-serif font-bold text-xl text-slate-900">Sin Datos</h3>
+                  <p className="text-sm text-slate-500 mt-2">Completa el formulario para ver la proyección.</p>
+                  <button onClick={() => setActiveTab('form')} className="mt-6 px-6 py-3 bg-slate-950 text-white rounded-full text-xs font-bold uppercase tracking-widest">Ir al Formulario</button>
+                </div>
               ) : (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <WorkspaceStat label="Patrón" value={`$${results.employer.total.toLocaleString()}`} />
-                    <WorkspaceStat label="Trabajador" value={`$${results.employee.total.toLocaleString()}`} emphasis="accent" />
-                    <WorkspaceStat label="Total" value={`$${results.total.toLocaleString()}`} emphasis="inverse" />
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-900 rounded-[1.5rem] p-5 shadow-md">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Patrón</span>
+                      <div className="text-xl font-serif font-bold text-white mt-1">${results.employer.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div className="bg-legal-gold/10 border border-legal-gold/20 rounded-[1.5rem] p-5 shadow-sm">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-legal-gold">Trabajador</span>
+                      <div className="text-xl font-serif font-bold text-slate-900 mt-1">${results.employee.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                    </div>
                   </div>
 
-                  <WorkspacePanel className="overflow-hidden rounded-[2.4rem]">
-                    <div className="p-8 border-b border-slate-50 flex justify-between items-center">
-                      <h4 className="text-xs font-bold uppercase tracking-[0.24em] text-slate-900">Desglose de cuotas</h4>
-                      <button onClick={handleExport} className="p-2 text-slate-400 hover:text-legal-950 transition-colors"><Download size={20} /></button>
+                  <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-legal-gold">Total Obrero-Patronal</span>
+                    <div className="mt-3 text-4xl font-serif font-bold text-legal-gold">
+                      ${results.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
-                    <div className="p-0 overflow-x-auto no-scrollbar">
-                      <table className="w-full text-left min-w-[600px] md:min-w-0">
-                        <thead>
-                          <tr className="bg-slate-50">
-                            <th className="p-6 text-xs font-bold text-slate-400 uppercase tracking-widest text-left">Concepto</th>
-                            <th className="p-6 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Patrón</th>
-                            <th className="p-6 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Trabajador</th>
-                            <th className="p-6 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                          {[
-                            { label: 'Enf. y Mat. (Cuota Fija)', pat: results.employer.fixed, trab: 0 },
-                            { label: 'Enf. y Mat. (Excedente 3 UMA)', pat: results.employer.excedente, trab: results.employee.excedente },
-                            { label: 'Enf. y Mat. (Prest. en Dinero)', pat: results.employer.dinero, trab: results.employee.dinero },
-                            { label: 'Enf. y Mat. (Gastos Méd. Pens.)', pat: results.employer.pensionados, trab: results.employee.pensionados },
-                            { label: 'Invalidez y Vida', pat: results.employer.invalidez, trab: results.employee.invalidez },
-                            { label: 'Riesgos de Trabajo', pat: results.employer.riesgo, trab: 0 },
-                            { label: 'Guarderías y Prest. Sociales', pat: results.employer.guarderia, trab: 0 },
-                            { label: 'Retiro', pat: results.employer.retiro, trab: 0 },
-                            { label: 'Cesantía en Edad Avanzada y Vejez', pat: results.employer.cesantia, trab: results.employee.cesantia },
-                            { label: 'INFONAVIT 5%', pat: results.employer.infonavit, trab: 0 },
-                          ].map((row, i) => (
-                            <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="p-6 text-sm font-medium text-slate-700">{row.label}</td>
-                              <td className="p-6 text-right font-serif font-bold text-slate-500">${row.pat.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                              <td className="p-6 text-right font-serif font-bold text-slate-500">${row.trab.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                              <td className="p-6 text-right font-serif font-bold text-slate-900">${(row.pat + row.trab).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </WorkspacePanel>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      
+                    
+                    <button onClick={handleExport} className="mt-6 w-full bg-white/10 hover:bg-white/20 border border-white/10 py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-all">
+                      <Download size={16} /> Exportar
+                    </button>
+                  </div>
 
-      <SEOContentSection
-        title="Calculadora de cuotas IMSS e INFONAVIT"
-        intro="La calculadora IMSS permite estimar cuotas obrero-patronales con desglose por ramo de aseguramiento y aporta una base útil para revisión patronal, auditoría interna y validación preliminar de costos de nómina. También incluye apoyo para proyectar la prima de riesgo de trabajo."
-        highlights={[
-          {
-            title: 'Cuotas obrero-patronales',
-            body: 'Desglosa enfermedad y maternidad, invalidez y vida, retiro, cesantía, guarderías, prestaciones sociales e INFONAVIT.',
-          },
-          {
-            title: 'Prima de riesgo',
-            body: 'Permite trabajar con clase de riesgo fija o variable para estimar escenarios de cotización y revisar impactos mensuales.',
-          },
-          {
-            title: 'Acceso del producto',
-            body: 'Esta herramienta forma parte del acceso para usuarios registrados con plan mensual o trimestral activo dentro de Lex Laboral.',
-          },
-        ]}
-        faqs={[
-          {
-            question: 'Que calcula esta calculadora IMSS?',
-            answer: 'Calcula las cuotas del patrón y del trabajador a partir del salario base de cotización, la UMA, la clase de riesgo, los días cotizados y otros parámetros de seguridad social.',
-          },
-          {
-            question: 'La calculadora IMSS es gratis?',
-            answer: 'No. Está disponible para usuarios registrados con plan mensual o trimestral activo.',
-          },
-          {
-            question: 'Sirve como determinacion definitiva ante el IMSS?',
-            answer: 'No. Es una herramienta de apoyo técnico para estimación y revisión. La determinación final depende de la integración salarial, movimientos afiliatorios y circunstancias concretas del patrón.',
-          },
-        ]}
-      />
-    </WorkspacePage>
+                  <div className="bg-white rounded-[1.5rem] p-6 shadow-sm border border-slate-100">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Desglose (Patrón / Trabajador)</h4>
+                    <div className="space-y-4">
+                      {[
+                        { label: 'Enf. y Mat. (Cuota Fija)', pat: results.employer.fixed, trab: 0 },
+                        { label: 'Enf. y Mat. (Excedente)', pat: results.employer.excedente, trab: results.employee.excedente },
+                        { label: 'Enf. y Mat. (Prest. Dinero)', pat: results.employer.dinero, trab: results.employee.dinero },
+                        { label: 'Gastos Médicos Pens.', pat: results.employer.pensionados, trab: results.employee.pensionados },
+                        { label: 'Invalidez y Vida', pat: results.employer.invalidez, trab: results.employee.invalidez },
+                        { label: 'Riesgos de Trabajo', pat: results.employer.riesgo, trab: 0 },
+                        { label: 'Guarderías', pat: results.employer.guarderia, trab: 0 },
+                        { label: 'Retiro', pat: results.employer.retiro, trab: 0 },
+                        { label: 'Cesantía y Vejez', pat: results.employer.cesantia, trab: results.employee.cesantia },
+                        { label: 'INFONAVIT 5%', pat: results.employer.infonavit, trab: 0 },
+                      ].map((item, i) => (
+                        <div key={i} className="border-b border-slate-50 pb-3 last:border-0 last:pb-0 flex justify-between items-start">
+                          <span className="text-xs font-bold text-slate-700 w-1/2 pr-2">{item.label}</span>
+                          <div className="text-right flex flex-col gap-1 w-1/2">
+                            <span className="text-xs font-serif font-bold text-slate-500">${item.pat.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            {item.trab > 0 && (
+                              <span className="text-[10px] font-serif font-bold text-legal-gold">+ ${item.trab.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 };
