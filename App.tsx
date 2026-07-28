@@ -20,6 +20,8 @@ const LaborCalculator = lazy(() => import('./components/LaborCalculator').then(m
 const SocialSecurityCalculator = lazy(() => import('./components/SocialSecurityCalculator').then(module => ({ default: module.SocialSecurityCalculator })));
 const PensionCalculator = lazy(() => import('./components/PensionCalculator').then(module => ({ default: module.PensionCalculator })));
 const CEODashboard = lazy(() => import('./components/CEODashboard').then(module => ({ default: module.CEODashboard })));
+const Settings = lazy(() => import('./components/Settings').then(module => ({ default: module.Settings })));
+const History = lazy(() => import('./components/History').then(module => ({ default: module.History })));
 
 import { AppView } from './types';
 import type { AccessSnapshot, AppNotification, CheckoutPlan, NotificationType, DraftingState } from './types';
@@ -334,6 +336,10 @@ function App() {
                 />;
               case AppView.CEO_DASHBOARD:
                 return isCEO ? <CEODashboard /> : <Home onNavigate={handleViewChange} user={user} onLogin={() => openLoginModal()} onLogout={handleLogout} />;
+              case AppView.SETTINGS:
+                return user ? <Settings /> : <Home onNavigate={handleViewChange} user={user} onLogin={() => openLoginModal()} onLogout={handleLogout} />;
+              case AppView.HISTORY:
+                return user ? <History /> : <Home onNavigate={handleViewChange} user={user} onLogin={() => openLoginModal()} onLogout={handleLogout} />;
               case AppView.TERMS:
                 return <LegalView type={AppView.TERMS} onBack={() => handleViewChange(AppView.HOME)} />;
               case AppView.PRIVACY:

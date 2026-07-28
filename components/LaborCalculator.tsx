@@ -123,8 +123,27 @@ export const LaborCalculator: React.FC<{
       indemnity20: string;
       seniorityPremium: string;
       overtime: string;
+      isr: string;
     };
   } | null>(null);
+
+  const calculateMonthlyISR = (amount: number): number => {
+    const limits = [
+      { lower: 0.01, upper: 746.04, fixed: 0, percent: 0.0192 },
+      { lower: 746.05, upper: 6332.05, fixed: 14.32, percent: 0.064 },
+      { lower: 6332.06, upper: 11128.01, fixed: 371.83, percent: 0.1088 },
+      { lower: 11128.02, upper: 12935.82, fixed: 893.63, percent: 0.16 },
+      { lower: 12935.83, upper: 15487.71, fixed: 1182.88, percent: 0.1792 },
+      { lower: 15487.72, upper: 31236.49, fixed: 1640.18, percent: 0.2136 },
+      { lower: 31236.50, upper: 49233.00, fixed: 5004.12, percent: 0.2352 },
+      { lower: 49233.01, upper: 93993.90, fixed: 9236.89, percent: 0.30 },
+      { lower: 93993.91, upper: 125325.20, fixed: 22665.17, percent: 0.32 },
+      { lower: 125325.21, upper: 375975.61, fixed: 32691.18, percent: 0.34 },
+      { lower: 375975.62, upper: 9999999, fixed: 117912.32, percent: 0.35 }
+    ];
+    const bracket = limits.find(l => amount >= l.lower && amount <= l.upper) || limits[0];
+    return bracket.fixed + ((amount - bracket.lower) * bracket.percent);
+  };
 
   const calculate = async () => {
     if (!user) {
@@ -170,6 +189,23 @@ export const LaborCalculator: React.FC<{
     }
 
     const liquidacion = indemnity90 + indemnity20 + seniorityPremium;
+    
+    // Cálculo de ISR (Estimación basada en Art. 95/96 LISR)
+    const aguinaldoExento = Math.min(aguinaldo, 30 * umaValue);
+    const primaVacacionalExenta = Math.min(vPremium, 15 * umaValue);
+    const baseGravableFiniquito = Math.max(0, (aguinaldo - aguinaldoExento) + vacations + (vPremium - primaVacacionalExenta) + totalOvertime);
+    const isrFiniquito = calculateMonthlyISR(baseGravableFiniquito);
+
+    const exentoLiquidacion = 90 * umaValue * Math.floor(totalYears); // 90 UMAS por cada año de servicio completo
+    const baseGravableLiquidacion = Math.max(0, liquidacion - exentoLiquidacion);
+
+    const sueldoMensual = dailySalary * 30.4;
+    const isrSueldoMensual = calculateMonthlyISR(sueldoMensual);
+    const tasaEfectiva = sueldoMensual > 0 ? (isrSueldoMensual / sueldoMensual) : 0;
+    
+    const isrLiquidacion = baseGravableLiquidacion * tasaEfectiva;
+    const totalISR = isrFiniquito + isrLiquidacion;
+
     const round = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
 
     setResults({
@@ -182,7 +218,8 @@ export const LaborCalculator: React.FC<{
       overtime: round(totalOvertime),
       finiquito: round(finiquito),
       liquidacion: round(liquidacion),
-      total: round(finiquito + liquidacion),
+      isr: round(totalISR),
+      total: round(finiquito + liquidacion - totalISR),
       formulas: {
         aguinaldo: `Salario Diario: $${dailySalary.toFixed(2)}\nDías: ${aguinaldoDays}\n$${dailySalary.toFixed(2)} × ${aguinaldoDays} × ${(proportionOfYear).toFixed(2)} = $${round(aguinaldo).toFixed(2)}`,
         vacations: `Salario Diario: $${dailySalary.toFixed(2)}\nDías: ${vacationDays}\n$${dailySalary.toFixed(2)} × ${vacationDays} × ${(proportionOfYear).toFixed(2)} = $${round(vacations).toFixed(2)}`,
@@ -191,6 +228,7 @@ export const LaborCalculator: React.FC<{
         indemnity20: `Salario Diario: $${dailySalary.toFixed(2)} × 20 × ${totalYears.toFixed(2)} años = $${round(indemnity20).toFixed(2)}`,
         seniorityPremium: `Topado (Max 2 SMG): $${cappedSalary.toFixed(2)} × 12 × ${totalYears.toFixed(2)} años = $${round(seniorityPremium).toFixed(2)}`,
         overtime: `Salario por hora: $${hourlyRate.toFixed(2)} ($${(hourlyRate * 2).toFixed(2)}/hr x ${doubleOvertimeHours}) = $${round(totalOvertime).toFixed(2)}`,
+        isr: `Base Gravable Finiquito: $${baseGravableFiniquito.toFixed(2)}\nISR Finiquito: $${isrFiniquito.toFixed(2)}\nBase Liq: $${baseGravableLiquidacion.toFixed(2)} (Tasa: ${(tasaEfectiva * 100).toFixed(2)}%)\nISR Liquidación: $${isrLiquidacion.toFixed(2)}\nRetención Total: $${totalISR.toFixed(2)}`,
       }
     });
     
@@ -212,6 +250,7 @@ export const LaborCalculator: React.FC<{
       { name: 'Indemnización 20', value: results.indemnity20, color: '#b8962e' },
       { name: 'Prima Antig.', value: results.seniorityPremium, color: '#1e293b' },
       { name: 'Horas Extras', value: results.overtime, color: '#0f172a' },
+      { name: 'Retención ISR', value: results.isr, color: '#991b1b' },
     ].filter(d => d.value > 0);
   }, [results]);
 
@@ -263,7 +302,8 @@ export const LaborCalculator: React.FC<{
           ['Indemnización 90 días', `$${results.indemnity90.toFixed(2)}`, 'Art. 48 LFT'],
           ['Indemnización 20 días/año', `$${results.indemnity20.toFixed(2)}`, 'Art. 50 LFT'],
           ['Prima de Antigüedad', `$${results.seniorityPremium.toFixed(2)}`, 'Art. 162 LFT'],
-        ].filter(r => parseFloat(r[1].replace('$', '')) > 0),
+          ['Retención ISR (Estimada)', `-$${results.isr.toFixed(2)}`, 'Art. 95, 96 LISR'],
+        ].filter(r => parseFloat(r[1].replace('$', '').replace('-', '')) > 0),
         headStyles: { fillColor: goldColor, textColor: [0, 0, 0] },
       });
 
@@ -464,23 +504,34 @@ export const LaborCalculator: React.FC<{
                           <div key={item.key} className="group">
                             <div className="flex justify-between items-center mb-2">
                               <span className="text-xs font-bold text-slate-700">{item.label}</span>
-                              <span className="text-sm font-serif font-bold text-slate-900">${item.val.toLocaleString()}</span>
+                              <span className={`text-sm font-serif font-bold ${item.key === 'isr' ? 'text-red-700' : 'text-slate-900'}`}>
+                                {item.key === 'isr' ? '-' : ''}${item.val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                              </span>
                             </div>
-                            <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-500 font-mono leading-relaxed border border-slate-100">
-                              {item.f.split('\n')[item.f.split('\n').length - 1]}
+                            <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-500 font-mono leading-relaxed border border-slate-100 whitespace-pre-wrap">
+                              {item.f}
                             </div>
                           </div>
                         ))}
                         
+                        {results.isr > 0 && (
+                          <div className="group">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-xs font-bold text-red-700">Retención de ISR</span>
+                              <span className="text-sm font-serif font-bold text-red-700">-${results.isr.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            </div>
+                            <div className="p-3 bg-red-50 rounded-xl text-xs text-red-700/80 font-mono leading-relaxed border border-red-100 whitespace-pre-wrap">
+                              {results.formulas.isr}
+                            </div>
+                          </div>
+                        )}
+                        
                         <div className="mt-8 p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3">
                           <Info size={16} className="text-orange-500 shrink-0 mt-0.5" />
                           <div>
-                            <span className="text-xs font-bold text-orange-800 tracking-wide uppercase">Cálculo Bruto de ISR</span>
+                            <span className="text-xs font-bold text-orange-800 tracking-wide uppercase">Cálculo de ISR</span>
                             <p className="text-xs text-orange-600/80 mt-1 leading-relaxed">
-                              El monto calculado es <strong className="font-bold text-orange-700">bruto</strong>. 
-                              Recuerde que están exentos de ISR: Aguinaldo hasta 30 UMAS (${(umaValue * 30).toLocaleString()}) 
-                              y Prima Vacacional hasta 15 UMAS (${(umaValue * 15).toLocaleString()}). 
-                              Para indemnizaciones es exento 90 UMAS (${(umaValue * 90).toLocaleString()}) por año de servicio.
+                              Se ha estimado una retención total de ISR de <strong className="font-bold text-orange-700">${results.isr.toLocaleString(undefined, {minimumFractionDigits: 2})}</strong> aplicando la tasa efectiva sobre indemnizaciones y la tarifa mensual sobre el finiquito gravable.
                             </p>
                           </div>
                         </div>
