@@ -2,9 +2,23 @@ import React from 'react';
 import { Settings as SettingsIcon, Bell, Shield, Smartphone, Monitor, User } from 'lucide-react';
 import { WorkspacePage, WorkspaceHeader, WorkspacePanel } from './ui/Workspace';
 import { useAuth } from './AuthProvider';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 export const Settings: React.FC = () => {
   const { user } = useAuth();
+  const [hapticsEnabled, setHapticsEnabled] = React.useState(true);
+
+  const handleHapticsToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isEnabled = e.target.checked;
+    setHapticsEnabled(isEnabled);
+    if (isEnabled) {
+      try {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      } catch (err) {
+        // ignore on web
+      }
+    }
+  };
 
   return (
     <WorkspacePage>
@@ -72,7 +86,12 @@ export const Settings: React.FC = () => {
                       <p className="text-xs text-slate-500 mt-1">Solo disponible en dispositivos móviles</p>
                     </div>
                   </div>
-                  <input type="checkbox" className="toggle" defaultChecked />
+                  <input 
+                    type="checkbox" 
+                    className="toggle" 
+                    checked={hapticsEnabled}
+                    onChange={handleHapticsToggle}
+                  />
                </div>
              </div>
           </WorkspacePanel>

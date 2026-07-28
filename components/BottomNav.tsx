@@ -1,0 +1,81 @@
+import React from 'react';
+import { AppView } from '../types';
+import { Home, Clock, Settings, User } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+
+interface BottomNavProps {
+  currentView: AppView;
+  onChangeView: (view: AppView) => void;
+}
+
+export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onChangeView }) => {
+  const isNative = Capacitor.isNativePlatform();
+
+  if (!isNative) return null;
+
+  const handleNav = async (view: AppView) => {
+    if (currentView !== view) {
+      onChangeView(view);
+      try {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      } catch (e) {
+        // Haptics not available
+      }
+    }
+  };
+
+  const navItems = [
+    {
+      id: AppView.HOME,
+      label: 'Inicio',
+      icon: <Home size={22} />,
+      activeViews: [
+        AppView.HOME, 
+        AppView.CALCULATOR, 
+        AppView.DRAFTING, 
+        AppView.SOCIAL_SECURITY, 
+        AppView.PENSION_CALCULATOR
+      ]
+    },
+    {
+      id: AppView.HISTORY,
+      label: 'Historial',
+      icon: <Clock size={22} />,
+      activeViews: [AppView.HISTORY]
+    },
+    {
+      id: AppView.SETTINGS,
+      label: 'Mi Cuenta',
+      icon: <User size={22} />,
+      activeViews: [AppView.SETTINGS]
+    }
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0A0F1C]/90 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
+      <div className="flex items-center justify-around h-16 px-2">
+        {navItems.map((item) => {
+          const isActive = item.activeViews.includes(currentView);
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleNav(item.id)}
+              className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200 ${
+                isActive ? 'text-legal-gold' : 'text-slate-500 hover:text-slate-400'
+              }`}
+            >
+              <div className={`transition-transform duration-200 ${isActive ? 'scale-110' : 'scale-100'}`}>
+                {item.icon}
+              </div>
+              <span className={`text-[10px] font-bold tracking-wide ${isActive ? 'text-legal-gold' : 'text-slate-500'}`}>
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};

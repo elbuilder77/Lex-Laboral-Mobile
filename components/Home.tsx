@@ -4,6 +4,7 @@ import { Calculator, FileText, ChevronRight, ShieldCheck, LogIn, LogOut, ArrowUp
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { getPathForView } from '../lib/routes';
 import { WorkspacePanel } from './ui/Workspace';
+import { Capacitor } from '@capacitor/core';
 
 interface HomeProps {
   onNavigate: (view: AppView) => void;
@@ -75,6 +76,85 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
     event.preventDefault();
     onNavigate(view);
   };
+
+  const isNative = Capacitor.isNativePlatform();
+
+  if (!user && isNative) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#020306] items-center justify-center p-8 text-white relative overflow-hidden animate-fade-in">
+        <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-10 left-10 h-80 w-80 rounded-full bg-slate-900/30 blur-[100px] pointer-events-none" />
+        
+        <div className="z-10 flex flex-col items-center w-full max-w-sm">
+            <div className="mb-16 w-full max-w-[280px] animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <img 
+                src="/assets/logo.webp" 
+                alt="Lex Laboral" 
+                className="w-full h-auto object-contain drop-shadow-[0_15px_35px_rgba(224,175,34,0.15)]"
+              />
+            </div>
+            
+            <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
+                <button
+                  onClick={onLogin}
+                  className="w-full relative flex items-center justify-center gap-3 rounded-2xl bg-legal-gold px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_20px_45px_-12px_rgba(212,175,55,0.35)] active:scale-95 transition-all"
+                >
+                  <LogIn size={18} />
+                  <span>Iniciar sesión</span>
+                </button>
+                <button
+                  onClick={onLogin}
+                  className="w-full relative flex items-center justify-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-6 py-4 text-xs font-bold uppercase tracking-wider text-white active:scale-95 transition-all"
+                >
+                  <span>Crear cuenta</span>
+                </button>
+            </div>
+        </div>
+
+        <div className="absolute bottom-8 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 animate-in fade-in duration-1000 delay-500">
+           Lex Laboral © 2026
+        </div>
+      </div>
+    );
+  }
+
+  if (user && isNative) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#020306] p-6 text-white pt-[env(safe-area-inset-top)] pb-24 animate-fade-in">
+        {/* Top Greeting */}
+        <div className="mt-8 mb-10 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-legal-gold">Bienvenido</p>
+            <h1 className="mt-1 text-2xl font-bold text-white truncate max-w-[200px]">
+               {user.email?.split('@')[0] || 'Usuario'}
+            </h1>
+          </div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-legal-gold to-yellow-600 text-lg font-bold text-slate-950 border border-white/10 shadow-lg">
+             {user.email?.charAt(0).toUpperCase() || '?'}
+          </div>
+        </div>
+
+        {/* 2x2 Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {tools.map((tool) => (
+            <a
+              key={tool.view}
+              href={getPathForView(tool.view)}
+              onClick={(event) => handleNavClick(event, tool.view)}
+              className="flex flex-col items-center justify-center gap-4 rounded-[1.5rem] border border-white/10 bg-slate-900/60 p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.3)] backdrop-blur-md transition-transform active:scale-95"
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-950 text-legal-gold shadow-md">
+                {React.cloneElement(tool.icon as React.ReactElement, { size: 28 })}
+              </div>
+              <div>
+                <h2 className="text-[11px] font-bold leading-tight text-white">{tool.title}</h2>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in font-sans bg-[#020306] text-white min-h-screen">

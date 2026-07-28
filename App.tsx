@@ -22,6 +22,8 @@ const PensionCalculator = lazy(() => import('./components/PensionCalculator').th
 const CEODashboard = lazy(() => import('./components/CEODashboard').then(module => ({ default: module.CEODashboard })));
 const Settings = lazy(() => import('./components/Settings').then(module => ({ default: module.Settings })));
 const History = lazy(() => import('./components/History').then(module => ({ default: module.History })));
+import { BottomNav } from './components/BottomNav';
+import { Capacitor } from '@capacitor/core';
 
 import { AppView } from './types';
 import type { AccessSnapshot, AppNotification, CheckoutPlan, NotificationType, DraftingState } from './types';
@@ -360,21 +362,23 @@ function App() {
       
       {currentView !== AppView.HOME && (
         <>
-          {/* Mobile Header */}
-          <div className="md:hidden flex items-center justify-between px-6 py-4 bg-legal-950 text-white z-40 border-b border-white/5 shadow-2xl">
-            <div 
-              className="flex items-center cursor-pointer"
-              onClick={() => handleViewChange(AppView.HOME)}
-            >
-               <img src="/assets/logo.webp" alt="Lex Laboral" className="h-8 w-auto object-contain" loading="lazy" />
+          {/* Mobile Header (Hidden on Native Mobile where BottomNav is used) */}
+          {!Capacitor.isNativePlatform() && (
+            <div className="md:hidden flex items-center justify-between px-6 py-4 bg-legal-950 text-white z-40 border-b border-white/5 shadow-2xl">
+              <div 
+                className="flex items-center cursor-pointer"
+                onClick={() => handleViewChange(AppView.HOME)}
+              >
+                 <img src="/assets/logo.webp" alt="Lex Laboral" className="h-8 w-auto object-contain" loading="lazy" />
+              </div>
+              <button 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
+              >
+                {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
             </div>
-            <button 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"
-            >
-              {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
+          )}
 
           {/* Sidebar Overlay for Mobile */}
           <div 
@@ -408,10 +412,12 @@ function App() {
       )}
 
       <main className="flex-1 relative overflow-hidden flex flex-col h-full bg-slate-50">
-        <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="flex-1 overflow-y-auto no-scrollbar pb-[env(safe-area-inset-bottom)]">
           {renderView()}
         </div>
       </main>
+
+      {user && <BottomNav currentView={currentView} onChangeView={handleViewChange} />}
 
       <Suspense fallback={null}>
         <PricingModal

@@ -4,6 +4,9 @@ import App from './App';
 import './index.css';
 import { AuthProvider } from './components/AuthProvider';
 import { Analytics } from '@vercel/analytics/react';
+import { initCapacitor } from './lib/initCapacitor';
+
+initCapacitor();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

@@ -11,6 +11,7 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <permission
         android:name="mx.com.lexlaboral.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"

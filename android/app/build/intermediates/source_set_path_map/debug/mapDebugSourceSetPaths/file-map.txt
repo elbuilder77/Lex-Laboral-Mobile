@@ -31,4 +31,10 @@ mx.com.lexlaboral.app-debug-29 C:\Users\52999\Lexlabmovil\Lex-Laboral\android\ap
 mx.com.lexlaboral.app-debug-30 C:\Users\52999\Lexlabmovil\Lex-Laboral\android\app\src\debug\res
 mx.com.lexlaboral.app-main-31 C:\Users\52999\Lexlabmovil\Lex-Laboral\android\app\src\main\res
 mx.com.lexlaboral.app-debug-32 C:\Users\52999\Lexlabmovil\Lex-Laboral\android\capacitor-cordova-android-plugins\build\intermediates\packaged_res\debug\packageDebugResources
-mx.com.lexlaboral.app-debug-33 C:\Users\52999\Lexlabmovil\Lex-Laboral\node_modules\@capacitor\android\capacitor\build\intermediates\packaged_res\debug\packageDebugResources
+mx.com.lexlaboral.app-debug-33 C:\Users\52999\Lexlabmovil\Lex-Laboral\node_modules\@capacitor-community\safe-area\android\build\intermediates\packaged_res\debug\packageDebugResources
+mx.com.lexlaboral.app-debug-34 C:\Users\52999\Lexlabmovil\Lex-Laboral\node_modules\@capacitor\android\capacitor\build\intermediates\packaged_res\debug\packageDebugResources
+mx.com.lexlaboral.app-debug-35 C:\Users\52999\Lexlabmovil\Lex-Laboral\node_modules\@capacitor\app\android\build\intermediates\packaged_res\debug\packageDebugResources
+mx.com.lexlaboral.app-debug-36 C:\Users\52999\Lexlabmovil\Lex-Laboral\node_modules\@capacitor\haptics\android\build\intermediates\packaged_res\debug\packageDebugResources
+mx.com.lexlaboral.app-debug-37 C:\Users\52999\Lexlabmovil\Lex-Laboral\node_modules\@capacitor\keyboard\android\build\intermediates\packaged_res\debug\packageDebugResources
+mx.com.lexlaboral.app-debug-38 C:\Users\52999\Lexlabmovil\Lex-Laboral\node_modules\@capacitor\splash-screen\android\build\intermediates\packaged_res\debug\packageDebugResources
+mx.com.lexlaboral.app-debug-39 C:\Users\52999\Lexlabmovil\Lex-Laboral\node_modules\@capacitor\status-bar\android\build\intermediates\packaged_res\debug\packageDebugResources

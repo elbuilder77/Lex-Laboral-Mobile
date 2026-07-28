@@ -57,9 +57,20 @@
   background-size: 200% 100%;
 }
 
+:root {
+  --s-top: env(safe-area-inset-top, 0px);
+  --s-right: env(safe-area-inset-right, 0px);
+  --s-bottom: env(safe-area-inset-bottom, 0px);
+  --s-left: env(safe-area-inset-left, 0px);
+}
+
 @layer base {
   body {
     @apply bg-slate-50 text-slate-900 font-sans antialiased h-screen overflow-hidden;
+    padding-top: var(--s-top);
+    padding-bottom: var(--s-bottom);
+    padding-left: var(--s-left);
+    padding-right: var(--s-right);
   }
 }
 
