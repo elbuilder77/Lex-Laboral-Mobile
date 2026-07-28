@@ -9,7 +9,8 @@ import {
   Home,
   BarChart3,
   Settings,
-  CreditCard
+  CreditCard,
+  History as HistoryIcon
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -33,6 +34,7 @@ export const Sidebar = React.memo<SidebarProps>(({ currentView, onChangeView, on
     { id: AppView.SOCIAL_SECURITY, label: 'IMSS e INFONAVIT', icon: <ShieldCheck size={18} /> },
     { id: AppView.PENSION_CALCULATOR, label: 'Calculadora de Pensiones', icon: <Calculator size={18} /> },
     { id: AppView.DRAFTING, label: 'Generador Documental', icon: <PenTool size={18} /> },
+    { id: AppView.HISTORY, label: 'Historial', icon: <HistoryIcon size={18} /> },
   ];
 
   const handleNavClick = (viewId: AppView) => {
@@ -126,17 +128,20 @@ export const Sidebar = React.memo<SidebarProps>(({ currentView, onChangeView, on
               </li>
               <li>
                 <button
-                  onClick={() => {
-                    if (notify) notify('La configuración estará disponible próximamente', 'info', 'Lex Laboral');
-                  }}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-[13px] font-medium transition-all group text-slate-400 hover:text-white hover:bg-white/5"
+                  onClick={() => handleNavClick(AppView.SETTINGS)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[13px] font-medium transition-all group ${
+                    currentView === AppView.SETTINGS
+                      ? 'bg-white/10 text-legal-gold border border-white/5'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <span className="text-slate-400 group-hover:text-slate-300">
+                    <span className={currentView === AppView.SETTINGS ? 'text-legal-gold' : 'text-slate-400 group-hover:text-slate-300'}>
                       <Settings size={18} />
                     </span>
                     <span>Configuración</span>
                   </div>
+                  {currentView === AppView.SETTINGS && <ChevronRight size={14} className="animate-in fade-in slide-in-from-left-2 duration-300" />}
                 </button>
               </li>
             </ul>

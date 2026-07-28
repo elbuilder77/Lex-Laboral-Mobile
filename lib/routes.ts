@@ -9,6 +9,8 @@ export const VIEW_PATHS: Record<AppView, string> = {
   [AppView.CEO_DASHBOARD]: '/panel-ceo',
   [AppView.TERMS]: '/terminos',
   [AppView.PRIVACY]: '/privacidad',
+  [AppView.SETTINGS]: '/configuracion',
+  [AppView.HISTORY]: '/historial',
 };
 
 const PATH_VIEW_MAP = new Map<string, AppView>(

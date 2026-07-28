@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /panel-ceo
+
+Sitemap: https://lexlaboral.com.mx/sitemap.xml

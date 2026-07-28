@@ -1,5 +1,7 @@
 
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { 
   ShieldCheck, 
   Activity, 
@@ -173,13 +175,46 @@ export const SocialSecurityCalculator: React.FC<{
 
   const handleExport = () => {
     if (!results) return;
-    const content = `CUOTAS IMSS/INFONAVIT - LEXLABORAL\nSBC: $${sbc.toFixed(2)}\nPatrón: $${results.employer.total.toFixed(2)}\nTrabajador: $${results.employee.total.toFixed(2)}\nTotal: $${results.total.toFixed(2)}`;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Cuotas_IMSS.txt`;
-    link.click();
+    
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text('Cálculo de Cuotas IMSS / INFONAVIT', 14, 22);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`SBC (Salario Base Cotización): $${sbc.toFixed(2)}`, 14, 32);
+    doc.text(`Días Cotizados: ${days}`, 14, 38);
+    doc.text(`Clase de Riesgo: ${riskClass}%`, 14, 44);
+    
+    autoTable(doc, {
+      startY: 54,
+      head: [['Concepto', 'Patrón', 'Trabajador', 'Total']],
+      body: [
+        ['Enf. y Mat. (Cuota Fija)', `$${results.employer.fixed.toFixed(2)}`, '$0.00', `$${results.employer.fixed.toFixed(2)}`],
+        ['Enf. y Mat. (Excedente)', `$${results.employer.excedente.toFixed(2)}`, `$${results.employee.excedente.toFixed(2)}`, `$${(results.employer.excedente + results.employee.excedente).toFixed(2)}`],
+        ['Enf. y Mat. (Prest. Dinero)', `$${results.employer.dinero.toFixed(2)}`, `$${results.employee.dinero.toFixed(2)}`, `$${(results.employer.dinero + results.employee.dinero).toFixed(2)}`],
+        ['Enf. y Mat. (Gastos Méd.)', `$${results.employer.pensionados.toFixed(2)}`, `$${results.employee.pensionados.toFixed(2)}`, `$${(results.employer.pensionados + results.employee.pensionados).toFixed(2)}`],
+        ['Invalidez y Vida', `$${results.employer.invalidez.toFixed(2)}`, `$${results.employee.invalidez.toFixed(2)}`, `$${(results.employer.invalidez + results.employee.invalidez).toFixed(2)}`],
+        ['Riesgos de Trabajo', `$${results.employer.riesgo.toFixed(2)}`, '$0.00', `$${results.employer.riesgo.toFixed(2)}`],
+        ['Guarderías y Prest.', `$${results.employer.guarderia.toFixed(2)}`, '$0.00', `$${results.employer.guarderia.toFixed(2)}`],
+        ['Retiro', `$${results.employer.retiro.toFixed(2)}`, '$0.00', `$${results.employer.retiro.toFixed(2)}`],
+        ['Cesantía y Vejez', `$${results.employer.cesantia.toFixed(2)}`, `$${results.employee.cesantia.toFixed(2)}`, `$${(results.employer.cesantia + results.employee.cesantia).toFixed(2)}`],
+        ['INFONAVIT 5%', `$${results.employer.infonavit.toFixed(2)}`, '$0.00', `$${results.employer.infonavit.toFixed(2)}`],
+      ],
+      foot: [[
+        'Total', 
+        `$${results.employer.total.toFixed(2)}`, 
+        `$${results.employee.total.toFixed(2)}`, 
+        `$${results.total.toFixed(2)}`
+      ]],
+      theme: 'grid',
+      headStyles: { fillColor: [40, 40, 40] },
+      footStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' }
+    });
+    
+    doc.save('Cuotas_IMSS.pdf');
+    notify('PDF generado correctamente', 'success');
   };
 
   return (

@@ -14,7 +14,9 @@ export enum AppView {
   PENSION_CALCULATOR = 'PENSION_CALCULATOR',
   CEO_DASHBOARD = 'CEO_DASHBOARD',
   TERMS = 'TERMS',
-  PRIVACY = 'PRIVACY'
+  PRIVACY = 'PRIVACY',
+  SETTINGS = 'SETTINGS',
+  HISTORY = 'HISTORY'
 }
 
 export interface DraftingState {
