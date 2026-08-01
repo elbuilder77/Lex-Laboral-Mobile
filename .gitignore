@@ -47,3 +47,8 @@ coverage
 .gemini/
 gha-creds-*.json
 .env*.local
+
+# Android Keystore
+*.keystore
+*.jks
+keystore.properties
