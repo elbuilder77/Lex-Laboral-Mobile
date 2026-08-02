@@ -30,7 +30,6 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { draftLegalDocument } from '../services/gemini';
 import { NotificationType, DraftingState } from '../types';
-import { useAuth } from './AuthProvider';
 import { WorkspaceEmpty, WorkspaceHeader, WorkspacePage, WorkspacePanel } from './ui/Workspace';
 import { cn } from '../lib/cn';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,8 +38,6 @@ interface DrafterProps {
   state: DraftingState;
   setState: React.Dispatch<React.SetStateAction<DraftingState>>;
   notify: (m: string, t?: NotificationType, tit?: string) => void;
-  onUpgrade?: (plan?: 'draft_basic' | 'mensualidad' | 'trimestralidad') => void;
-  onAuthRequired?: () => void;
 }
 
 export interface TemplateField {
@@ -202,12 +199,11 @@ const DraftContent = ({ content, plainText }: { content: string; plainText?: boo
   return <ReactMarkdown>{content}</ReactMarkdown>;
 };
 
-export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUpgrade, onAuthRequired }) => {
+export const Drafter = React.memo<DrafterProps>(({ state, setState, notify }) => {
   const { prompt, generatedDoc } = state;
   const visualizerRef = React.useRef<HTMLDivElement>(null);
   const [isDrafting, setIsDrafting] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const { user, access, refreshAccess } = useAuth();
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   const [selectedTemplate, setSelectedTemplate] = useState(() => localStorage.getItem('draft_template') || 'contrato');
@@ -244,11 +240,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     [selectedTemplate]
   );
 
-  const accessCopy = access.hasActiveSubscription
-    ? 'Premium activo. Borradores ilimitados.'
-    : access.singleDocumentUsesRemaining > 0
-      ? `Tienes ${access.singleDocumentUsesRemaining} saldo${access.singleDocumentUsesRemaining === 1 ? '' : 's'} disponible${access.singleDocumentUsesRemaining === 1 ? '' : 's'}.`
-      : 'Requiere saldo o plan mensual.';
+  const accessCopy = 'Acceso Gratuito';
 
   useEffect(() => {
     let assembledPrompt = selectedModel.basePrompt;
@@ -306,16 +298,6 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
   const handleDraft = useCallback(async () => {
     if (!prompt.trim()) return;
 
-    if (!user) {
-      onAuthRequired?.();
-      return;
-    }
-
-    if (!access.hasActiveSubscription && access.singleDocumentUsesRemaining <= 0) {
-      onUpgrade?.('draft_basic');
-      return;
-    }
-
     setActiveTab('results');
     setIsDrafting(true);
     setTimeout(() => {
@@ -326,7 +308,6 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
       const document = await draftLegalDocument(prompt, customInstructions, (chunk) => {
         setGeneratedDoc(chunk);
       });
-      await refreshAccess();
       localStorage.removeItem('draft_details');
       localStorage.removeItem('draft_customInstructions');
       setGeneratedDoc(document);
@@ -338,7 +319,7 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
     } finally {
       setIsDrafting(false);
     }
-  }, [access, customInstructions, notify, onAuthRequired, onUpgrade, prompt, refreshAccess, setGeneratedDoc, user]);
+  }, [customInstructions, notify, prompt, setGeneratedDoc]);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
@@ -368,21 +349,6 @@ export const Drafter = React.memo<DrafterProps>(({ state, setState, notify, onUp
       </div>
 
       <div className="px-4 mt-6 max-w-lg mx-auto">
-        {(!access.hasActiveSubscription && access.singleDocumentUsesRemaining <= 0) && (
-          <div className="bg-slate-900 rounded-[1.5rem] p-5 shadow-lg border border-legal-gold/20 mb-4">
-            <h4 className="text-legal-gold text-sm font-bold flex items-center gap-2 uppercase tracking-widest"><ShieldAlert size={16}/> Acceso Restringido</h4>
-            <p className="text-slate-300 text-xs mt-2 leading-relaxed">
-              No cuentas con saldo para generar documentos.
-            </p>
-            <button
-              onClick={() => onUpgrade?.('draft_basic')}
-              className="mt-4 w-full bg-legal-gold text-slate-950 py-3 rounded-xl text-xs font-bold uppercase tracking-widest"
-            >
-              Comprar Saldo
-            </button>
-          </div>
-        )}
-
         <AnimatePresence mode="wait">
           {activeTab === 'form' ? (
             <motion.div

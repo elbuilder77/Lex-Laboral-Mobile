@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import { KeyboardResize, KeyboardStyle } from '@capacitor/keyboard';
 
 const config: CapacitorConfig = {
   appId: 'mx.com.lexlaboral',
@@ -16,8 +17,8 @@ const config: CapacitorConfig = {
       splashImmersive: true,
     },
     Keyboard: {
-      resize: "body",
-      style: "dark",
+      resize: KeyboardResize.Body,
+      style: KeyboardStyle.Dark,
       resizeOnFullScreen: true,
     }
   }

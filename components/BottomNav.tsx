@@ -1,7 +1,6 @@
 import React from 'react';
 import { AppView } from '../types';
-import { Home, Clock, Settings, User } from 'lucide-react';
-import { Capacitor } from '@capacitor/core';
+import { Home, PenTool, Calculator, ShieldCheck } from 'lucide-react';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 interface BottomNavProps {
@@ -10,10 +9,6 @@ interface BottomNavProps {
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onChangeView }) => {
-  const isNative = Capacitor.isNativePlatform();
-
-  if (!isNative) return null;
-
   const handleNav = async (view: AppView) => {
     if (currentView !== view) {
       onChangeView(view);
@@ -32,28 +27,30 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onChangeView 
       icon: <Home size={22} />,
       activeViews: [
         AppView.HOME, 
-        AppView.CALCULATOR, 
-        AppView.DRAFTING, 
-        AppView.SOCIAL_SECURITY, 
-        AppView.PENSION_CALCULATOR
       ]
     },
     {
-      id: AppView.HISTORY,
-      label: 'Historial',
-      icon: <Clock size={22} />,
-      activeViews: [AppView.HISTORY]
+      id: AppView.CALCULATOR,
+      label: 'Finiquito',
+      icon: <Calculator size={22} />,
+      activeViews: [AppView.CALCULATOR]
     },
     {
-      id: AppView.SETTINGS,
-      label: 'Mi Cuenta',
-      icon: <User size={22} />,
-      activeViews: [AppView.SETTINGS]
+      id: AppView.SOCIAL_SECURITY,
+      label: 'IMSS',
+      icon: <ShieldCheck size={22} />,
+      activeViews: [AppView.SOCIAL_SECURITY]
+    },
+    {
+      id: AppView.DRAFTING,
+      label: 'Docs IA',
+      icon: <PenTool size={22} />,
+      activeViews: [AppView.DRAFTING]
     }
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0A0F1C]/90 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
+    <div data-debug-nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0A0F1C]/90 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = item.activeViews.includes(currentView);

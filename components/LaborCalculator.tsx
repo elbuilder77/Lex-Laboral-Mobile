@@ -22,8 +22,6 @@ import {
 } from 'lucide-react';
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from './AuthProvider';
-import { SEOContentSection } from './SEOContentSection';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { WorkspaceEmpty, WorkspaceHeader, WorkspacePage, WorkspacePanel } from './ui/Workspace';
 
@@ -35,18 +33,15 @@ const LazyBreakdownChart = React.lazy(() =>
 
 export const LaborCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
-  onRequireLogin?: () => void;
   onOpenDrafting?: () => void;
   onOpenImss?: () => void;
-  onOpenPricing?: (plan: 'draft_basic' | 'mensualidad' | 'trimestralidad') => void;
-}> = ({ notify, onRequireLogin, onOpenDrafting, onOpenImss, onOpenPricing }) => {
+}> = ({ notify, onOpenDrafting, onOpenImss }) => {
   const resultsRef = React.useRef<HTMLDivElement>(null);
   const dismissalOptions: Array<{ value: DismissalType; label: string }> = [
     { value: 'injustificado', label: 'Injustificado' },
     { value: 'renuncia', label: 'Renuncia' },
     { value: 'rescision_patron', label: 'Rescisión' },
   ];
-  const { user, access } = useAuth();
   const [dailySalary, setDailySalary] = useState<number>(0);
   const [baseSalary, setBaseSalary] = useState<number>(0);
   const [salaryPeriod, setSalaryPeriod] = useState<'daily' | 'weekly' | 'biweekly' | 'monthly'>('monthly');
@@ -148,12 +143,6 @@ export const LaborCalculator: React.FC<{
   };
 
   const calculate = async () => {
-    if (!user) {
-      if (onRequireLogin) onRequireLogin();
-      notify("Regístrate gratis para usar la calculadora", "info");
-      return;
-    }
-
     if (dailySalary <= 0 || (yearsOfService <= 0 && daysOfService <= 0)) {
       setShowErrors(true);
       notify("Complete los campos obligatorios para generar el cálculo", "warning");
@@ -313,21 +302,11 @@ export const LaborCalculator: React.FC<{
   };
 
   const handleDraftingNextStep = () => {
-    if (access.hasActiveSubscription || access.singleDocumentUsesRemaining > 0) {
-      onOpenDrafting?.();
-      return;
-    }
-
-    onOpenPricing?.('draft_basic');
+    onOpenDrafting?.();
   };
 
   const handleImssNextStep = () => {
-    if (access.hasActiveSubscription) {
-      onOpenImss?.();
-      return;
-    }
-
-    onOpenPricing?.('mensualidad');
+    onOpenImss?.();
   };
 
   return (

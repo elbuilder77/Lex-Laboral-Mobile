@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { LaborCalculator } from './LaborCalculator';
 
 const {
-  mockAuthState,
   jsPdfCtorMock,
   autoTableMock,
   docMock,
@@ -21,16 +20,6 @@ const {
   };
 
   return {
-    mockAuthState: {
-      user: { id: 'user_1', email: 'user@example.com' },
-      access: {
-        hasActiveSubscription: false,
-        isPremium: false,
-        licenseType: null,
-        accessUntil: null,
-        singleDocumentUsesRemaining: 1,
-      },
-    },
     jsPdfCtorMock: vi.fn(function JsPdfMock() {
       return doc;
     }),
@@ -39,19 +28,8 @@ const {
   };
 });
 
-vi.mock('./AuthProvider', () => ({
-  useAuth: () => ({
-    user: mockAuthState.user,
-    access: mockAuthState.access,
-  }),
-}));
-
 vi.mock('./BreakdownChart', () => ({
   BreakdownChart: () => <div>chart</div>,
-}));
-
-vi.mock('./SEOContentSection', () => ({
-  SEOContentSection: () => null,
 }));
 
 vi.mock('jspdf', () => ({
@@ -64,14 +42,6 @@ vi.mock('jspdf-autotable', () => ({
 
 describe('LaborCalculator critical flow', () => {
   beforeEach(() => {
-    mockAuthState.user = { id: 'user_1', email: 'user@example.com' };
-    mockAuthState.access = {
-      hasActiveSubscription: false,
-      isPremium: false,
-      licenseType: null,
-      accessUntil: null,
-      singleDocumentUsesRemaining: 1,
-    };
     jsPdfCtorMock.mockClear();
     autoTableMock.mockClear();
     Object.values(docMock).forEach((value) => {
@@ -83,13 +53,11 @@ describe('LaborCalculator critical flow', () => {
 
   it('calculates and routes users to the next useful step', async () => {
     const onOpenDrafting = vi.fn();
-    const onOpenPricing = vi.fn();
 
     const { container } = render(
       <LaborCalculator
         notify={vi.fn()}
         onOpenDrafting={onOpenDrafting}
-        onOpenPricing={onOpenPricing}
       />
     );
 
@@ -99,16 +67,13 @@ describe('LaborCalculator critical flow', () => {
     fireEvent.change(dateInputs[0], { target: { value: '2024-01-01' } });
     fireEvent.change(dateInputs[1], { target: { value: '2025-01-01' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /^calcular$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^calcular/i }));
 
-    expect(await screen.findByText('Abrir generador')).toBeInTheDocument();
-    expect(screen.getByText('Desbloquear IMSS')).toBeInTheDocument();
+    expect(await screen.findByText('Generar Documento')).toBeInTheDocument();
+    expect(screen.getByText(/Descargar PDF/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Abrir generador'));
+    fireEvent.click(screen.getByText('Generar Documento'));
     expect(onOpenDrafting).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getByText('Desbloquear IMSS'));
-    expect(onOpenPricing).toHaveBeenCalledWith('mensualidad');
   });
 
   it('exports the labor calculation as PDF', async () => {
@@ -120,7 +85,7 @@ describe('LaborCalculator critical flow', () => {
     fireEvent.change(dateInputs[0], { target: { value: '2024-01-01' } });
     fireEvent.change(dateInputs[1], { target: { value: '2025-01-01' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /^calcular$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^calcular/i }));
     await screen.findByRole('button', { name: /pdf/i });
 
     fireEvent.click(screen.getByRole('button', { name: /pdf/i }));

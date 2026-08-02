@@ -13,7 +13,13 @@ export default defineConfig(({ mode }) => {
         cors: exposeDevServer
           ? { origin: [/^http:\/\/localhost:\d+$/, /^http:\/\/127\.0\.0\.1:\d+$/] }
           : false,
-        allowedHosts: exposeDevServer ? true : ['localhost', '127.0.0.1']
+        allowedHosts: exposeDevServer ? true : ['localhost', '127.0.0.1'],
+        proxy: {
+          '/api': {
+            target: 'http://localhost:3000',
+            changeOrigin: true,
+          },
+        },
       },
       plugins: [react(), tailwindcss()],
       resolve: {

@@ -1,16 +1,10 @@
 import React from 'react';
 import { AppView } from '../types';
-import { Calculator, FileText, ChevronRight, ShieldCheck, LogIn, LogOut, ArrowUpRight } from 'lucide-react';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
-import { getPathForView } from '../lib/routes';
+import { Calculator, FileText, ChevronRight, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { WorkspacePanel } from './ui/Workspace';
-import { Capacitor } from '@capacitor/core';
 
 interface HomeProps {
   onNavigate: (view: AppView) => void;
-  user?: SupabaseUser | null;
-  onLogin?: () => void;
-  onLogout?: () => void;
 }
 
 const tools = [
@@ -18,7 +12,7 @@ const tools = [
     view: AppView.CALCULATOR,
     title: 'Liquidación y Finiquito',
     summary: 'Calculadora completa de indemnizaciones constitucionales, primas de antigüedad y finiquitos de ley.',
-    access: 'Acceso Gratuito con Registro',
+    access: 'Gratuito',
     action: 'Calcular Prestaciones',
     accent: 'text-legal-gold',
     badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
@@ -28,17 +22,17 @@ const tools = [
     view: AppView.DRAFTING,
     title: 'Generador de Documentos',
     summary: 'Proyecta contratos, actas, convenios y demandas asistidos por IA con búsqueda semántica en la LFT e IMSS.',
-    access: 'Por Documento o Plan',
+    access: 'Gratuito',
     action: 'Generar Borrador',
     accent: 'text-legal-gold',
-    badgeStyle: 'border-legal-gold/20 bg-legal-gold/5 text-legal-gold',
+    badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
     icon: <FileText size={20} className="text-legal-gold" />,
   },
   {
     view: AppView.SOCIAL_SECURITY,
     title: 'Calculadora IMSS e INFONAVIT',
     summary: 'Proyección detallada de cuotas obrero-patronales, ramos de seguro social y prima de riesgo de trabajo.',
-    access: 'Plan Premium Activo',
+    access: 'Gratuito',
     action: 'Calcular IMSS',
     accent: 'text-legal-gold',
     badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
@@ -48,7 +42,7 @@ const tools = [
     view: AppView.PENSION_CALCULATOR,
     title: 'Calculadora de Pensiones',
     summary: 'Estima tu pensión mensual del IMSS según la Ley de 1973 o 1997 basado en tus semanas cotizadas y salario.',
-    access: 'Acceso Gratuito con Registro',
+    access: 'Gratuito',
     action: 'Estimar Pensión',
     accent: 'text-legal-gold',
     badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
@@ -71,95 +65,15 @@ const supportBlocks = [
   },
 ];
 
-export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout }) => {
-  const handleNavClick = (event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>, view: AppView) => {
-    event.preventDefault();
+export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
+  const handleNavClick = (view: AppView) => {
     onNavigate(view);
   };
 
-  const isNative = Capacitor.isNativePlatform();
-
-  if (!user && isNative) {
-    return (
-      <div className="flex flex-col min-h-screen bg-[#020306] items-center justify-center p-8 text-white relative overflow-hidden animate-fade-in">
-        <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px] pointer-events-none" />
-        <div className="absolute -bottom-10 left-10 h-80 w-80 rounded-full bg-slate-900/30 blur-[100px] pointer-events-none" />
-        
-        <div className="z-10 flex flex-col items-center w-full max-w-sm">
-            <div className="mb-16 w-full max-w-[280px] animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <img 
-                src="/assets/logo.webp" 
-                alt="Lex Laboral" 
-                className="w-full h-auto object-contain drop-shadow-[0_15px_35px_rgba(224,175,34,0.15)]"
-              />
-            </div>
-            
-            <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-                <button
-                  onClick={onLogin}
-                  className="w-full relative flex items-center justify-center gap-3 rounded-2xl bg-legal-gold px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_20px_45px_-12px_rgba(212,175,55,0.35)] active:scale-95 transition-all"
-                >
-                  <LogIn size={18} />
-                  <span>Iniciar sesión</span>
-                </button>
-                <button
-                  onClick={onLogin}
-                  className="w-full relative flex items-center justify-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-6 py-4 text-xs font-bold uppercase tracking-wider text-white active:scale-95 transition-all"
-                >
-                  <span>Crear cuenta</span>
-                </button>
-            </div>
-        </div>
-
-        <div className="absolute bottom-8 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 animate-in fade-in duration-1000 delay-500">
-           Lex Laboral © 2026
-        </div>
-      </div>
-    );
-  }
-
-  if (user && isNative) {
-    return (
-      <div className="flex flex-col min-h-screen bg-[#020306] p-6 text-white pt-[env(safe-area-inset-top)] pb-24 animate-fade-in">
-        {/* Top Greeting */}
-        <div className="mt-8 mb-10 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-legal-gold">Bienvenido</p>
-            <h1 className="mt-1 text-2xl font-bold text-white truncate max-w-[200px]">
-               {user.email?.split('@')[0] || 'Usuario'}
-            </h1>
-          </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-legal-gold to-yellow-600 text-lg font-bold text-slate-950 border border-white/10 shadow-lg">
-             {user.email?.charAt(0).toUpperCase() || '?'}
-          </div>
-        </div>
-
-        {/* 2x2 Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          {tools.map((tool) => (
-            <a
-              key={tool.view}
-              href={getPathForView(tool.view)}
-              onClick={(event) => handleNavClick(event, tool.view)}
-              className="flex flex-col items-center justify-center gap-4 rounded-[1.5rem] border border-white/10 bg-slate-900/60 p-6 text-center shadow-[0_8px_30px_rgba(0,0,0,0.3)] backdrop-blur-md transition-transform active:scale-95"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-950 text-legal-gold shadow-md">
-                {React.cloneElement(tool.icon as React.ReactElement, { size: 28 })}
-              </div>
-              <div>
-                <h2 className="text-[11px] font-bold leading-tight text-white">{tool.title}</h2>
-              </div>
-            </a>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="animate-fade-in font-sans bg-[#020306] text-white min-h-screen">
+    <div className="animate-fade-in font-sans bg-[#020306] text-white min-h-screen pb-24">
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(163,124,31,0.1),_transparent_45%),linear-gradient(180deg,_#050811_0%,_#020306_100%)] py-12 md:py-24">
+      <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(163,124,31,0.1),_transparent_45%),linear-gradient(180deg,_#050811_0%,_#020306_100%)] pt-[env(safe-area-inset-top)] py-12 md:py-24">
         <div className="absolute right-0 top-0 hidden h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px] md:block" />
         <div className="absolute -bottom-10 left-10 hidden h-80 w-80 rounded-full bg-slate-900/30 blur-[100px] md:block" />
 
@@ -194,43 +108,6 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                 Régimen Vigente 2026
               </span>
             </div>
-
-            {/* Actions & Login Status */}
-            <div className="flex flex-wrap items-center gap-4 pt-2 justify-center">
-              {user ? (
-                <div className="inline-flex items-center gap-3.5 rounded-2xl border border-white/10 bg-white/5 px-4.5 py-2.5 shadow-sm backdrop-blur-sm">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-legal-gold to-yellow-600 text-[11px] font-bold text-slate-950 border border-white/10 shadow-inner">
-                    {user.email?.charAt(0).toUpperCase() || '?'}
-                  </div>
-                  <span className="max-w-[180px] truncate text-xs font-semibold text-slate-200">{user.email}</span>
-                  <div className="h-4 w-px bg-white/10" />
-                  <button
-                    onClick={onLogout}
-                    className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 transition-colors hover:text-red-400"
-                    title="Cerrar sesión"
-                  >
-                    <LogOut size={12} />
-                    Salir
-                  </button>
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto justify-center">
-                  <button
-                    onClick={onLogin}
-                    className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-legal-gold px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_20px_45px_-12px_rgba(212,175,55,0.35)] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_20px_45px_-12px_rgba(255,255,255,0.15)] active:translate-y-0 w-full sm:w-auto"
-                  >
-                    <LogIn size={15} className="text-slate-950 transition-transform group-hover:translate-x-0.5" />
-                    <span>Iniciar sesión</span>
-                  </button>
-                  <button
-                    onClick={onLogin}
-                    className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-white/5 border border-white/10 px-6.5 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-0.5 hover:bg-white/10 active:translate-y-0 w-full sm:w-auto"
-                  >
-                    <span>Crear cuenta</span>
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Tools Grid Section */}
@@ -241,11 +118,10 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
               {/* Tools Cards arranged in 2x2 Grid */}
               <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6">
                 {tools.map((tool, index) => (
-                  <a
+                  <button
                     key={tool.view}
-                    href={getPathForView(tool.view)}
-                    onClick={(event) => handleNavClick(event, tool.view)}
-                    className="group flex items-start gap-3 sm:gap-4.5 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-legal-gold/40 hover:bg-slate-900/80"
+                    onClick={() => handleNavClick(tool.view)}
+                    className="group flex items-start gap-3 sm:gap-4.5 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-legal-gold/40 hover:bg-slate-900/80 text-left"
                   >
                     {/* Dark Icon Chip Homogeneous with LexCorporativo */}
                     <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-[0.9rem] sm:rounded-[1.1rem] border border-white/10 bg-slate-950 shadow-md group-hover:border-legal-gold/40 transition-colors duration-300">
@@ -274,7 +150,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
                     <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 text-slate-500 group-hover:bg-legal-gold/10 group-hover:text-legal-gold transition-colors duration-300">
                       <ArrowUpRight size={14} />
                     </div>
-                  </a>
+                  </button>
                 ))}
               </div>
             </WorkspacePanel>
@@ -314,17 +190,13 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, user, onLogin, onLogout 
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-6 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">
-          <a href={getPathForView(AppView.TERMS)} onClick={(event) => handleNavClick(event, AppView.TERMS)} className="transition-colors hover:text-white">
+          <button onClick={() => handleNavClick(AppView.TERMS)} className="transition-colors hover:text-white">
             Términos
-          </a>
-          <a href={getPathForView(AppView.PRIVACY)} onClick={(event) => handleNavClick(event, AppView.PRIVACY)} className="transition-colors hover:text-white">
+          </button>
+          <button onClick={() => handleNavClick(AppView.PRIVACY)} className="transition-colors hover:text-white">
             Privacidad
-          </a>
+          </button>
         </div>
-
-        <p className="text-[11px] text-slate-500 font-medium">
-          Desarrollado por <span className="font-bold text-slate-300">filex dev</span>
-        </p>
       </footer>
     </div>
   );

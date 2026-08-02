@@ -51,9 +51,9 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-slate-900 text-legal-gold flex items-center justify-center text-xs font-bold">03</span>
-            Pagos y Suscripciones (Stripe)
+            Servicio Gratuito y Sin Cuenta
           </h2>
-          <p>Los pagos se procesan exclusivamente a través de la pasarela segura <strong>Stripe</strong>. Al realizar una compra, usted acepta los términos de uso de Stripe. Las suscripciones ("Pase Mensual" o "Trimestral") se cobran por adelantado y no son reembolsables, salvo disposición legal obligatoria en México.</p>
+          <p>Lex Laboral es una herramienta <strong>completamente gratuita</strong>. No se requiere creación de cuenta, suscripción ni ningún tipo de pago para acceder a cualquiera de sus funcionalidades, incluidas las calculadoras laborales, la calculadora IMSS e INFONAVIT, la calculadora de pensiones y el generador de documentos con IA.</p>
         </section>
 
         <section>
@@ -96,26 +96,24 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4">Datos Personales Tratados</h2>
           <ul className="list-disc pl-6 space-y-3">
-            <li><strong>Identificación:</strong> Nombre o alias para la personalización de documentos.</li>
-            <li><strong>Contacto:</strong> Correo electrónico para el envío de comprobantes de pago y acceso a la plataforma.</li>
-            <li><strong>Información Técnica:</strong> Los documentos que usted sube para análisis son procesados de forma efímera para generar el resultado mediante IA.</li>
+            <li><strong>Técnica:</strong> Datos de uso anónimos y agregados para mejorar la aplicación. La aplicación no requiere registro ni recopila datos personales de identificación.</li>
+            <li><strong>Documentos:</strong> Los documentos que usted genera se procesan de forma efímera para producir el resultado mediante IA y se almacenan únicamente en su dispositivo.</li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4">Finalidades del Tratamiento</h2>
           <ul className="list-disc pl-6 space-y-3">
-            <li><strong>Primarias:</strong> Prestación del servicio de cálculo laboral, generación de borradores jurídicos y procesamiento de pagos vía Stripe.</li>
-            <li><strong>Secundarias:</strong> Mejora de la experiencia de usuario y envío ocasional de actualizaciones del sistema (previo consentimiento).</li>
+            <li><strong>Primarias:</strong> Prestación del servicio de cálculo laboral y generación de borradores jurídicos mediante IA.</li>
+            <li><strong>Secundarias:</strong> Mejora de la experiencia de usuario mediante métricas de uso anónimas.</li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4">Transferencias de Datos</h2>
-          <p>Le informamos que sus datos personales pueden ser compartidos con terceros únicamente para los fines del servicio:</p>
+          <p>Le informamos que sus datos pueden ser compartidos con terceros únicamente para los fines del servicio:</p>
           <ul className="list-disc pl-6 space-y-3 mt-4">
             <li><strong>Google LLC (Gemini API):</strong> Procesa el contenido para generar el análisis inteligente.</li>
-            <li><strong>Stripe Inc:</strong> Procesa la información financiera de forma cifrada (filex dev no almacena números de tarjeta).</li>
           </ul>
         </section>
 

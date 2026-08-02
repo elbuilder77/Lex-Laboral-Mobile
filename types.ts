@@ -12,10 +12,8 @@ export enum AppView {
   CALCULATOR = 'CALCULATOR',
   SOCIAL_SECURITY = 'SOCIAL_SECURITY',
   PENSION_CALCULATOR = 'PENSION_CALCULATOR',
-  CEO_DASHBOARD = 'CEO_DASHBOARD',
   TERMS = 'TERMS',
   PRIVACY = 'PRIVACY',
-  SETTINGS = 'SETTINGS',
   HISTORY = 'HISTORY'
 }
 
@@ -31,16 +29,6 @@ export interface AppNotification {
   type: NotificationType;
   message: string;
   title?: string;
-}
-
-export type CheckoutPlan = 'draft_basic' | 'mensualidad' | 'trimestralidad';
-
-export interface AccessSnapshot {
-  hasActiveSubscription: boolean;
-  isPremium: boolean;
-  licenseType: string | null;
-  accessUntil: string | null;
-  singleDocumentUsesRemaining: number;
 }
 
 export interface ChatMessage {

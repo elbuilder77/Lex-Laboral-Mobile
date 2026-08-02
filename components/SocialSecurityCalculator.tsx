@@ -6,19 +6,16 @@ import {
   Activity, 
   TrendingUp, 
   Download, 
-  Settings2
+  Settings2,
+  ChevronDown
 } from 'lucide-react';
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from './AuthProvider';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 
 export const SocialSecurityCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
-  onRequireLogin?: () => void;
-  onRequirePremium?: () => void;
-}> = ({ notify, onRequireLogin, onRequirePremium }) => {
-  const { user, access } = useAuth();
+}> = ({ notify }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   const [sbc, setSbc] = useState<number>(0);
@@ -64,18 +61,6 @@ export const SocialSecurityCalculator: React.FC<{
   } | null>(null);
 
   const calculate = async () => {
-    if (!user) {
-      if (onRequireLogin) onRequireLogin();
-      notify("Regístrate para continuar", "info");
-      return;
-    }
-
-    if (!access.hasActiveSubscription) {
-      onRequirePremium?.();
-      notify("Esta calculadora requiere un plan mensual o trimestral activo", "info");
-      return;
-    }
-
     if (sbc <= 0) {
       notify("El Salario Base de Cotización debe ser un número positivo", "error");
       return;
@@ -238,21 +223,6 @@ export const SocialSecurityCalculator: React.FC<{
       </div>
 
       <div className="px-4 mt-6 max-w-lg mx-auto">
-        {!access.hasActiveSubscription && (
-          <div className="bg-slate-900 rounded-[1.5rem] p-5 shadow-lg border border-legal-gold/20 mb-4">
-            <h4 className="text-legal-gold text-sm font-bold flex items-center gap-2 uppercase tracking-widest"><ShieldCheck size={16}/> Acceso Premium</h4>
-            <p className="text-slate-300 text-xs mt-2 leading-relaxed">
-              Esta calculadora requiere una suscripción activa para generar resultados.
-            </p>
-            <button
-              onClick={() => onRequirePremium?.()}
-              className="mt-4 w-full bg-legal-gold text-slate-950 py-3 rounded-xl text-xs font-bold uppercase tracking-widest"
-            >
-              Ver Planes
-            </button>
-          </div>
-        )}
-
         <AnimatePresence mode="wait">
           {activeTab === 'form' ? (
             <motion.div

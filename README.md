@@ -15,10 +15,17 @@ Lex Laboral es una plataforma avanzada impulsada por inteligencia artificial (Ge
 
 ## 🛠️ Tecnologías
 
-*   **Frontend:** React con TypeScript y Vite, desplegado en **Vercel**.
-*   **Backend/Auth/DB:** **Supabase** (PostgreSQL + Auth).
+*   **Frontend:** React con TypeScript y Vite.
+*   **Backend:** API en **Hono** (Node.js) desplegada en PaaS (Render/Railway), dentro de `backend/`.
+*   **Base de conocimiento RAG:** **Supabase** (PostgreSQL + embeddings).
 *   **IA:** Google Gemini API para el procesamiento de lenguaje natural.
-*   **Pagos:** Stripe.
+*   **App móvil:** Capacitor (Android nativo), 100% gratuita y anónima.
+
+## 🚀 Desarrollo
+
+*   **Backend:** `npm run dev --workspace backend` (puerto 3000). Ver `backend/README.md`.
+*   **Frontend:** `npm run dev` — el proxy de Vite reenvía `/api` al backend local.
+*   **Build Android:** `npm run build && npx cap sync android`.
 
 ## 📜 Licencia
 

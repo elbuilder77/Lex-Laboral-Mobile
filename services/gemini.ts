@@ -1,6 +1,4 @@
 
-import { supabase } from "../lib/supabase";
-
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const STREAM_RENDER_INTERVAL_MS = 100;
 
@@ -9,17 +7,12 @@ export const draftLegalDocument = async (
   customInstructions?: string,
   onChunk?: (chunk: string) => void
 ): Promise<string> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
-  const userId = session?.user?.id;
-
   const response = await fetch(`${API_URL}/draft`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     },
-    body: JSON.stringify({ requirements, customInstructions, userId })
+    body: JSON.stringify({ requirements, customInstructions })
   });
 
   if (!response.ok) {
@@ -95,27 +88,4 @@ export const draftLegalDocument = async (
   }
 
   return fullText;
-};
-
-export const checkCalculatorUsage = async (accessToken: string) => {
-  const response = await fetch(`${API_URL}/calculator`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
-    }
-  });
-
-  if (!response.ok) {
-    let errorMessage = 'No se pudo validar el acceso a IMSS.';
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch {
-      errorMessage = `Server error: ${response.status}`;
-    }
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
 };

@@ -12,16 +12,13 @@ import {
 } from 'lucide-react';
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from './AuthProvider';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 
 type PensionRegime = '1973' | '1997';
 
 export const PensionCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
-  onRequireLogin?: () => void;
-}> = ({ notify, onRequireLogin }) => {
-  const { user } = useAuth();
+}> = ({ notify }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   const [regime, setRegime] = useState<PensionRegime>('1973');
@@ -189,12 +186,6 @@ export const PensionCalculator: React.FC<{
   };
 
   const calculate = async () => {
-    if (!user) {
-      if (onRequireLogin) onRequireLogin();
-      notify("Regístrate gratis para usar la calculadora", "info");
-      return;
-    }
-
     let result = null;
     if (regime === '1973') {
       result = calculatePension73();
