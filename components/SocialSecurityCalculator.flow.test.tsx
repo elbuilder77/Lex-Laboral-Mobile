@@ -5,6 +5,7 @@ import { SocialSecurityCalculator } from './SocialSecurityCalculator';
 
 describe('SocialSecurityCalculator flow', () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.clearAllMocks();
   });
 

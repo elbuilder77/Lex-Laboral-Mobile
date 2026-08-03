@@ -42,6 +42,7 @@ vi.mock('jspdf-autotable', () => ({
 
 describe('LaborCalculator critical flow', () => {
   beforeEach(() => {
+    localStorage.clear();
     jsPdfCtorMock.mockClear();
     autoTableMock.mockClear();
     Object.values(docMock).forEach((value) => {

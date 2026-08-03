@@ -19,6 +19,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 test('renders PensionCalculator and allows Ley 97 calculation', async () => {
+  localStorage.clear();
   const notify = vi.fn();
 
   render(<PensionCalculator notify={notify} />);

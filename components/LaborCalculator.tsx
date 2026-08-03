@@ -21,6 +21,7 @@ import {
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
+import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
 
 type DismissalType = 'injustificado' | 'renuncia' | 'rescision_patron' | 'rescision_trabajador';
 
@@ -119,6 +120,24 @@ export const LaborCalculator: React.FC<{
     };
   } | null>(null);
 
+  React.useEffect(() => {
+    const saved = loadCalculationSnapshot<{
+      baseSalary: number; salaryPeriod: typeof salaryPeriod; dailySalary: number; startDate: string;
+      endDate: string; yearsOfService: number; daysOfService: number; dismissalType: DismissalType;
+    }, NonNullable<typeof results>>(CALCULATION_STORAGE_KEYS.labor);
+    if (!saved?.results) return;
+    setBaseSalary(saved.inputs.baseSalary ?? 0);
+    setSalaryPeriod(saved.inputs.salaryPeriod ?? 'monthly');
+    setDailySalary(saved.inputs.dailySalary ?? 0);
+    setStartDate(saved.inputs.startDate ?? '');
+    setEndDate(saved.inputs.endDate ?? '');
+    setYearsOfService(saved.inputs.yearsOfService ?? 0);
+    setDaysOfService(saved.inputs.daysOfService ?? 0);
+    setDismissalType(saved.inputs.dismissalType ?? 'injustificado');
+    setResults(saved.results);
+    setActiveTab('results');
+  }, []);
+
   const calculateMonthlyISR = (amount: number): number => {
     const limits = [
       { lower: 0.01, upper: 746.04, fixed: 0, percent: 0.0192 },
@@ -216,6 +235,11 @@ export const LaborCalculator: React.FC<{
       }
     };
     setResults(calculatedResults);
+    saveCalculationSnapshot(CALCULATION_STORAGE_KEYS.labor, {
+      savedAt: new Date().toISOString(),
+      inputs: { baseSalary, salaryPeriod, dailySalary, startDate, endDate, yearsOfService, daysOfService, dismissalType },
+      results: calculatedResults,
+    });
     
     setActiveTab('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -12,6 +12,7 @@ import {
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
+import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
 
 export const SocialSecurityCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
@@ -59,6 +60,18 @@ export const SocialSecurityCalculator: React.FC<{
     };
     total: number;
   } | null>(null);
+
+  React.useEffect(() => {
+    const saved = loadCalculationSnapshot<{
+      sbc: number; riskClass: number; days: number;
+    }, NonNullable<typeof results>>(CALCULATION_STORAGE_KEYS.socialSecurity);
+    if (!saved?.results) return;
+    setSbc(saved.inputs.sbc ?? 0);
+    setRiskClass(saved.inputs.riskClass ?? 0);
+    setDays(saved.inputs.days ?? 30);
+    setResults(saved.results);
+    setActiveTab('results');
+  }, []);
 
   const calculate = async () => {
     if (sbc <= 0) {
@@ -135,6 +148,11 @@ export const SocialSecurityCalculator: React.FC<{
       total: empTotal + workerTotal
     };
     setResults(calculatedResults);
+    saveCalculationSnapshot(CALCULATION_STORAGE_KEYS.socialSecurity, {
+      savedAt: new Date().toISOString(),
+      inputs: { sbc, riskClass, days },
+      results: calculatedResults,
+    });
 
     notify("Cálculo finalizado", "success");
     setActiveTab('results');

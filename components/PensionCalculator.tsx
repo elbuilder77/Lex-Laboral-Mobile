@@ -13,6 +13,7 @@ import {
 import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
+import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
 
 type PensionRegime = '1973' | '1997';
 
@@ -48,6 +49,23 @@ export const PensionCalculator: React.FC<{
       ageFactor: string;
     };
   } | null>(null);
+
+  React.useEffect(() => {
+    const saved = loadCalculationSnapshot<{
+      regime: PensionRegime; age: number; weeks: number; averageSalary: number;
+      aforeBalance: number; hasSpouse: boolean; childrenCount: number;
+    }, NonNullable<typeof results>>(CALCULATION_STORAGE_KEYS.pension);
+    if (!saved?.results) return;
+    setRegime(saved.inputs.regime ?? '1973');
+    setAge(saved.inputs.age ?? 60);
+    setWeeks(saved.inputs.weeks ?? 500);
+    setAverageSalary(saved.inputs.averageSalary ?? 0);
+    setAforeBalance(saved.inputs.aforeBalance ?? 0);
+    setHasSpouse(saved.inputs.hasSpouse ?? false);
+    setChildrenCount(saved.inputs.childrenCount ?? 0);
+    setResults(saved.results);
+    setActiveTab('results');
+  }, []);
 
   const calculatePension73 = () => {
     let agePercentage = 0;
@@ -195,6 +213,11 @@ export const PensionCalculator: React.FC<{
 
     if (result) {
       setResults(result);
+      saveCalculationSnapshot(CALCULATION_STORAGE_KEYS.pension, {
+        savedAt: new Date().toISOString(),
+        inputs: { regime, age, weeks, averageSalary, aforeBalance, hasSpouse, childrenCount },
+        results: result,
+      });
       notify("Cálculo generado exitosamente", "success");
       setActiveTab('results');
       window.scrollTo({ top: 0, behavior: 'smooth' });
