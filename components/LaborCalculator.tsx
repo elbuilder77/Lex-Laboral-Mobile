@@ -23,7 +23,6 @@ import {
 import { CalculationRecord, NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
-import { WorkspaceEmpty, WorkspaceHeader, WorkspacePage, WorkspacePanel } from './ui/Workspace';
 
 type DismissalType = 'injustificado' | 'renuncia' | 'rescision_patron' | 'rescision_trabajador';
 

@@ -13,8 +13,7 @@ export enum AppView {
   SOCIAL_SECURITY = 'SOCIAL_SECURITY',
   PENSION_CALCULATOR = 'PENSION_CALCULATOR',
   TERMS = 'TERMS',
-  PRIVACY = 'PRIVACY',
-  HISTORY = 'HISTORY'
+  PRIVACY = 'PRIVACY'
 }
 
 export interface DraftingState {
@@ -39,15 +38,4 @@ export interface AppNotification {
   type: NotificationType;
   message: string;
   title?: string;
-}
-
-export interface ChatMessage {
-  role: 'user' | 'model';
-  content: string;
-}
-
-export interface AnalyzedDocumentHistory {
-  date: string;
-  name: string;
-  summary: string;
 }
