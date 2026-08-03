@@ -10,7 +10,7 @@ import {
   Building,
   ArrowRight
 } from 'lucide-react';
-import { CalculationRecord, NotificationType } from '../types';
+import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 
@@ -18,9 +18,7 @@ type PensionRegime = '1973' | '1997';
 
 export const PensionCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
-  onOpenDrafting?: () => void;
-  onCalculationComplete?: (calculation: CalculationRecord) => void;
-}> = ({ notify, onOpenDrafting, onCalculationComplete }) => {
+}> = ({ notify }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   const [regime, setRegime] = useState<PensionRegime>('1973');
@@ -197,11 +195,6 @@ export const PensionCalculator: React.FC<{
 
     if (result) {
       setResults(result);
-      onCalculationComplete?.({
-        kind: 'pension', title: `Pensión IMSS · Ley ${result.regimeUsed}`, createdAt: new Date().toISOString(),
-        inputs: { regimen: regime, edad: age, semanasCotizadas: weeks, salarioPromedio: averageSalary, saldoAfore: aforeBalance, conyuge: hasSpouse, hijos: childrenCount },
-        results: result,
-      });
       notify("Cálculo generado exitosamente", "success");
       setActiveTab('results');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -276,12 +269,14 @@ export const PensionCalculator: React.FC<{
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
-      <div className="bg-slate-950 px-6 pt-12 pb-6 shadow-md rounded-b-[2rem]">
-        <h1 className="text-2xl font-serif font-bold text-white">Pensiones IMSS</h1>
-        <p className="text-sm text-slate-400 mt-1">Simula tu pensión Ley 73 o 97</p>
+      <div className="rounded-b-[2rem] bg-slate-950 px-5 pb-6 pt-[calc(env(safe-area-inset-top)+1rem)] shadow-md">
+        <div className="flex items-center gap-3">
+          <img src="/assets/icon-mobile.png" alt="Logo de Lex Laboral" className="h-12 w-12 rounded-2xl object-cover ring-1 ring-legal-gold/40 shadow-lg" />
+          <div><h1 className="text-2xl font-serif font-bold text-white">Pensiones IMSS</h1><p className="mt-1 text-sm text-slate-400">Simula tu pensión Ley 73 o 97</p></div>
+        </div>
         
         {/* Android Native-like Tabs */}
-        <div className="flex bg-slate-900 rounded-full p-1 mt-6 border border-slate-800">
+        <div className="mt-5 flex rounded-full border border-slate-800 bg-slate-900 p-1">
           <button 
             onClick={() => setActiveTab('form')}
             className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
@@ -431,9 +426,6 @@ export const PensionCalculator: React.FC<{
                     <div className="mt-8 flex gap-3">
                       <button onClick={handleExportPDF} className="flex-1 bg-white/10 hover:bg-white/20 border border-white/10 py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-all">
                         <FileDown size={16} /> Descargar PDF
-                      </button>
-                      <button onClick={onOpenDrafting} className="flex-1 bg-legal-gold py-4 rounded-xl text-slate-950 text-xs font-bold uppercase tracking-widest">
-                        Crear documento
                       </button>
                     </div>
                   </div>

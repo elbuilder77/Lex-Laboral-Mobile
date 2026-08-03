@@ -51,14 +51,9 @@ describe('LaborCalculator critical flow', () => {
     });
   });
 
-  it('calculates and routes users to the next useful step', async () => {
-    const onOpenDrafting = vi.fn();
-
+  it('calculates without exposing document generation', async () => {
     const { container } = render(
-      <LaborCalculator
-        notify={vi.fn()}
-        onOpenDrafting={onOpenDrafting}
-      />
+      <LaborCalculator notify={vi.fn()} />
     );
 
     fireEvent.change(screen.getByPlaceholderText('0.00'), { target: { value: '30000' } });
@@ -69,11 +64,8 @@ describe('LaborCalculator critical flow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^calcular/i }));
 
-    expect(await screen.findByText('Generar Documento')).toBeInTheDocument();
-    expect(screen.getByText(/Descargar PDF/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('Generar Documento'));
-    expect(onOpenDrafting).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText(/Descargar PDF/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Generar Documento/i)).not.toBeInTheDocument();
   });
 
   it('exports the labor calculation as PDF', async () => {

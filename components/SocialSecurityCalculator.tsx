@@ -9,15 +9,13 @@ import {
   Settings2,
   ChevronDown
 } from 'lucide-react';
-import { CalculationRecord, NotificationType } from '../types';
+import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 
 export const SocialSecurityCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
-  onOpenDrafting?: () => void;
-  onCalculationComplete?: (calculation: CalculationRecord) => void;
-}> = ({ notify, onOpenDrafting, onCalculationComplete }) => {
+}> = ({ notify }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   const [sbc, setSbc] = useState<number>(0);
@@ -137,11 +135,6 @@ export const SocialSecurityCalculator: React.FC<{
       total: empTotal + workerTotal
     };
     setResults(calculatedResults);
-    onCalculationComplete?.({
-      kind: 'social_security', title: 'Cuotas IMSS e INFONAVIT', createdAt: new Date().toISOString(),
-      inputs: { salarioBaseCotizacion: sbc, diasCotizados: days, primaRiesgo: riskClass },
-      results: calculatedResults,
-    });
 
     notify("Cálculo finalizado", "success");
     setActiveTab('results');
@@ -206,11 +199,13 @@ export const SocialSecurityCalculator: React.FC<{
   return (
     <div className="min-h-full bg-[#fbfaf7] pb-24">
       <div className="bg-[#070d1c] px-5 pb-4 pt-5 shadow-sm">
-        <h1 className="text-2xl font-serif font-bold text-white">IMSS e INFONAVIT</h1>
-        <p className="text-sm text-slate-400 mt-1">Cuotas obrero-patronales</p>
+        <div className="flex items-center gap-3">
+          <img src="/assets/icon-mobile.png" alt="Logo de Lex Laboral" className="h-12 w-12 rounded-2xl object-cover ring-1 ring-legal-gold/40 shadow-lg" />
+          <div><h1 className="text-2xl font-serif font-bold text-white">IMSS e INFONAVIT</h1><p className="mt-1 text-sm text-slate-400">Cuotas obrero-patronales</p></div>
+        </div>
         
         {/* Tabs */}
-        <div className="mt-4 flex rounded-xl border border-slate-700 bg-slate-900 p-1">
+        <div className="mt-5 flex rounded-xl border border-slate-700 bg-slate-900 p-1">
           <button 
             onClick={() => setActiveTab('form')}
             className={`min-h-11 flex-1 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
@@ -331,9 +326,6 @@ export const SocialSecurityCalculator: React.FC<{
                     
                     <button onClick={handleExport} className="mt-6 w-full bg-white/10 hover:bg-white/20 border border-white/10 py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-all">
                       <Download size={16} /> Exportar
-                    </button>
-                    <button onClick={onOpenDrafting} className="mt-3 w-full bg-legal-gold py-4 rounded-xl text-slate-950 text-xs font-bold uppercase tracking-widest">
-                      Crear documento con este cálculo
                     </button>
                   </div>
 

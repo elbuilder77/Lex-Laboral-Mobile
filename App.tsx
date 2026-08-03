@@ -5,30 +5,17 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Lazy loading components
 const LegalView = lazy(() => import('./components/LegalView').then(module => ({ default: module.LegalView })));
-const Drafter = lazy(() => import('./components/Drafter').then(module => ({ default: module.Drafter })));
 const LaborCalculator = lazy(() => import('./components/LaborCalculator').then(module => ({ default: module.LaborCalculator })));
 const SocialSecurityCalculator = lazy(() => import('./components/SocialSecurityCalculator').then(module => ({ default: module.SocialSecurityCalculator })));
 const PensionCalculator = lazy(() => import('./components/PensionCalculator').then(module => ({ default: module.PensionCalculator })));
 import { BottomNav } from './components/BottomNav';
 
 import { AppView } from './types';
-import type { AppNotification, NotificationType, DraftingState, CalculationRecord } from './types';
+import type { AppNotification, NotificationType } from './types';
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>(AppView.HOME);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [draftingState, setDraftingState] = useState<DraftingState>({ prompt: '', generatedDoc: '' });
-  const [latestCalculation, setLatestCalculation] = useState<CalculationRecord | null>(() => {
-    try {
-      const saved = localStorage.getItem('latest_calculation');
-      return saved ? JSON.parse(saved) : null;
-    } catch { return null; }
-  });
-
-  const saveCalculation = useCallback((calculation: CalculationRecord) => {
-    setLatestCalculation(calculation);
-    localStorage.setItem('latest_calculation', JSON.stringify(calculation));
-  }, []);
 
   const notify = useCallback((message: string, type: NotificationType = 'info', title?: string) => {
     const id = crypto.randomUUID();
@@ -59,33 +46,19 @@ function App() {
             switch (currentView) {
               case AppView.HOME:
                 return <Home onNavigate={handleViewChange} />;
-              case AppView.DRAFTING:
-                return <Drafter
-                  state={draftingState}
-                  setState={setDraftingState}
-                  notify={notify}
-                  calculation={latestCalculation}
-                />;
               case AppView.CALCULATOR:
                 return (
                   <LaborCalculator
                     notify={notify}
-                    onOpenDrafting={() => handleViewChange(AppView.DRAFTING)}
-                    onOpenImss={() => handleViewChange(AppView.SOCIAL_SECURITY)}
-                    onCalculationComplete={saveCalculation}
                   />
                 );
               case AppView.SOCIAL_SECURITY:
                 return <SocialSecurityCalculator
                   notify={notify}
-                  onOpenDrafting={() => handleViewChange(AppView.DRAFTING)}
-                  onCalculationComplete={saveCalculation}
                 />;
               case AppView.PENSION_CALCULATOR:
                 return <PensionCalculator
                   notify={notify}
-                  onOpenDrafting={() => handleViewChange(AppView.DRAFTING)}
-                  onCalculationComplete={saveCalculation}
                 />;
               case AppView.TERMS:
                 return <LegalView type={AppView.TERMS} onBack={() => handleViewChange(AppView.HOME)} />;

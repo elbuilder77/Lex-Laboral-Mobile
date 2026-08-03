@@ -17,10 +17,8 @@ import {
   FileDown,
   CheckCircle2,
   Settings2,
-  Sparkles,
-  ArrowRight
 } from 'lucide-react';
-import { CalculationRecord, NotificationType } from '../types';
+import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 
@@ -32,10 +30,7 @@ const LazyBreakdownChart = React.lazy(() =>
 
 export const LaborCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
-  onOpenDrafting?: () => void;
-  onOpenImss?: () => void;
-  onCalculationComplete?: (calculation: CalculationRecord) => void;
-}> = ({ notify, onOpenDrafting, onOpenImss, onCalculationComplete }) => {
+}> = ({ notify }) => {
   const resultsRef = React.useRef<HTMLDivElement>(null);
   const dismissalOptions: Array<{ value: DismissalType; label: string }> = [
     { value: 'injustificado', label: 'Despido injustificado' },
@@ -221,11 +216,6 @@ export const LaborCalculator: React.FC<{
       }
     };
     setResults(calculatedResults);
-    onCalculationComplete?.({
-      kind: 'labor', title: 'Liquidación laboral', createdAt: new Date().toISOString(),
-      inputs: { salarioDiarioIntegrado: dailySalary, fechaIngreso: startDate, fechaSalida: endDate, antiguedadAnios: yearsOfService, antiguedadDias: daysOfService, tipoTerminacion: dismissalType },
-      results: calculatedResults,
-    });
     
     setActiveTab('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -305,19 +295,11 @@ export const LaborCalculator: React.FC<{
     }
   };
 
-  const handleDraftingNextStep = () => {
-    onOpenDrafting?.();
-  };
-
-  const handleImssNextStep = () => {
-    onOpenImss?.();
-  };
-
   return (
     <div className="min-h-full bg-[#fbfaf7] pb-24 text-slate-950">
       <div className="flex min-h-[64px] items-center justify-between bg-[#070d1c] px-5 py-2 text-white shadow-sm">
         <div className="flex min-w-0 items-center gap-3">
-          <img src="/assets/icon-mobile.png" alt="" className="h-10 w-10 shrink-0 rounded-xl object-cover" />
+          <img src="/assets/icon-mobile.png" alt="Logo de Lex Laboral" className="h-12 w-12 shrink-0 rounded-2xl object-cover ring-1 ring-legal-gold/40 shadow-lg" />
           <div className="min-w-0">
             <p className="truncate text-[17px] font-bold text-legal-gold">Lex Laboral</p>
             <p className="truncate text-[10px] text-slate-300">Sistema de Inteligencia Jurídica</p>
@@ -511,15 +493,6 @@ export const LaborCalculator: React.FC<{
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-4">
-                    <button onClick={handleDraftingNextStep} className="bg-blue-900 rounded-[1.5rem] p-5 text-left shadow-md relative overflow-hidden flex items-center justify-between active:scale-95 transition-all">
-                      <div>
-                        <h4 className="text-white font-bold text-base flex items-center gap-2"><Sparkles className="text-legal-gold" size={16} /> Generar Documento</h4>
-                        <p className="text-blue-200 text-xs mt-1">Descarga el convenio o renuncia.</p>
-                      </div>
-                      <ArrowRight size={20} className="text-blue-200" />
-                    </button>
-                  </div>
                 </>
               )}
             </motion.div>

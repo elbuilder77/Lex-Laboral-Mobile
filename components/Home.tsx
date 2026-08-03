@@ -1,10 +1,8 @@
 import React from 'react';
-import { Capacitor } from '@capacitor/core';
 import { AppView } from '../types';
 import {
   ArrowRight,
   Calculator,
-  FileText,
   Landmark,
   ShieldCheck,
 } from 'lucide-react';
@@ -12,8 +10,6 @@ import {
 interface HomeProps {
   onNavigate: (view: AppView) => void;
 }
-
-const isNativeMobile = Capacitor.isNativePlatform();
 
 const tools = [
   {
@@ -37,23 +33,16 @@ const tools = [
     action: 'Estimar pensión',
     icon: Landmark,
   },
-  ...(!isNativeMobile ? [{
-    view: AppView.DRAFTING,
-    title: 'Documentos con IA',
-    description: 'Prepara borradores laborales fundamentados.',
-    action: 'Crear documento',
-    icon: FileText,
-  }] : []),
 ];
 
 export const Home: React.FC<HomeProps> = ({ onNavigate }) => (
   <div className="min-h-full bg-[#fbfaf7] pb-24 text-slate-950">
-    <header className="bg-[#070d1c] px-5 pb-5 pt-[calc(env(safe-area-inset-top)+1rem)] text-white shadow-sm">
-      <div className="flex items-center gap-3">
-        <img src="/assets/icon-mobile.png" alt="" className="h-12 w-12 rounded-xl" />
+    <header className="bg-[#070d1c] px-5 pb-6 pt-[calc(env(safe-area-inset-top)+1.25rem)] text-white shadow-lg">
+      <div className="flex items-center gap-4">
+        <img src="/assets/icon-mobile.png" alt="Logo de Lex Laboral" className="h-16 w-16 rounded-[1.25rem] object-cover ring-2 ring-legal-gold/50 shadow-[0_12px_30px_-10px_rgba(212,175,55,0.65)]" />
         <div className="min-w-0">
-          <p className="text-[18px] font-bold text-legal-gold">Lex Laboral</p>
-          <p className="text-[12px] text-slate-300">Herramientas jurídicas laborales</p>
+          <p className="font-serif text-[24px] font-bold leading-tight text-legal-gold">Lex Laboral</p>
+          <p className="mt-1 text-[12px] font-medium text-slate-300">Calculadoras jurídicas laborales</p>
         </div>
       </div>
     </header>
