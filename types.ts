@@ -22,6 +22,16 @@ export interface DraftingState {
   generatedDoc: string;
 }
 
+export type CalculationKind = 'labor' | 'social_security' | 'pension';
+
+export interface CalculationRecord {
+  kind: CalculationKind;
+  title: string;
+  createdAt: string;
+  inputs: Record<string, string | number | boolean>;
+  results: Record<string, unknown>;
+}
+
 export type NotificationType = 'error' | 'success' | 'info' | 'warning';
 
 export interface AppNotification {

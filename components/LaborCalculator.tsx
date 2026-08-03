@@ -20,7 +20,7 @@ import {
   Sparkles,
   ArrowRight
 } from 'lucide-react';
-import { NotificationType } from '../types';
+import { CalculationRecord, NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { WorkspaceEmpty, WorkspaceHeader, WorkspacePage, WorkspacePanel } from './ui/Workspace';
@@ -35,12 +35,13 @@ export const LaborCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
   onOpenDrafting?: () => void;
   onOpenImss?: () => void;
-}> = ({ notify, onOpenDrafting, onOpenImss }) => {
+  onCalculationComplete?: (calculation: CalculationRecord) => void;
+}> = ({ notify, onOpenDrafting, onOpenImss, onCalculationComplete }) => {
   const resultsRef = React.useRef<HTMLDivElement>(null);
   const dismissalOptions: Array<{ value: DismissalType; label: string }> = [
-    { value: 'injustificado', label: 'Injustificado' },
-    { value: 'renuncia', label: 'Renuncia' },
-    { value: 'rescision_patron', label: 'Rescisión' },
+    { value: 'injustificado', label: 'Despido injustificado' },
+    { value: 'renuncia', label: 'Renuncia voluntaria' },
+    { value: 'rescision_patron', label: 'Rescisión por el patrón' },
   ];
   const [dailySalary, setDailySalary] = useState<number>(0);
   const [baseSalary, setBaseSalary] = useState<number>(0);
@@ -145,7 +146,6 @@ export const LaborCalculator: React.FC<{
   const calculate = async () => {
     if (dailySalary <= 0 || (yearsOfService <= 0 && daysOfService <= 0)) {
       setShowErrors(true);
-      notify("Complete los campos obligatorios para generar el cálculo", "warning");
       return;
     }
     setShowErrors(false);
@@ -198,7 +198,7 @@ export const LaborCalculator: React.FC<{
 
     const round = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
 
-    setResults({
+    const calculatedResults = {
       aguinaldo: round(aguinaldo),
       vacations: round(vacations),
       vacationPremium: round(vPremium),
@@ -220,9 +220,14 @@ export const LaborCalculator: React.FC<{
         overtime: `Salario por hora: $${hourlyRate.toFixed(2)} ($${(hourlyRate * 2).toFixed(2)}/hr x ${doubleOvertimeHours}) = $${round(totalOvertime).toFixed(2)}`,
         isr: `Base Gravable Finiquito: $${baseGravableFiniquito.toFixed(2)}\nISR Finiquito: $${isrFiniquito.toFixed(2)}\nBase Liq: $${baseGravableLiquidacion.toFixed(2)} (Tasa: ${(tasaEfectiva * 100).toFixed(2)}%)\nISR Liquidación: $${isrLiquidacion.toFixed(2)}\nRetención Total: $${totalISR.toFixed(2)}`,
       }
+    };
+    setResults(calculatedResults);
+    onCalculationComplete?.({
+      kind: 'labor', title: 'Liquidación laboral', createdAt: new Date().toISOString(),
+      inputs: { salarioDiarioIntegrado: dailySalary, fechaIngreso: startDate, fechaSalida: endDate, antiguedadAnios: yearsOfService, antiguedadDias: daysOfService, tipoTerminacion: dismissalType },
+      results: calculatedResults,
     });
     
-    notify("Cálculo generado exitosamente", "success");
     setActiveTab('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -310,33 +315,34 @@ export const LaborCalculator: React.FC<{
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
-      <div className="bg-slate-950 px-6 pt-12 pb-6 shadow-md rounded-b-[2rem]">
-        <h1 className="text-2xl font-serif font-bold text-white">Liquidación y Finiquito</h1>
-        <p className="text-sm text-slate-400 mt-1">Simula escenarios conforme a la LFT</p>
-        
-        {/* Android Native-like Tabs */}
-        <div className="flex bg-slate-900 rounded-full p-1 mt-6 border border-slate-800">
-          <button 
-            onClick={() => setActiveTab('form')}
-            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
-              activeTab === 'form' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Formulario
-          </button>
-          <button 
-            onClick={() => setActiveTab('results')}
-            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
-              activeTab === 'results' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Resultados
-          </button>
+    <div className="min-h-full bg-[#fbfaf7] pb-24 text-slate-950">
+      <div className="flex min-h-[64px] items-center justify-between bg-[#070d1c] px-5 py-2 text-white shadow-sm">
+        <div className="flex min-w-0 items-center gap-3">
+          <img src="/assets/icon-mobile.png" alt="" className="h-10 w-10 shrink-0 rounded-xl object-cover" />
+          <div className="min-w-0">
+            <p className="truncate text-[17px] font-bold text-legal-gold">Lex Laboral</p>
+            <p className="truncate text-[10px] text-slate-300">Sistema de Inteligencia Jurídica</p>
+          </div>
         </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab(activeTab === 'form' ? 'results' : 'form')}
+          className="ml-3 flex h-11 shrink-0 items-center rounded-xl border border-white/15 px-3 text-xs font-semibold text-slate-200"
+        >
+          {activeTab === 'form' ? 'Resultados' : 'Formulario'}
+        </button>
       </div>
 
-      <div className="px-4 mt-6 max-w-lg mx-auto">
+      <div className="mx-auto w-full max-w-lg px-5 pt-5">
+        <div className="mb-5">
+          <h1 className="font-serif text-[clamp(1.9rem,8vw,2.65rem)] font-bold leading-[1.05] tracking-[-0.025em] text-[#070d1c]">
+            Liquidación y finiquito
+          </h1>
+          <p className="mt-2 max-w-sm text-[14px] leading-5 text-slate-600">
+            Calcula una estimación de tus prestaciones e indemnizaciones.
+          </p>
+        </div>
+
         <AnimatePresence mode="wait">
           {activeTab === 'form' ? (
             <motion.div
@@ -344,77 +350,83 @@ export const LaborCalculator: React.FC<{
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="space-y-4"
+              className="bg-transparent"
             >
-              {/* Card: Tipo de Despido */}
-              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Motivo de Separación</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {dismissalOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setDismissalType(option.value)}
-                      className={`w-full text-left px-5 py-4 rounded-xl border transition-all ${
-                        dismissalType === option.value
-                          ? 'bg-slate-950 border-slate-950 text-legal-gold font-bold shadow-md'
-                          : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+              <section className="pb-5 pt-2">
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-legal-gold text-base font-bold text-white">1</span>
+                  <label htmlFor="dismissal-type" className="text-[16px] font-bold">Motivo de separación</label>
                 </div>
-              </div>
+                <div className="relative">
+                  <select
+                    id="dismissal-type"
+                    value={dismissalType}
+                    onChange={(event) => setDismissalType(event.target.value as DismissalType)}
+                    className="h-12 w-full appearance-none rounded-xl border border-slate-300 bg-white px-4 pr-12 text-[15px] font-medium outline-none transition focus:border-legal-gold focus:ring-4 focus:ring-legal-gold/10"
+                  >
+                    {dismissalOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-700" size={20} />
+                </div>
+              </section>
 
-              {/* Card: Salario */}
-              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Salario Base</label>
-                  <div className="flex bg-slate-100 rounded-lg p-1">
+              <section className="border-t border-[#e4e0d7] py-5">
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-legal-gold text-base font-bold text-white">2</span>
+                  <label htmlFor="base-salary" className="text-[16px] font-bold">Salario base</label>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-semibold text-slate-900">$</span>
+                  <input id="base-salary" inputMode="decimal" type="number" value={baseSalary || ''} onChange={(e) => setBaseSalary(Number(e.target.value))} aria-invalid={showErrors && dailySalary <= 0} aria-describedby={showErrors && dailySalary <= 0 ? 'base-salary-error' : undefined} className="h-12 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-lg font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-legal-gold focus:ring-4 focus:ring-legal-gold/10" placeholder="0.00" />
+                </div>
+                {showErrors && dailySalary <= 0 && (
+                  <p id="base-salary-error" role="alert" className="mt-2 text-sm font-semibold text-red-700">Ingresa un salario mayor a cero.</p>
+                )}
+                <div className="mt-3 grid grid-cols-4 overflow-hidden rounded-xl border border-slate-300">
                     {(['daily', 'weekly', 'biweekly', 'monthly'] as const).map((p) => (
                       <button 
                         key={p} 
                         onClick={() => setSalaryPeriod(p)} 
-                        className={`px-3 py-1.5 text-[10px] font-bold rounded-md uppercase tracking-wider transition-all ${salaryPeriod === p ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                        className={`min-h-11 border-r border-slate-300 px-1 text-[clamp(0.68rem,3vw,0.82rem)] font-semibold last:border-r-0 ${salaryPeriod === p ? 'bg-[#070d1c] text-legal-gold' : 'bg-white text-slate-900'}`}
                       >
-                        {p === 'daily' ? 'Diario' : p === 'weekly' ? 'Sem' : p === 'biweekly' ? 'Quin' : 'Mes'}
+                        {p === 'daily' ? 'Diario' : p === 'weekly' ? 'Semanal' : p === 'biweekly' ? 'Quincenal' : 'Mensual'}
                       </button>
                     ))}
-                  </div>
-                </div>
-                <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                  <input type="number" value={baseSalary || ''} onChange={(e) => setBaseSalary(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 pl-10 pr-4 text-slate-900 font-bold focus:border-legal-gold focus:ring-1 outline-none transition-all" placeholder="0.00" />
                 </div>
                 {isSdiCalculated && baseSalary > 0 && (
-                  <div className="mt-3 flex justify-between items-center bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg text-xs font-bold border border-emerald-100">
+                  <div className="mt-3 flex items-center justify-between rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-700">
                     <span>SDI Integrado</span>
                     <span>${dailySalary.toFixed(2)}</span>
                   </div>
                 )}
-              </div>
+              </section>
 
-              {/* Card: Fechas */}
-              <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ingreso</label>
-                  <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" />
+              <section className="border-t border-[#e4e0d7] py-5">
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-legal-gold text-base font-bold text-white">3</span>
+                  <h2 className="text-[16px] font-bold">Fechas</h2>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Baja</label>
-                  <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="min-w-0 space-y-2">
+                    <label htmlFor="employment-start-date" className="block text-[13px] font-semibold text-slate-700">Fecha de ingreso</label>
+                    <input id="employment-start-date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} aria-invalid={showErrors && (yearsOfService <= 0 && daysOfService <= 0)} className="h-12 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-2 text-[12px] font-semibold text-slate-900 outline-none focus:border-legal-gold" />
+                  </div>
+                  <div className="min-w-0 space-y-2">
+                    <label htmlFor="employment-end-date" className="block text-[13px] font-semibold text-slate-700">Fecha de baja</label>
+                    <input id="employment-end-date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} aria-invalid={showErrors && (yearsOfService <= 0 && daysOfService <= 0)} aria-describedby={showErrors && (yearsOfService <= 0 && daysOfService <= 0) ? 'employment-dates-error' : undefined} className="h-12 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-2 text-[12px] font-semibold text-slate-900 outline-none focus:border-legal-gold" />
+                  </div>
                 </div>
-              </div>
+                {showErrors && (yearsOfService <= 0 && daysOfService <= 0) && (
+                  <p id="employment-dates-error" role="alert" className="mt-2 text-sm font-semibold text-red-700">Selecciona fechas válidas; la baja debe ser posterior al ingreso.</p>
+                )}
 
-              {/* Card: Opciones Avanzadas */}
-              <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                <button onClick={() => setShowAdvanced(!showAdvanced)} className="w-full p-5 flex items-center justify-between text-slate-500 hover:bg-slate-50 transition-colors">
-                  <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2"><Settings2 size={16}/> Avanzado</span>
+                <button onClick={() => setShowAdvanced(!showAdvanced)} className="mt-3 flex min-h-11 w-full items-center justify-between rounded-xl border border-dashed border-slate-300 px-4 text-slate-700 transition-colors hover:bg-slate-50">
+                  <span className="flex items-center gap-2 text-sm font-semibold"><Settings2 size={17}/> Prestaciones y parámetros</span>
                   <ChevronDown size={16} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {showAdvanced && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-5 pb-5 grid grid-cols-2 gap-4">
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-4 grid grid-cols-2 gap-3 overflow-hidden">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aguinaldo</label>
                         <input type="number" value={aguinaldoDays} onChange={(e) => setAguinaldoDays(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold" />
@@ -426,14 +438,12 @@ export const LaborCalculator: React.FC<{
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </section>
 
-              {/* Sticky FAB para Calcular */}
-              <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+80px)] left-0 w-full px-4 z-40 md:relative md:bottom-auto md:px-0 mt-6">
-                <button onClick={calculate} className="w-full py-5 bg-gradient-to-r from-slate-950 to-slate-900 text-legal-gold rounded-[2rem] font-bold shadow-2xl shadow-slate-950/40 flex items-center justify-center gap-3 active:scale-95 transition-all relative overflow-hidden">
-                  <div className="absolute inset-0 bg-white/10 opacity-0 active:opacity-100 transition-opacity" />
-                  <Calculator size={20} />
-                  <span className="uppercase tracking-widest text-sm">Calcular Liquidación</span>
+              <div className="border-t border-[#e4e0d7] pb-5 pt-5">
+                <button onClick={calculate} className="flex min-h-13 w-full items-center justify-center gap-3 rounded-xl bg-legal-gold px-4 text-[15px] font-bold text-[#070d1c] shadow-sm transition active:scale-[0.98]">
+                  <Calculator size={21} />
+                  <span>Calcular estimación</span>
                 </button>
               </div>
 
@@ -444,7 +454,7 @@ export const LaborCalculator: React.FC<{
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
-              className="space-y-4"
+              className="space-y-4 pb-8"
             >
               {!results ? (
                 <div className="text-center py-20 bg-white rounded-[1.5rem] border border-slate-100">

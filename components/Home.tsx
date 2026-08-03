@@ -1,7 +1,12 @@
 import React from 'react';
 import { AppView } from '../types';
-import { Calculator, FileText, ChevronRight, ShieldCheck, ArrowUpRight } from 'lucide-react';
-import { WorkspacePanel } from './ui/Workspace';
+import {
+  ArrowRight,
+  Calculator,
+  FileText,
+  Landmark,
+  ShieldCheck,
+} from 'lucide-react';
 
 interface HomeProps {
   onNavigate: (view: AppView) => void;
@@ -10,194 +15,80 @@ interface HomeProps {
 const tools = [
   {
     view: AppView.CALCULATOR,
-    title: 'Liquidación y Finiquito',
-    summary: 'Calculadora completa de indemnizaciones constitucionales, primas de antigüedad y finiquitos de ley.',
-    access: 'Gratuito',
-    action: 'Calcular Prestaciones',
-    accent: 'text-legal-gold',
-    badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
-    icon: <Calculator size={20} className="text-legal-gold" />,
-  },
-  {
-    view: AppView.DRAFTING,
-    title: 'Generador de Documentos',
-    summary: 'Proyecta contratos, actas, convenios y demandas asistidos por IA con búsqueda semántica en la LFT e IMSS.',
-    access: 'Gratuito',
-    action: 'Generar Borrador',
-    accent: 'text-legal-gold',
-    badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
-    icon: <FileText size={20} className="text-legal-gold" />,
+    title: 'Liquidación y finiquito',
+    description: 'Calcula prestaciones e indemnizaciones.',
+    action: 'Calcular',
+    icon: Calculator,
   },
   {
     view: AppView.SOCIAL_SECURITY,
-    title: 'Calculadora IMSS e INFONAVIT',
-    summary: 'Proyección detallada de cuotas obrero-patronales, ramos de seguro social y prima de riesgo de trabajo.',
-    access: 'Gratuito',
-    action: 'Calcular IMSS',
-    accent: 'text-legal-gold',
-    badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
-    icon: <ShieldCheck size={20} className="text-legal-gold" />,
+    title: 'Cuotas IMSS e INFONAVIT',
+    description: 'Estima cuotas obrero-patronales.',
+    action: 'Abrir IMSS',
+    icon: ShieldCheck,
   },
   {
     view: AppView.PENSION_CALCULATOR,
-    title: 'Calculadora de Pensiones',
-    summary: 'Estima tu pensión mensual del IMSS según la Ley de 1973 o 1997 basado en tus semanas cotizadas y salario.',
-    access: 'Gratuito',
-    action: 'Estimar Pensión',
-    accent: 'text-legal-gold',
-    badgeStyle: 'border-white/10 bg-white/5 text-slate-300',
-    icon: <Calculator size={20} className="text-legal-gold" />,
+    title: 'Pensión IMSS',
+    description: 'Proyecta tu pensión bajo Ley 73 o 97.',
+    action: 'Estimar pensión',
+    icon: Landmark,
+  },
+  {
+    view: AppView.DRAFTING,
+    title: 'Documentos con IA',
+    description: 'Prepara borradores laborales fundamentados.',
+    action: 'Crear documento',
+    icon: FileText,
   },
 ];
 
-const supportBlocks = [
-  {
-    title: '1. Análisis y Recuperación (RAG)',
-    body: 'A diferencia de una IA genérica que puede inventar información, nuestro motor lee la LFT y LSS en milisegundos para extraer solo los artículos aplicables a tu caso.',
-  },
-  {
-    title: '2. Restricción Legal Estricta',
-    body: 'Nuestra tecnología ancla a la Inteligencia Artificial a la ley. Se le prohíbe usar conocimientos externos o alucinar legislaciones inexistentes.',
-  },
-  {
-    title: '3. Redacción Fundamentada',
-    body: 'La Inteligencia Artificial utiliza exclusivamente los artículos extraídos para redactar tu documento. Obtienes borradores personalizados con precisión legal absoluta.',
-  },
-];
-
-export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
-  const handleNavClick = (view: AppView) => {
-    onNavigate(view);
-  };
-
-  return (
-    <div className="animate-fade-in font-sans bg-[#020306] text-white min-h-screen pb-24">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-[radial-gradient(circle_at_top_left,_rgba(163,124,31,0.1),_transparent_45%),linear-gradient(180deg,_#050811_0%,_#020306_100%)] pt-[env(safe-area-inset-top)] py-12 md:py-24">
-        <div className="absolute right-0 top-0 hidden h-96 w-96 rounded-full bg-legal-gold/5 blur-[120px] md:block" />
-        <div className="absolute -bottom-10 left-10 hidden h-80 w-80 rounded-full bg-slate-900/30 blur-[100px] md:block" />
-
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-10 flex flex-col items-center">
-          {/* Centered Brand & Heading */}
-          <div className="flex flex-col items-center text-center space-y-5 md:space-y-6 max-w-3xl animate-fade-in">
-            <div className="flex flex-col items-center space-y-4">
-              {/* Premium Large Transparent Logo */}
-              <div className="max-w-[360px] sm:max-w-[540px] select-none animate-in fade-in duration-700 hue-rotate-[10deg] brightness-125 saturate-150 contrast-125 drop-shadow-[0_0_20px_rgba(224,175,34,0.45)] -mt-6">
-                <img 
-                  src="/assets/logo.webp" 
-                  alt="Lex Laboral" 
-                  width={800}
-                  height={285}
-                  className="w-full h-auto object-contain drop-shadow-[0_15px_35px_rgba(224,175,34,0.15)]"
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                />
-              </div>
-            </div>
-
-            {/* Badges */}
-            <div className="flex flex-wrap gap-1.5 md:gap-2 justify-center">
-              <span className="rounded-full border border-legal-gold/20 bg-legal-gold/5 px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-legal-gold">
-                Liquidaciones y Finiquitos
-              </span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 shadow-sm">
-                Seguridad Social IMSS
-              </span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 shadow-sm">
-                Régimen Vigente 2026
-              </span>
-            </div>
-          </div>
-
-          {/* Tools Grid Section */}
-          <div className="w-full mt-16 max-w-6xl animate-fade-in">
-            <WorkspacePanel className="relative overflow-hidden p-6 sm:p-10 border border-white/5 bg-slate-950/40 backdrop-blur-md rounded-[2.5rem] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.7)]">
-              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-legal-gold/5 to-transparent pointer-events-none" />
-
-              {/* Tools Cards arranged in 2x2 Grid */}
-              <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6">
-                {tools.map((tool, index) => (
-                  <button
-                    key={tool.view}
-                    onClick={() => handleNavClick(tool.view)}
-                    className="group flex items-start gap-3 sm:gap-4.5 rounded-2xl border border-white/5 bg-slate-900/60 p-4 sm:p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-legal-gold/40 hover:bg-slate-900/80 text-left"
-                  >
-                    {/* Dark Icon Chip Homogeneous with LexCorporativo */}
-                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-[0.9rem] sm:rounded-[1.1rem] border border-white/10 bg-slate-950 shadow-md group-hover:border-legal-gold/40 transition-colors duration-300">
-                      {tool.icon}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-[10px] font-bold text-legal-gold tracking-widest font-mono">
-                          {String(index + 1).padStart(2, '0')}
-                        </span>
-                        <span className={`rounded-full border px-2 py-0.5 text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.08em] sm:tracking-[0.16em] ${tool.badgeStyle}`}>
-                          {tool.access}
-                        </span>
-                      </div>
-                      <h2 className="mt-2 text-md font-bold text-white transition-colors group-hover:text-legal-gold">{tool.title}</h2>
-                      <p className="mt-1.5 text-xs leading-relaxed text-slate-400 font-medium">{tool.summary}</p>
-                      
-                      {/* Premium Information Hierarchy CTA Button */}
-                      <div className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm transition-all duration-300 group-hover:bg-legal-gold group-hover:text-slate-950 group-hover:border-legal-gold group-hover:-translate-y-0.5">
-                        <span>{tool.action}</span>
-                        <ChevronRight size={12} className="transition-transform duration-300 group-hover:translate-x-0.5" />
-                      </div>
-                    </div>
-
-                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 text-slate-500 group-hover:bg-legal-gold/10 group-hover:text-legal-gold transition-colors duration-300">
-                      <ArrowUpRight size={14} />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </WorkspacePanel>
-          </div>
+export const Home: React.FC<HomeProps> = ({ onNavigate }) => (
+  <div className="min-h-full bg-[#fbfaf7] pb-24 text-slate-950">
+    <header className="bg-[#070d1c] px-5 pb-5 pt-[calc(env(safe-area-inset-top)+1rem)] text-white shadow-sm">
+      <div className="flex items-center gap-3">
+        <img src="/assets/icon-mobile.png" alt="" className="h-12 w-12 rounded-xl" />
+        <div className="min-w-0">
+          <p className="text-[18px] font-bold text-legal-gold">Lex Laboral</p>
+          <p className="text-[12px] text-slate-300">Herramientas jurídicas laborales</p>
         </div>
+      </div>
+    </header>
+
+    <main className="mx-auto w-full max-w-lg px-5 py-6">
+      <div className="mb-5">
+        <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-legal-gold">Inicio</p>
+        <h1 className="mt-1 font-serif text-[32px] font-bold leading-tight text-[#070d1c]">¿Qué necesitas hacer?</h1>
+        <p className="mt-2 text-[14px] leading-5 text-slate-600">Selecciona una herramienta para comenzar.</p>
+      </div>
+
+      <section aria-label="Herramientas" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {tools.map(({ view, title, description, action, icon: Icon }, index) => (
+          <button
+            key={view}
+            type="button"
+            onClick={() => onNavigate(view)}
+            className="group flex min-h-[104px] w-full items-center gap-4 border-b border-slate-200 px-4 py-4 text-left transition-colors last:border-b-0 hover:bg-slate-50 active:bg-slate-100"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#070d1c] text-legal-gold">
+              <Icon size={23} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[16px] font-bold text-slate-950">{title}</span>
+              <span className="mt-1 block text-[13px] leading-[1.35] text-slate-600">{description}</span>
+              <span className="mt-2 block text-[11px] font-bold uppercase tracking-[0.1em] text-legal-gold">{action}</span>
+            </span>
+            <ArrowRight size={20} className="shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            <span className="sr-only">Herramienta {index + 1} de {tools.length}</span>
+          </button>
+        ))}
       </section>
 
-      {/* Support Blocks Section */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 py-12 md:px-10">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {supportBlocks.map((block) => (
-            <WorkspacePanel key={block.title} className="p-5 sm:p-6.5 border border-white/5 bg-slate-950/60 shadow-sm rounded-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-legal-gold to-slate-900 opacity-80" />
-              <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-legal-gold">Proceso RAG Lex</span>
-              <h2 className="mt-2 text-md font-bold text-white">{block.title}</h2>
-              <p className="mt-2.5 text-xs leading-relaxed text-slate-400 font-medium">{block.body}</p>
-            </WorkspacePanel>
-          ))}
-        </div>
-      </section>
-
-      {/* Elegant Homogeneous Footer */}
-      <footer className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-white/5 px-4 sm:px-6 py-10 text-center md:flex-row md:px-10 md:text-left">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl border border-legal-gold/20 bg-slate-950 p-1">
-            <img
-              src="/assets/logo.webp"
-              alt="Logo"
-              width={800}
-              height={285}
-              className="h-full w-full object-contain rounded-md"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">Lex Laboral © 2026</span>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-6 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">
-          <button onClick={() => handleNavClick(AppView.TERMS)} className="transition-colors hover:text-white">
-            Términos
-          </button>
-          <button onClick={() => handleNavClick(AppView.PRIVACY)} className="transition-colors hover:text-white">
-            Privacidad
-          </button>
-        </div>
-      </footer>
-    </div>
-  );
-};
+      <div className="mt-6 flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-500">
+        <button type="button" onClick={() => onNavigate(AppView.TERMS)} className="min-h-11 rounded-lg px-3 hover:bg-slate-100">Términos</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" onClick={() => onNavigate(AppView.PRIVACY)} className="min-h-11 rounded-lg px-3 hover:bg-slate-100">Privacidad</button>
+      </div>
+    </main>
+  </div>
+);

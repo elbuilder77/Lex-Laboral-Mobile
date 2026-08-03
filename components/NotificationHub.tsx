@@ -28,11 +28,12 @@ export const NotificationHub: React.FC<NotificationHubProps> = ({ notifications,
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-[100] flex flex-col items-end space-y-3 w-full max-w-sm px-4 pointer-events-none">
+    <div aria-live="polite" className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+72px)] z-[100] flex flex-col items-center space-y-2 px-4 sm:left-auto sm:right-4 sm:max-w-sm">
       {notifications.map((n) => (
         <div 
           key={n.id}
-          className={`w-full pointer-events-auto flex items-start p-4 rounded-xl border-l-4 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-300 ${getBgColor(n.type)}`}
+          role={n.type === 'error' || n.type === 'warning' ? 'alert' : 'status'}
+          className={`pointer-events-auto flex w-full max-w-md items-start rounded-xl border p-3 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-300 ${getBgColor(n.type)}`}
         >
           <div className="flex-shrink-0 mt-0.5">
             {getIcon(n.type)}
@@ -43,9 +44,10 @@ export const NotificationHub: React.FC<NotificationHubProps> = ({ notifications,
           </div>
           <button 
             onClick={() => onDismiss(n.id)}
-            className="ml-4 text-slate-400 hover:text-slate-600 transition-colors"
+            aria-label="Cerrar aviso"
+            className="-my-2 -mr-2 ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-black/5 hover:text-slate-700"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
       ))}

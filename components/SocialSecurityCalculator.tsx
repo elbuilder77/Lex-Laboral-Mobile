@@ -9,13 +9,15 @@ import {
   Settings2,
   ChevronDown
 } from 'lucide-react';
-import { NotificationType } from '../types';
+import { CalculationRecord, NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 
 export const SocialSecurityCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
-}> = ({ notify }) => {
+  onOpenDrafting?: () => void;
+  onCalculationComplete?: (calculation: CalculationRecord) => void;
+}> = ({ notify, onOpenDrafting, onCalculationComplete }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   const [sbc, setSbc] = useState<number>(0);
@@ -110,7 +112,7 @@ export const SocialSecurityCalculator: React.FC<{
 
     const workerTotal = workerExcedente + workerDinero + workerPensionados + workerInvalidez + workerCesantia;
 
-    setResults({
+    const calculatedResults = {
       employer: {
         fixed,
         excedente: empExcedente,
@@ -133,6 +135,12 @@ export const SocialSecurityCalculator: React.FC<{
         total: workerTotal
       },
       total: empTotal + workerTotal
+    };
+    setResults(calculatedResults);
+    onCalculationComplete?.({
+      kind: 'social_security', title: 'Cuotas IMSS e INFONAVIT', createdAt: new Date().toISOString(),
+      inputs: { salarioBaseCotizacion: sbc, diasCotizados: days, primaRiesgo: riskClass },
+      results: calculatedResults,
     });
 
     notify("Cálculo finalizado", "success");
@@ -196,16 +204,16 @@ export const SocialSecurityCalculator: React.FC<{
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
-      <div className="bg-slate-950 px-6 pt-12 pb-6 shadow-md rounded-b-[2rem]">
+    <div className="min-h-full bg-[#fbfaf7] pb-24">
+      <div className="bg-[#070d1c] px-5 pb-4 pt-5 shadow-sm">
         <h1 className="text-2xl font-serif font-bold text-white">IMSS e INFONAVIT</h1>
         <p className="text-sm text-slate-400 mt-1">Cuotas obrero-patronales</p>
         
         {/* Tabs */}
-        <div className="flex bg-slate-900 rounded-full p-1 mt-6 border border-slate-800">
+        <div className="mt-4 flex rounded-xl border border-slate-700 bg-slate-900 p-1">
           <button 
             onClick={() => setActiveTab('form')}
-            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+            className={`min-h-11 flex-1 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
               activeTab === 'form' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -213,7 +221,7 @@ export const SocialSecurityCalculator: React.FC<{
           </button>
           <button 
             onClick={() => setActiveTab('results')}
-            className={`flex-1 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+            className={`min-h-11 flex-1 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
               activeTab === 'results' ? 'bg-legal-gold text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -222,7 +230,7 @@ export const SocialSecurityCalculator: React.FC<{
         </div>
       </div>
 
-      <div className="px-4 mt-6 max-w-lg mx-auto">
+      <div className="mx-auto mt-5 max-w-lg px-4">
         <AnimatePresence mode="wait">
           {activeTab === 'form' ? (
             <motion.div
@@ -323,6 +331,9 @@ export const SocialSecurityCalculator: React.FC<{
                     
                     <button onClick={handleExport} className="mt-6 w-full bg-white/10 hover:bg-white/20 border border-white/10 py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-all">
                       <Download size={16} /> Exportar
+                    </button>
+                    <button onClick={onOpenDrafting} className="mt-3 w-full bg-legal-gold py-4 rounded-xl text-slate-950 text-xs font-bold uppercase tracking-widest">
+                      Crear documento con este cálculo
                     </button>
                   </div>
 

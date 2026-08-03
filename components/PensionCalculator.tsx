@@ -10,7 +10,7 @@ import {
   Building,
   ArrowRight
 } from 'lucide-react';
-import { NotificationType } from '../types';
+import { CalculationRecord, NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 
@@ -18,7 +18,9 @@ type PensionRegime = '1973' | '1997';
 
 export const PensionCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
-}> = ({ notify }) => {
+  onOpenDrafting?: () => void;
+  onCalculationComplete?: (calculation: CalculationRecord) => void;
+}> = ({ notify, onOpenDrafting, onCalculationComplete }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
 
   const [regime, setRegime] = useState<PensionRegime>('1973');
@@ -195,6 +197,11 @@ export const PensionCalculator: React.FC<{
 
     if (result) {
       setResults(result);
+      onCalculationComplete?.({
+        kind: 'pension', title: `Pensión IMSS · Ley ${result.regimeUsed}`, createdAt: new Date().toISOString(),
+        inputs: { regimen: regime, edad: age, semanasCotizadas: weeks, salarioPromedio: averageSalary, saldoAfore: aforeBalance, conyuge: hasSpouse, hijos: childrenCount },
+        results: result,
+      });
       notify("Cálculo generado exitosamente", "success");
       setActiveTab('results');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -424,6 +431,9 @@ export const PensionCalculator: React.FC<{
                     <div className="mt-8 flex gap-3">
                       <button onClick={handleExportPDF} className="flex-1 bg-white/10 hover:bg-white/20 border border-white/10 py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-all">
                         <FileDown size={16} /> Descargar PDF
+                      </button>
+                      <button onClick={onOpenDrafting} className="flex-1 bg-legal-gold py-4 rounded-xl text-slate-950 text-xs font-bold uppercase tracking-widest">
+                        Crear documento
                       </button>
                     </div>
                   </div>

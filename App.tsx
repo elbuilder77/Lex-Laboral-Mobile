@@ -2,7 +2,6 @@ import React, { useState, useCallback, Suspense, lazy } from 'react';
 import { Home } from './components/Home';
 import { NotificationHub } from './components/NotificationHub';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { DebugPanel } from './components/DebugPanel';
 
 // Lazy loading components
 const LegalView = lazy(() => import('./components/LegalView').then(module => ({ default: module.LegalView })));
@@ -13,24 +12,35 @@ const PensionCalculator = lazy(() => import('./components/PensionCalculator').th
 import { BottomNav } from './components/BottomNav';
 
 import { AppView } from './types';
-import type { AppNotification, NotificationType, DraftingState } from './types';
+import type { AppNotification, NotificationType, DraftingState, CalculationRecord } from './types';
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>(AppView.HOME);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [draftingState, setDraftingState] = useState<DraftingState>({ prompt: '', generatedDoc: '' });
+  const [latestCalculation, setLatestCalculation] = useState<CalculationRecord | null>(() => {
+    try {
+      const saved = localStorage.getItem('latest_calculation');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+
+  const saveCalculation = useCallback((calculation: CalculationRecord) => {
+    setLatestCalculation(calculation);
+    localStorage.setItem('latest_calculation', JSON.stringify(calculation));
+  }, []);
 
   const notify = useCallback((message: string, type: NotificationType = 'info', title?: string) => {
     const id = crypto.randomUUID();
     setNotifications(prev => [...prev, { id, type, message, title }]);
-    if (type === 'success' || type === 'info') {
-      setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 3000);
-    }
+    const timeout = type === 'error' || type === 'warning' ? 5000 : 3000;
+    setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), timeout);
   }, []);
 
   const dismissNotification = (id: string) => setNotifications(prev => prev.filter(n => n.id !== id));
 
   const handleViewChange = useCallback((view: AppView) => {
+    setNotifications([]);
     setCurrentView(view);
   }, []);
 
@@ -54,6 +64,7 @@ function App() {
                   state={draftingState}
                   setState={setDraftingState}
                   notify={notify}
+                  calculation={latestCalculation}
                 />;
               case AppView.CALCULATOR:
                 return (
@@ -61,15 +72,20 @@ function App() {
                     notify={notify}
                     onOpenDrafting={() => handleViewChange(AppView.DRAFTING)}
                     onOpenImss={() => handleViewChange(AppView.SOCIAL_SECURITY)}
+                    onCalculationComplete={saveCalculation}
                   />
                 );
               case AppView.SOCIAL_SECURITY:
                 return <SocialSecurityCalculator
                   notify={notify}
+                  onOpenDrafting={() => handleViewChange(AppView.DRAFTING)}
+                  onCalculationComplete={saveCalculation}
                 />;
               case AppView.PENSION_CALCULATOR:
                 return <PensionCalculator
                   notify={notify}
+                  onOpenDrafting={() => handleViewChange(AppView.DRAFTING)}
+                  onCalculationComplete={saveCalculation}
                 />;
               case AppView.TERMS:
                 return <LegalView type={AppView.TERMS} onBack={() => handleViewChange(AppView.HOME)} />;
@@ -88,8 +104,6 @@ function App() {
     <ErrorBoundary>
       <div className="flex flex-col h-screen bg-slate-100 overflow-hidden font-sans selection:bg-legal-gold/30">
         <NotificationHub notifications={notifications} onDismiss={dismissNotification} />
-        <DebugPanel />
-
         <main className="flex-1 relative overflow-hidden flex flex-col h-full bg-slate-50">
           <div className="flex-1 overflow-y-auto no-scrollbar pb-[env(safe-area-inset-bottom)]">
             {renderView()}
