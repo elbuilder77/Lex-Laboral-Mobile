@@ -14,6 +14,7 @@ import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
+import { exportPdf } from '../lib/pdf-export';
 
 type PensionRegime = '1973' | '1997';
 
@@ -283,7 +284,7 @@ export const PensionCalculator: React.FC<{
         headStyles: { fillColor: goldColor, textColor: [0, 0, 0] },
       });
 
-      doc.save(`LexLaboral_Pension_${new Date().getTime()}.pdf`);
+      await exportPdf(doc, `LexLaboral_Pension_${new Date().getTime()}.pdf`, 'Estimación de pensión IMSS');
       notify("PDF generado con éxito", "success");
     } catch (error) {
       notify("Error al generar PDF", "error");

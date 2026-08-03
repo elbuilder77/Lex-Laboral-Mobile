@@ -22,6 +22,7 @@ import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
+import { exportPdf } from '../lib/pdf-export';
 
 type DismissalType = 'injustificado' | 'renuncia' | 'rescision_patron' | 'rescision_trabajador';
 
@@ -312,7 +313,7 @@ export const LaborCalculator: React.FC<{
         headStyles: { fillColor: goldColor, textColor: [0, 0, 0] },
       });
 
-      doc.save(`LexLaboral_Dictamen_${new Date().getTime()}.pdf`);
+      await exportPdf(doc, `LexLaboral_Dictamen_${new Date().getTime()}.pdf`, 'Liquidación laboral');
       notify("PDF generado con éxito", "success");
     } catch (error) {
       notify("Error al generar PDF", "error");

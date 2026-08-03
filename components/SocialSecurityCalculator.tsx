@@ -13,6 +13,7 @@ import { NotificationType } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
+import { exportPdf } from '../lib/pdf-export';
 
 export const SocialSecurityCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
@@ -170,9 +171,9 @@ export const SocialSecurityCalculator: React.FC<{
     notify(`Nueva Prima de Riesgo: ${(calculatedRisk * 100).toFixed(5)}%`, "success");
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!results) return;
-    
+    try {
     const doc = new jsPDF();
     
     doc.setFontSize(18);
@@ -210,8 +211,12 @@ export const SocialSecurityCalculator: React.FC<{
       footStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' }
     });
     
-    doc.save('Cuotas_IMSS.pdf');
+    await exportPdf(doc, `LexLaboral_Cuotas_IMSS_${Date.now()}.pdf`, 'Cuotas IMSS e INFONAVIT');
     notify('PDF generado correctamente', 'success');
+    } catch (error) {
+      console.error('PDF Export Error:', error);
+      notify('No fue posible guardar o compartir el PDF', 'error');
+    }
   };
 
   return (
