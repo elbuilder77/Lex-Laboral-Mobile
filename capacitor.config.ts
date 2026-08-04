@@ -3,7 +3,7 @@ import { KeyboardResize, KeyboardStyle } from '@capacitor/keyboard';
 
 const config: CapacitorConfig = {
   appId: 'mx.com.lexlaboral',
-  appName: 'LexLaboral',
+  appName: 'Lex Laboral',
   webDir: 'dist',
   plugins: {
     SplashScreen: {

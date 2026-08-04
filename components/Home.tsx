@@ -1,4 +1,5 @@
 import React from 'react';
+import { Capacitor } from '@capacitor/core';
 import { AppView } from '../types';
 import {
   ArrowRight,
@@ -11,6 +12,8 @@ import {
 interface HomeProps {
   onNavigate: (view: AppView) => void;
 }
+
+const isNativeMobile = Capacitor.isNativePlatform();
 
 const tools = [
   {
@@ -34,13 +37,13 @@ const tools = [
     action: 'Estimar pensión',
     icon: Landmark,
   },
-  {
+  ...(!isNativeMobile ? [{
     view: AppView.DRAFTING,
     title: 'Documentos con IA',
     description: 'Prepara borradores laborales fundamentados.',
     action: 'Crear documento',
     icon: FileText,
-  },
+  }] : []),
 ];
 
 export const Home: React.FC<HomeProps> = ({ onNavigate }) => (

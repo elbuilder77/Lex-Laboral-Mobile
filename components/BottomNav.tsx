@@ -1,4 +1,5 @@
 import React from 'react';
+import { Capacitor } from '@capacitor/core';
 import { AppView } from '../types';
 import { Home, PenTool, Calculator, ShieldCheck, Landmark } from 'lucide-react';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -7,6 +8,8 @@ interface BottomNavProps {
   currentView: AppView;
   onChangeView: (view: AppView) => void;
 }
+
+const isNativeMobile = Capacitor.isNativePlatform();
 
 export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onChangeView }) => {
   const handleNav = async (view: AppView) => {
@@ -47,17 +50,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onChangeView 
       icon: <Landmark size={22} />,
       activeViews: [AppView.PENSION_CALCULATOR]
     },
-    {
+    ...(!isNativeMobile ? [{
       id: AppView.DRAFTING,
       label: 'Docs IA',
       icon: <PenTool size={22} />,
       activeViews: [AppView.DRAFTING]
-    }
+    }] : [])
   ];
 
   return (
     <div data-debug-nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-[#fbfaf7]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
-      <div className="grid h-[68px] grid-cols-5 px-1">
+      <div className={`grid h-[68px] ${isNativeMobile ? 'grid-cols-4' : 'grid-cols-5'} px-1`}>
         {navItems.map((item) => {
           const isActive = item.activeViews.includes(currentView);
           
