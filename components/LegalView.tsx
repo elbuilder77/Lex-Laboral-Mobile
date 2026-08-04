@@ -1,4 +1,5 @@
 import React from 'react';
+import { Capacitor } from '@capacitor/core';
 import { motion } from 'framer-motion';
 import { Shield, ArrowLeft, Scale, FileText, Lock } from 'lucide-react';
 import { AppView } from '../types';
@@ -10,6 +11,7 @@ interface LegalViewProps {
 
 export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
   const isTerms = type === AppView.TERMS;
+  const isNativeMobile = Capacitor.isNativePlatform();
 
   const content = isTerms ? (
     <>
@@ -35,15 +37,15 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-slate-900 text-legal-gold flex items-center justify-center text-xs font-bold">02</span>
-            Naturaleza de los Servicios (LegalTech & IA)
+            {isNativeMobile ? 'Naturaleza de los Servicios' : 'Naturaleza de los Servicios (LegalTech & IA)'}
           </h2>
           <div className="space-y-4">
-            <p><strong>2.1. Alcance:</strong> Lex Laboral es una herramienta de asistencia jurídica basada en inteligencia artificial (Google Gemini API). Provee cálculos de prestaciones laborales en México (LFT, IMSS) y redacción automatizada de borradores legales.</p>
+            <p><strong>2.1. Alcance:</strong> {isNativeMobile ? 'Lex Laboral es una herramienta informativa para realizar cálculos laborales en México, incluyendo estimaciones de prestaciones conforme a la LFT, cuotas IMSS e INFONAVIT y proyecciones de pensión.' : 'Lex Laboral es una herramienta de asistencia jurídica basada en inteligencia artificial (Google Gemini API). Provee cálculos de prestaciones laborales en México (LFT, IMSS) y redacción automatizada de borradores legales.'}</p>
             <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-2xl shadow-sm my-6">
               <p className="text-amber-900 font-bold mb-2 flex items-center gap-2 italic uppercase tracking-wider text-xs">
                 ⚠️ DESLINDE DE RESPONSABILIDAD CRÍTICO
               </p>
-              <p className="text-sm leading-6"><strong>LA PLATAFORMA NO CONSTITUYE ASESORÍA LEGAL PROFESIONAL.</strong> El contenido es generado mediante algoritmos de IA y debe ser revisado por un abogado titulado antes de su uso oficial. filex dev no se hace responsable por errores en los cálculos o documentos que resulten en perjuicios legales o económicos para el Usuario.</p>
+              <p className="text-sm leading-6"><strong>LA PLATAFORMA NO CONSTITUYE ASESORÍA LEGAL PROFESIONAL.</strong> {isNativeMobile ? 'Los resultados son estimaciones informativas y deben ser revisados por un profesional competente antes de tomar decisiones legales, laborales o financieras. filex dev no se hace responsable por errores en los cálculos que resulten en perjuicios legales o económicos para el Usuario.' : 'El contenido es generado mediante algoritmos de IA y debe ser revisado por un abogado titulado antes de su uso oficial. filex dev no se hace responsable por errores en los cálculos o documentos que resulten en perjuicios legales o económicos para el Usuario.'}</p>
             </div>
           </div>
         </section>
@@ -53,7 +55,7 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
             <span className="w-8 h-8 rounded-xl bg-slate-900 text-legal-gold flex items-center justify-center text-xs font-bold">03</span>
             Servicio Gratuito y Sin Cuenta
           </h2>
-          <p>Lex Laboral es una herramienta <strong>completamente gratuita</strong>. No se requiere creación de cuenta, suscripción ni ningún tipo de pago para acceder a cualquiera de sus funcionalidades, incluidas las calculadoras laborales, la calculadora IMSS e INFONAVIT, la calculadora de pensiones y el generador de documentos con IA.</p>
+          <p>Lex Laboral es una herramienta <strong>completamente gratuita</strong>. No se requiere creación de cuenta, suscripción ni ningún tipo de pago para acceder a cualquiera de sus funcionalidades, incluidas {isNativeMobile ? 'las calculadoras laborales, la calculadora IMSS e INFONAVIT, la calculadora de pensiones y la exportación de resultados a PDF.' : 'las calculadoras laborales, la calculadora IMSS e INFONAVIT, la calculadora de pensiones y el generador de documentos con IA.'}</p>
         </section>
 
         <section>
@@ -61,7 +63,7 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
             <span className="w-8 h-8 rounded-xl bg-slate-900 text-legal-gold flex items-center justify-center text-xs font-bold">04</span>
             Propiedad Intelectual
           </h2>
-          <p>Todos los derechos sobre el software, código, diseño, logotipos y marcas pertenecen a <strong>filex dev</strong>. El Usuario tiene una licencia de uso limitada para generar y descargar documentos para fines personales o profesionales propios, sin derecho a revender la tecnología de la plataforma.</p>
+          <p>Todos los derechos sobre el software, código, diseño, logotipos y marcas pertenecen a <strong>filex dev</strong>. El Usuario tiene una licencia de uso limitada {isNativeMobile ? 'para generar cálculos y descargar resultados para fines personales o profesionales propios' : 'para generar y descargar documentos para fines personales o profesionales propios'}, sin derecho a revender la tecnología de la plataforma.</p>
         </section>
 
         <section>
@@ -96,25 +98,22 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4">Datos Personales Tratados</h2>
           <ul className="list-disc pl-6 space-y-3">
-            <li><strong>Técnica:</strong> Datos de uso anónimos y agregados para mejorar la aplicación. La aplicación no requiere registro ni recopila datos personales de identificación.</li>
-            <li><strong>Documentos:</strong> Los documentos que usted genera se procesan de forma efímera para producir el resultado mediante IA y se almacenan únicamente en su dispositivo.</li>
+            <li><strong>Técnica:</strong> {isNativeMobile ? 'La aplicación no requiere registro, no usa cuentas y no recopila datos personales de identificación para operar las calculadoras.' : 'Datos de uso anónimos y agregados para mejorar la aplicación. La aplicación no requiere registro ni recopila datos personales de identificación.'}</li>
+            <li><strong>Documentos:</strong> {isNativeMobile ? 'Los resultados que usted genera se almacenan localmente en su dispositivo cuando la aplicación necesita conservar el último cálculo realizado.' : 'Los documentos que usted genera se procesan de forma efímera para producir el resultado mediante IA y se almacenan únicamente en su dispositivo.'}</li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4">Finalidades del Tratamiento</h2>
           <ul className="list-disc pl-6 space-y-3">
-            <li><strong>Primarias:</strong> Prestación del servicio de cálculo laboral y generación de borradores jurídicos mediante IA.</li>
-            <li><strong>Secundarias:</strong> Mejora de la experiencia de usuario mediante métricas de uso anónimas.</li>
+            <li><strong>Primarias:</strong> {isNativeMobile ? 'Prestación del servicio de cálculo laboral, cálculo de cuotas IMSS e INFONAVIT, cálculo de pensión y exportación de resultados a PDF.' : 'Prestación del servicio de cálculo laboral y generación de borradores jurídicos mediante IA.'}</li>
+            <li><strong>Secundarias:</strong> {isNativeMobile ? 'En esta versión no se usan cuentas, publicidad, pagos, suscripciones ni analítica invasiva.' : 'Mejora de la experiencia de usuario mediante métricas de uso anónimas.'}</li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4">Transferencias de Datos</h2>
-          <p>Le informamos que sus datos pueden ser compartidos con terceros únicamente para los fines del servicio:</p>
-          <ul className="list-disc pl-6 space-y-3 mt-4">
-            <li><strong>Google LLC (Gemini API):</strong> Procesa el contenido para generar el análisis inteligente.</li>
-          </ul>
+          <p>{isNativeMobile ? 'En esta versión móvil, Lex Laboral no comparte datos personales con terceros para operar las calculadoras incluidas.' : 'Le informamos que sus datos pueden ser compartidos con Google LLC (Gemini API) únicamente para procesar el contenido y generar el análisis inteligente.'}</p>
         </section>
 
         <section>
@@ -135,7 +134,7 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
           className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors mb-10 group"
         >
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-bold uppercase tracking-wider">Regresar al Ecosistema</span>
+          <span className="text-sm font-bold uppercase tracking-wider">{isNativeMobile ? 'Regresar' : 'Regresar al Ecosistema'}</span>
         </motion.button>
 
         <motion.div
