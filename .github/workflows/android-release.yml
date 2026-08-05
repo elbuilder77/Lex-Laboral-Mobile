@@ -15,6 +15,7 @@ jobs:
   build:
     name: Build AAB
     runs-on: ubuntu-latest
+    environment: Production
 
     steps:
       # ── Checkout ──────────────────────────────────────────────────────────
