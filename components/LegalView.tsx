@@ -19,7 +19,6 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
         </div>
         <div>
           <h1 className="text-3xl font-serif font-bold text-slate-900 leading-tight">Términos y Condiciones</h1>
-          <p className="text-slate-500 text-sm font-medium">Última actualización: 29 de marzo de 2026</p>
         </div>
       </div>
 
@@ -29,13 +28,13 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
             <span className="w-8 h-8 rounded-xl bg-slate-900 text-legal-gold flex items-center justify-center text-xs font-bold">01</span>
             Aceptación y Titularidad
           </h2>
-          <p>Bienvenido a <strong>Lex Laboral</strong>. Al acceder y utilizar este sitio web y sus servicios asociados, usted acepta estar sujeto a estos Términos y Condiciones. La plataforma es propiedad de y está operada por <strong>filex dev</strong> (en lo sucesivo, "el Titular"), con domicilio en Mérida, Yucatán, México.</p>
+          <p>Bienvenido a <strong>Lex Laboral</strong>. Al acceder y utilizar esta aplicación móvil y sus servicios asociados, usted acepta estar sujeto a estos Términos y Condiciones. La plataforma es propiedad de y está operada por <strong>filex dev</strong> (en lo sucesivo, "el Titular"), con domicilio en Mérida, Yucatán, México.</p>
         </section>
 
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-slate-900 text-legal-gold flex items-center justify-center text-xs font-bold">02</span>
-            Naturaleza de los Servicios (LegalTech & IA)
+            Naturaleza de los Servicios
           </h2>
           <div className="space-y-4">
             <p><strong>2.1. Alcance:</strong> La aplicación móvil Lex Laboral ofrece calculadoras informativas de prestaciones laborales, cuotas IMSS e INFONAVIT y estimaciones de pensión.</p>
