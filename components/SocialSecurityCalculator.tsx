@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
 import { exportPdf } from '../lib/pdf-export';
+import { ResultContext } from './ResultContext';
 
 type SalaryPeriod = 'daily' | 'weekly' | 'biweekly' | 'monthly';
 type InputMode = 'salary' | 'sbc';
@@ -39,6 +40,7 @@ export const SocialSecurityCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
 }> = ({ notify }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
+  const [savedAt, setSavedAt] = useState<string | null>(null);
 
   const [inputMode, setInputMode] = useState<InputMode>('salary');
   const [baseSalary, setBaseSalary] = useState<number>(0);
@@ -128,6 +130,7 @@ export const SocialSecurityCalculator: React.FC<{
     setRiskClass(saved.inputs.riskClass ?? 0);
     setDays(saved.inputs.days ?? 30);
     setResults(saved.results);
+    setSavedAt(saved.savedAt);
     setActiveTab('results');
   }, []);
 
@@ -217,8 +220,9 @@ export const SocialSecurityCalculator: React.FC<{
       total: empTotal + workerTotal
     };
     setResults(calculatedResults);
+    const calculatedAt = new Date().toISOString();
     saveCalculationSnapshot(CALCULATION_STORAGE_KEYS.socialSecurity, {
-      savedAt: new Date().toISOString(),
+      savedAt: calculatedAt,
       inputs: {
         inputMode,
         baseSalary,
@@ -232,6 +236,7 @@ export const SocialSecurityCalculator: React.FC<{
       },
       results: calculatedResults,
     });
+    setSavedAt(calculatedAt);
 
     notify("Cálculo finalizado", "success");
     setActiveTab('results');
@@ -533,6 +538,7 @@ export const SocialSecurityCalculator: React.FC<{
                 </div>
               ) : (
                 <>
+                  <ResultContext savedAt={savedAt} onEdit={() => setActiveTab('form')} />
                   <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
                     <div className="flex items-start justify-between gap-3">
                       <div>

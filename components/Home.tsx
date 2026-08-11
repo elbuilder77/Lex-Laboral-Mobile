@@ -3,9 +3,11 @@ import { AppView } from '../types';
 import {
   ArrowRight,
   Calculator,
+  Clock3,
   Landmark,
   ShieldCheck,
 } from 'lucide-react';
+import { CALCULATION_STORAGE_KEYS, formatCalculationDate, getMostRecentCalculation } from '../lib/calculation-storage';
 
 interface HomeProps {
   onNavigate: (view: AppView) => void;
@@ -35,7 +37,17 @@ const tools = [
   },
 ];
 
-export const Home: React.FC<HomeProps> = ({ onNavigate }) => (
+const viewByStorageKey: Record<string, AppView> = {
+  [CALCULATION_STORAGE_KEYS.labor]: AppView.CALCULATOR,
+  [CALCULATION_STORAGE_KEYS.socialSecurity]: AppView.SOCIAL_SECURITY,
+  [CALCULATION_STORAGE_KEYS.pension]: AppView.PENSION_CALCULATOR,
+};
+
+export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
+  const recent = getMostRecentCalculation();
+  const recentView = recent ? viewByStorageKey[recent.key] : undefined;
+
+  return (
   <div className="min-h-full bg-[#fbfaf7] pb-24 text-slate-950">
     <header className="bg-[#070d1c] px-5 pb-6 pt-[calc(env(safe-area-inset-top)+1.25rem)] text-white shadow-lg">
       <div className="flex items-center gap-4">
@@ -76,6 +88,17 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => (
         ))}
       </section>
 
+      {recent && recentView && (
+        <button type="button" onClick={() => onNavigate(recentView)} className="mt-4 flex min-h-16 w-full items-center gap-3 rounded-2xl border border-legal-gold/30 bg-legal-gold/10 px-4 text-left text-slate-950">
+          <Clock3 size={20} className="shrink-0 text-legal-gold" aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold">Revisa tu último resultado</span>
+            <span className="block text-[11px] text-slate-600">Guardado {formatCalculationDate(recent.savedAt)}</span>
+          </span>
+          <ArrowRight size={18} className="shrink-0 text-slate-500" aria-hidden="true" />
+        </button>
+      )}
+
       <div className="mt-6 flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-500">
         <button type="button" onClick={() => onNavigate(AppView.TERMS)} className="min-h-11 rounded-lg px-3 hover:bg-slate-100">Términos</button>
         <span aria-hidden="true">·</span>
@@ -83,4 +106,5 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => (
       </div>
     </main>
   </div>
-);
+  );
+};

@@ -126,7 +126,7 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
           className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors mb-10 group"
         >
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-bold uppercase tracking-wider">Regresar al Ecosistema</span>
+          <span className="text-sm font-bold uppercase tracking-wider">Volver a Inicio</span>
         </motion.button>
 
         <motion.div

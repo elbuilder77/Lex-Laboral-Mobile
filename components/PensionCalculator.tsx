@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
 import { exportPdf } from '../lib/pdf-export';
+import { ResultContext } from './ResultContext';
 
 type PensionRegime = '1973' | '1997';
 
@@ -22,6 +23,8 @@ export const PensionCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
 }> = ({ notify }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<'age' | 'weeks' | 'amount', string>>>({});
 
   const [regime, setRegime] = useState<PensionRegime>('1973');
   const [age, setAge] = useState<number>(60);
@@ -65,6 +68,7 @@ export const PensionCalculator: React.FC<{
     setHasSpouse(saved.inputs.hasSpouse ?? false);
     setChildrenCount(saved.inputs.childrenCount ?? 0);
     setResults(saved.results);
+    setSavedAt(saved.savedAt);
     setActiveTab('results');
   }, []);
 
@@ -205,6 +209,18 @@ export const PensionCalculator: React.FC<{
   };
 
   const calculate = async () => {
+    const minWeeks = regime === '1973' ? 500 : 875;
+    const errors: typeof fieldErrors = {};
+    if (age < 60) errors.age = 'La edad mínima para esta estimación es 60 años.';
+    if (weeks < minWeeks) errors.weeks = `Para Ley ${regime} se requieren al menos ${minWeeks} semanas en 2026.`;
+    if (regime === '1973' && averageSalary <= 0) errors.amount = 'Ingresa el salario promedio diario de los últimos 5 años.';
+    if (regime === '1997' && aforeBalance <= 0) errors.amount = 'Ingresa el saldo estimado que aparece en tu estado de cuenta AFORE.';
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      requestAnimationFrame(() => document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
+      return;
+    }
+
     let result = null;
     if (regime === '1973') {
       result = calculatePension73();
@@ -214,11 +230,13 @@ export const PensionCalculator: React.FC<{
 
     if (result) {
       setResults(result);
+      const calculatedAt = new Date().toISOString();
       saveCalculationSnapshot(CALCULATION_STORAGE_KEYS.pension, {
-        savedAt: new Date().toISOString(),
+        savedAt: calculatedAt,
         inputs: { regime, age, weeks, averageSalary, aforeBalance, hasSpouse, childrenCount },
         results: result,
       });
+      setSavedAt(calculatedAt);
       notify("Cálculo generado exitosamente", "success");
       setActiveTab('results');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -352,11 +370,13 @@ export const PensionCalculator: React.FC<{
               <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Edad (Años)</label>
-                  <input type="number" value={age || ''} onChange={(e) => setAge(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" min="60" />
+                  <input type="number" value={age || ''} onChange={(e) => setAge(Number(e.target.value))} aria-invalid={Boolean(fieldErrors.age)} aria-describedby={fieldErrors.age ? 'pension-age-error' : undefined} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" min="60" />
+                  {fieldErrors.age && <p id="pension-age-error" role="alert" className="text-xs font-semibold text-red-700">{fieldErrors.age}</p>}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Semanas Cot.</label>
-                  <input type="number" value={weeks || ''} onChange={(e) => setWeeks(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" />
+                  <input type="number" value={weeks || ''} onChange={(e) => setWeeks(Number(e.target.value))} aria-invalid={Boolean(fieldErrors.weeks)} aria-describedby={fieldErrors.weeks ? 'pension-weeks-error' : undefined} className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-3 text-sm text-slate-900 font-bold focus:border-legal-gold outline-none" />
+                  {fieldErrors.weeks && <p id="pension-weeks-error" role="alert" className="text-xs font-semibold text-red-700">{fieldErrors.weeks}</p>}
                 </div>
               </div>
 
@@ -365,16 +385,20 @@ export const PensionCalculator: React.FC<{
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Salario Promedio Diario (Últimos 5 años)</label>
                   <div className="relative">
                     <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                    <input type="number" value={averageSalary || ''} onChange={(e) => setAverageSalary(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 pl-10 pr-4 text-slate-900 font-bold focus:border-legal-gold focus:ring-1 outline-none transition-all" placeholder="0.00" />
+                    <input type="number" value={averageSalary || ''} onChange={(e) => setAverageSalary(Number(e.target.value))} aria-invalid={Boolean(fieldErrors.amount)} aria-describedby={fieldErrors.amount ? 'pension-amount-error' : 'pension-salary-help'} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 pl-10 pr-4 text-slate-900 font-bold focus:border-legal-gold focus:ring-1 outline-none transition-all" placeholder="0.00" />
                   </div>
+                  <p id="pension-salary-help" className="mt-2 text-[11px] text-slate-500">Consulta el promedio diario en tus semanas cotizadas o comprobantes de salario de los últimos cinco años.</p>
+                  {fieldErrors.amount && <p id="pension-amount-error" role="alert" className="mt-2 text-xs font-semibold text-red-700">{fieldErrors.amount}</p>}
                 </div>
               ) : (
                 <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Saldo Acumulado AFORE</label>
                   <div className="relative">
                     <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                    <input type="number" value={aforeBalance || ''} onChange={(e) => setAforeBalance(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 pl-10 pr-4 text-slate-900 font-bold focus:border-legal-gold focus:ring-1 outline-none transition-all" placeholder="0.00" />
+                    <input type="number" value={aforeBalance || ''} onChange={(e) => setAforeBalance(Number(e.target.value))} aria-invalid={Boolean(fieldErrors.amount)} aria-describedby={fieldErrors.amount ? 'pension-amount-error' : 'pension-afore-help'} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 pl-10 pr-4 text-slate-900 font-bold focus:border-legal-gold focus:ring-1 outline-none transition-all" placeholder="0.00" />
                   </div>
+                  <p id="pension-afore-help" className="mt-2 text-[11px] text-slate-500">Encuéntralo como “saldo total” en tu último estado de cuenta AFORE.</p>
+                  {fieldErrors.amount && <p id="pension-amount-error" role="alert" className="mt-2 text-xs font-semibold text-red-700">{fieldErrors.amount}</p>}
                 </div>
               )}
 
@@ -439,6 +463,7 @@ export const PensionCalculator: React.FC<{
                 </div>
               ) : (
                 <>
+                  <ResultContext savedAt={savedAt} onEdit={() => setActiveTab('form')} />
                   <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-legal-gold/10 rounded-full blur-3xl" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-legal-gold">Pensión Mensual Aprox.</span>

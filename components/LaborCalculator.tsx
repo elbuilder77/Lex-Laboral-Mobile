@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
 import { exportPdf } from '../lib/pdf-export';
+import { ResultContext } from './ResultContext';
 
 type DismissalType = 'injustificado' | 'renuncia' | 'rescision_patron' | 'rescision_trabajador';
 
@@ -60,6 +61,7 @@ export const LaborCalculator: React.FC<{
   const [umaValue, setUmaValue] = useState<number>(MEXICO_LABOR_DEFAULTS_2026.uma);
   const [showErrors, setShowErrors] = useState(false);
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
+  const [savedAt, setSavedAt] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (baseSalary > 0) {
@@ -136,6 +138,7 @@ export const LaborCalculator: React.FC<{
     setDaysOfService(saved.inputs.daysOfService ?? 0);
     setDismissalType(saved.inputs.dismissalType ?? 'injustificado');
     setResults(saved.results);
+    setSavedAt(saved.savedAt);
     setActiveTab('results');
   }, []);
 
@@ -236,11 +239,13 @@ export const LaborCalculator: React.FC<{
       }
     };
     setResults(calculatedResults);
+    const calculatedAt = new Date().toISOString();
     saveCalculationSnapshot(CALCULATION_STORAGE_KEYS.labor, {
-      savedAt: new Date().toISOString(),
+      savedAt: calculatedAt,
       inputs: { baseSalary, salaryPeriod, dailySalary, startDate, endDate, yearsOfService, daysOfService, dismissalType },
       results: calculatedResults,
     });
+    setSavedAt(calculatedAt);
     
     setActiveTab('results');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -471,6 +476,7 @@ export const LaborCalculator: React.FC<{
                 </div>
               ) : (
                 <>
+                  <ResultContext savedAt={savedAt} onEdit={() => setActiveTab('form')} />
                   <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-legal-gold/10 rounded-full blur-3xl" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-legal-gold">Total Estimado</span>

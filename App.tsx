@@ -83,7 +83,9 @@ function App() {
           </div>
         </main>
 
-        <BottomNav currentView={currentView} onChangeView={handleViewChange} />
+        {currentView !== AppView.TERMS && currentView !== AppView.PRIVACY && (
+          <BottomNav currentView={currentView} onChangeView={handleViewChange} />
+        )}
       </div>
     </ErrorBoundary>
   );
