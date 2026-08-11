@@ -26,3 +26,24 @@ export const saveCalculationSnapshot = <TInputs, TResults>(key: string, value: C
     // The calculation remains usable in memory when storage is unavailable.
   }
 };
+
+export interface RecentCalculation {
+  key: string;
+  savedAt: string;
+}
+
+export const getMostRecentCalculation = (): RecentCalculation | null => {
+  const snapshots = Object.values(CALCULATION_STORAGE_KEYS).flatMap((key) => {
+    const snapshot = loadCalculationSnapshot<unknown, unknown>(key);
+    return snapshot?.savedAt ? [{ key, savedAt: snapshot.savedAt }] : [];
+  });
+
+  return snapshots.sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt))[0] ?? null;
+};
+
+export const formatCalculationDate = (savedAt: string | null): string => {
+  if (!savedAt) return 'ahora';
+  const date = new Date(savedAt);
+  if (Number.isNaN(date.getTime())) return 'recientemente';
+  return new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+};
