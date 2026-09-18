@@ -15,13 +15,6 @@ jobs:
     environment: Production
 
     steps:
-      # ── Guard: never run on main ───────────────────────────────────────────
-      - name: Guard against main
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: |
-          echo "::error::This workflow must not run on the main branch. Select 'Movil-app-18432726806357977157'."
-          exit 1
-
       # ── Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
