@@ -5,7 +5,8 @@ export enum AppView {
   SOCIAL_SECURITY = 'SOCIAL_SECURITY',
   PENSION_CALCULATOR = 'PENSION_CALCULATOR',
   TERMS = 'TERMS',
-  PRIVACY = 'PRIVACY'
+  PRIVACY = 'PRIVACY',
+  SOURCES = 'SOURCES'
 }
 
 export type NotificationType = 'error' | 'success' | 'info' | 'warning';

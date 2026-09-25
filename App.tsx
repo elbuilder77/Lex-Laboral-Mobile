@@ -8,6 +8,7 @@ const LegalView = lazy(() => import('./components/LegalView').then(module => ({ 
 const LaborCalculator = lazy(() => import('./components/LaborCalculator').then(module => ({ default: module.LaborCalculator })));
 const SocialSecurityCalculator = lazy(() => import('./components/SocialSecurityCalculator').then(module => ({ default: module.SocialSecurityCalculator })));
 const PensionCalculator = lazy(() => import('./components/PensionCalculator').then(module => ({ default: module.PensionCalculator })));
+const GovernmentSourcesView = lazy(() => import('./components/GovernmentSourcesView').then(module => ({ default: module.GovernmentSourcesView })));
 import { BottomNav } from './components/BottomNav';
 
 import { AppView } from './types';
@@ -64,6 +65,8 @@ function App() {
                 return <LegalView type={AppView.TERMS} onBack={() => handleViewChange(AppView.HOME)} />;
               case AppView.PRIVACY:
                 return <LegalView type={AppView.PRIVACY} onBack={() => handleViewChange(AppView.HOME)} />;
+              case AppView.SOURCES:
+                return <GovernmentSourcesView onBack={() => handleViewChange(AppView.HOME)} />;
               default:
                 return <Home onNavigate={handleViewChange} />;
             }
@@ -83,7 +86,7 @@ function App() {
           </div>
         </main>
 
-        {currentView !== AppView.TERMS && currentView !== AppView.PRIVACY && (
+        {currentView !== AppView.TERMS && currentView !== AppView.PRIVACY && currentView !== AppView.SOURCES && (
           <BottomNav currentView={currentView} onChangeView={handleViewChange} />
         )}
       </div>

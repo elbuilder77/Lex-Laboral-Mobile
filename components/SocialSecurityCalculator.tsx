@@ -18,6 +18,8 @@ import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
 import { exportPdf } from '../lib/pdf-export';
 import { ResultContext } from './ResultContext';
+import { GovernmentDisclaimerBanner } from './GovernmentDisclaimerBanner';
+import { GovernmentSourcesModal } from './GovernmentSourcesModal';
 
 type SalaryPeriod = 'daily' | 'weekly' | 'biweekly' | 'monthly';
 type InputMode = 'salary' | 'sbc';
@@ -39,6 +41,7 @@ const PERIOD_LABEL: Record<SalaryPeriod, string> = {
 export const SocialSecurityCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
 }> = ({ notify }) => {
+  const [isSourcesModalOpen, setIsSourcesModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
@@ -259,21 +262,24 @@ export const SocialSecurityCalculator: React.FC<{
     try {
     const doc = new jsPDF();
     
-    doc.setFontSize(18);
-    doc.text('Cálculo de Cuotas IMSS / INFONAVIT', 14, 22);
+    doc.setFontSize(16);
+    doc.text('Estimación de Cuotas IMSS e INFONAVIT', 14, 20);
+    doc.setFontSize(8);
+    doc.setTextColor(120);
+    doc.text('HERRAMIENTA PRIVADA E INDEPENDIENTE · NO OFICIAL', 14, 26);
     
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`SBC (Salario Base Cotización): $${effectiveSbc.toFixed(2)}`, 14, 32);
+    doc.text(`SBC (Salario Base Cotización): $${effectiveSbc.toFixed(2)}`, 14, 33);
     if (inputMode === 'salary') {
-      doc.text(`SBC calculado: Salario $${baseSalary.toFixed(2)} ${PERIOD_LABEL[salaryPeriod]} ÷ ${PERIOD_DIVISOR[salaryPeriod]} × factor ${factor.toFixed(4)}`, 14, 38);
-      doc.text(`Factor de integración (Art. 27 LSS): ${factor.toFixed(4)} (aguinaldo ${aguinaldoDays} días, ${vacationDays} días vacaciones, ${vacationPremium}% prima vacacional)`, 14, 44);
-      doc.text(`Días Cotizados: ${days}`, 14, 50);
-      doc.text(`Clase de Riesgo: ${riskClass}%`, 14, 56);
+      doc.text(`SBC calculado: Salario $${baseSalary.toFixed(2)} ${PERIOD_LABEL[salaryPeriod]} ÷ ${PERIOD_DIVISOR[salaryPeriod]} × factor ${factor.toFixed(4)}`, 14, 39);
+      doc.text(`Factor de integración (Art. 27 LSS): ${factor.toFixed(4)} (aguinaldo ${aguinaldoDays} días, ${vacationDays} días vacaciones, ${vacationPremium}% prima vacacional)`, 14, 45);
+      doc.text(`Días Cotizados: ${days}`, 14, 51);
+      doc.text(`Clase de Riesgo: ${riskClass}%`, 14, 57);
       var tableStart = 66;
     } else {
-      doc.text(`Días Cotizados: ${days}`, 14, 38);
-      doc.text(`Clase de Riesgo: ${riskClass}%`, 14, 44);
+      doc.text(`Días Cotizados: ${days}`, 14, 39);
+      doc.text(`Clase de Riesgo: ${riskClass}%`, 14, 45);
       var tableStart = 54;
     }
     
@@ -302,6 +308,28 @@ export const SocialSecurityCalculator: React.FC<{
       headStyles: { fillColor: [40, 40, 40] },
       footStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' }
     });
+
+    const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 8 : 220;
+    doc.setFillColor(248, 250, 252);
+    doc.rect(14, finalY, 182, 38, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('AVISO LEGAL, DESLINDE GUBERNAMENTAL Y FUENTES OFICIALES:', 18, finalY + 7);
+
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    const disclaimerLines = [
+      '1. Lex Laboral es una herramienta de cálculo de iniciativa privada e independiente.',
+      '2. NO representa ni está afiliada al Instituto Mexicano del Seguro Social (IMSS) ni al INFONAVIT.',
+      '3. Los resultados son estimaciones informativas y no sustituyen las cédulas oficiales emitidas por el SUA o IDSE.',
+      '4. Fuentes oficiales gubernamentales (.gob.mx):',
+      '   - Instituto Mexicano del Seguro Social: https://www.imss.gob.mx/',
+      '   - INFONAVIT: https://portalmx.infonavit.org.mx/',
+      '   - Ley del Seguro Social: https://www.diputados.gob.mx/LeyesBiblio/pdf/LSS.pdf',
+    ];
+    doc.text(disclaimerLines, 18, finalY + 12);
     
     await exportPdf(doc, `LexLaboral_Cuotas_IMSS_${Date.now()}.pdf`, 'Cuotas IMSS e INFONAVIT');
     notify('PDF generado correctamente', 'success');
@@ -318,7 +346,7 @@ export const SocialSecurityCalculator: React.FC<{
       <div className="bg-[#070d1c] px-5 pb-4 pt-5 shadow-sm">
         <div className="flex items-center gap-3">
           <img src="/assets/icon-mobile.png" alt="Logo de Lex Laboral" className="h-12 w-12 rounded-2xl object-cover ring-1 ring-legal-gold/40 shadow-lg" />
-          <div><h1 className="text-2xl font-serif font-bold text-white">IMSS e INFONAVIT</h1><p className="mt-1 text-sm text-slate-400">Cuotas obrero-patronales</p></div>
+          <div><h1 className="text-2xl font-serif font-bold text-white">IMSS e INFONAVIT</h1><p className="mt-1 text-sm text-slate-400">Cuotas obrero-patronales · No oficial</p></div>
         </div>
         
         {/* Tabs */}
@@ -343,6 +371,10 @@ export const SocialSecurityCalculator: React.FC<{
       </div>
 
       <div className="mx-auto mt-5 max-w-lg px-4">
+        <GovernmentDisclaimerBanner
+          onOpenSources={() => setIsSourcesModalOpen(true)}
+          className="mb-4"
+        />
         <AnimatePresence mode="wait">
           {activeTab === 'form' ? (
             <motion.div
@@ -538,7 +570,7 @@ export const SocialSecurityCalculator: React.FC<{
                 </div>
               ) : (
                 <>
-                  <ResultContext savedAt={savedAt} onEdit={() => setActiveTab('form')} />
+                  <ResultContext savedAt={savedAt} onEdit={() => setActiveTab('form')} onOpenSources={() => setIsSourcesModalOpen(true)} />
                   <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -609,6 +641,12 @@ export const SocialSecurityCalculator: React.FC<{
           )}
         </AnimatePresence>
       </div>
+
+      <GovernmentSourcesModal
+        isOpen={isSourcesModalOpen}
+        onClose={() => setIsSourcesModalOpen(false)}
+        categoryFilter="social_security"
+      />
     </div>
   );
 };

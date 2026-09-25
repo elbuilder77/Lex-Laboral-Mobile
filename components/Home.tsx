@@ -6,6 +6,8 @@ import {
   Clock3,
   Landmark,
   ShieldCheck,
+  ShieldAlert,
+  ExternalLink,
 } from 'lucide-react';
 import { CALCULATION_STORAGE_KEYS, formatCalculationDate, getMostRecentCalculation } from '../lib/calculation-storage';
 
@@ -66,6 +68,37 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         <p className="mt-2 text-[14px] leading-5 text-slate-600">Selecciona una herramienta para comenzar.</p>
       </div>
 
+      {/* Prominent Government Non-Affiliation Disclaimer */}
+      <section
+        aria-label="Aviso legal y deslinde gubernamental"
+        className="mb-5 rounded-2xl border border-amber-200/90 bg-amber-50/90 p-4 text-amber-950 shadow-sm"
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-200/80 text-amber-900">
+            <ShieldAlert size={20} aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <span className="inline-block rounded-full bg-amber-200/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-950">
+              No oficial · Iniciativa privada
+            </span>
+            <h2 className="mt-1 text-[13px] font-bold text-amber-950">
+              Deslinde de Afiliación Gubernamental
+            </h2>
+            <p className="mt-1 text-[12px] leading-relaxed text-amber-900">
+              Esta aplicación <strong>NO representa</strong> a ninguna entidad pública (como el IMSS, INFONAVIT o el Gobierno de México). Realiza estimaciones informativas basadas en normativas federales públicas.
+            </p>
+            <button
+              type="button"
+              onClick={() => onNavigate(AppView.SOURCES)}
+              className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-950 underline hover:text-amber-800"
+            >
+              <span>Consultar fuentes oficiales (.gob.mx) y deslinde completo</span>
+              <ExternalLink size={12} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section aria-label="Herramientas" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         {tools.map(({ view, title, description, action, icon: Icon }, index) => (
           <button
@@ -99,10 +132,12 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         </button>
       )}
 
-      <div className="mt-6 flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-500">
-        <button type="button" onClick={() => onNavigate(AppView.TERMS)} className="min-h-11 rounded-lg px-3 hover:bg-slate-100">Términos</button>
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-1 sm:gap-2 text-[12px] font-semibold text-slate-500">
+        <button type="button" onClick={() => onNavigate(AppView.TERMS)} className="min-h-11 rounded-lg px-2.5 hover:bg-slate-100">Términos</button>
         <span aria-hidden="true">·</span>
-        <button type="button" onClick={() => onNavigate(AppView.PRIVACY)} className="min-h-11 rounded-lg px-3 hover:bg-slate-100">Privacidad</button>
+        <button type="button" onClick={() => onNavigate(AppView.PRIVACY)} className="min-h-11 rounded-lg px-2.5 hover:bg-slate-100">Privacidad</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" onClick={() => onNavigate(AppView.SOURCES)} className="min-h-11 rounded-lg px-2.5 text-legal-gold font-bold hover:bg-slate-100">Fuentes oficiales</button>
       </div>
     </main>
   </div>

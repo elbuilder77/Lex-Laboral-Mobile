@@ -34,16 +34,34 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, onBack }) => {
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-slate-900 text-legal-gold flex items-center justify-center text-xs font-bold">02</span>
-            Naturaleza de los Servicios
+            Naturaleza de los Servicios y Deslinde Gubernamental
           </h2>
           <div className="space-y-4">
-            <p><strong>2.1. Alcance:</strong> La aplicación móvil Lex Laboral ofrece calculadoras informativas de prestaciones laborales, cuotas IMSS e INFONAVIT y estimaciones de pensión.</p>
-            <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-2xl shadow-sm my-6">
-              <p className="text-amber-900 font-bold mb-2 flex items-center gap-2 italic uppercase tracking-wider text-xs">
-                ⚠️ DESLINDE DE RESPONSABILIDAD CRÍTICO
+            <p><strong>2.1. Alcance:</strong> La aplicación móvil Lex Laboral ofrece calculadoras informativas de prestaciones laborales, cuotas obrero-patronales del IMSS e INFONAVIT y proyecciones de pensión bajo las leyes mexicanas.</p>
+            
+            <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-2xl shadow-sm my-6 space-y-3">
+              <p className="text-amber-900 font-bold flex items-center gap-2 italic uppercase tracking-wider text-xs">
+                ⚠️ DESLINDE DE RESPONSABILIDAD Y NO AFILIACIÓN GUBERNAMENTAL
               </p>
-              <p className="text-sm leading-6"><strong>LA APLICACIÓN NO CONSTITUYE ASESORÍA LEGAL PROFESIONAL.</strong> Los resultados son estimaciones y deben ser revisados por un profesional antes de usarse para decisiones legales o económicas.</p>
+              <p className="text-sm leading-6 text-amber-950">
+                <strong>LA APLICACIÓN NO REPRESENTA A NINGUNA ENTIDAD PÚBLICA NI GUBERNAMENTAL.</strong> Lex Laboral es un software de desarrollo privado e independiente. No está asociada, autorizada, endosada ni patrocinada por el <strong>Instituto Mexicano del Seguro Social (IMSS)</strong>, el <strong>Instituto del Fondo Nacional de la Vivienda para los Trabajadores (INFONAVIT)</strong>, la <strong>Secretaría del Trabajo y Previsión Social (STPS)</strong>, el <strong>Servicio de Administración Tributaria (SAT)</strong> ni el Gobierno de México.
+              </p>
+              <p className="text-sm leading-6 text-amber-950">
+                <strong>NO CONSTITUYE ASESORÍA LEGAL PROFESIONAL NI RESOLUCIÓN OFICIAL.</strong> Los resultados generados son exclusivamente estimaciones matemáticas de carácter didáctico e informativo. Para trámites vinculantes o determinaciones oficiales, el usuario debe acudir a los organismos gubernamentales correspondientes.
+              </p>
             </div>
+
+            <p><strong>2.2. Fuentes Normativas Oficiales (.gob.mx):</strong> Toda la formulación matemática se sustenta en normativas y leyes federales públicas de los Estados Unidos Mexicanos disponibles en:</p>
+            <ul className="list-disc pl-6 space-y-1.5 text-xs text-slate-700">
+              <li><strong>Ley Federal del Trabajo (LFT):</strong> <a href="https://www.diputados.gob.mx/LeyesBiblio/pdf/LFT.pdf" target="_blank" rel="noopener noreferrer" className="text-amber-800 underline">diputados.gob.mx/LeyesBiblio/pdf/LFT.pdf</a></li>
+              <li><strong>Ley del Seguro Social (LSS):</strong> <a href="https://www.diputados.gob.mx/LeyesBiblio/pdf/LSS.pdf" target="_blank" rel="noopener noreferrer" className="text-amber-800 underline">diputados.gob.mx/LeyesBiblio/pdf/LSS.pdf</a></li>
+              <li><strong>Portal Oficial IMSS:</strong> <a href="https://www.imss.gob.mx/" target="_blank" rel="noopener noreferrer" className="text-amber-800 underline">www.imss.gob.mx</a></li>
+              <li><strong>Ley del INFONAVIT:</strong> <a href="https://www.diputados.gob.mx/LeyesBiblio/pdf/LINFONAVIT.pdf" target="_blank" rel="noopener noreferrer" className="text-amber-800 underline">diputados.gob.mx/LeyesBiblio/pdf/LINFONAVIT.pdf</a></li>
+              <li><strong>Portal Oficial INFONAVIT:</strong> <a href="https://portalmx.infonavit.org.mx/" target="_blank" rel="noopener noreferrer" className="text-amber-800 underline">portalmx.infonavit.org.mx</a></li>
+              <li><strong>Salarios Mínimos (CONASAMI):</strong> <a href="https://www.gob.mx/conasami" target="_blank" rel="noopener noreferrer" className="text-amber-800 underline">gob.mx/conasami</a></li>
+              <li><strong>Valor UMA (INEGI):</strong> <a href="https://www.inegi.org.mx/temas/uma/" target="_blank" rel="noopener noreferrer" className="text-amber-800 underline">inegi.org.mx/temas/uma</a></li>
+              <li><strong>Portal del Gobierno de México:</strong> <a href="https://www.gob.mx/" target="_blank" rel="noopener noreferrer" className="text-amber-800 underline">gob.mx</a></li>
+            </ul>
           </div>
         </section>
 

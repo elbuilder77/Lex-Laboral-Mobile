@@ -24,6 +24,8 @@ import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
 import { exportPdf } from '../lib/pdf-export';
 import { ResultContext } from './ResultContext';
+import { GovernmentDisclaimerBanner } from './GovernmentDisclaimerBanner';
+import { GovernmentSourcesModal } from './GovernmentSourcesModal';
 
 type DismissalType = 'injustificado' | 'renuncia' | 'rescision_patron' | 'rescision_trabajador';
 
@@ -34,6 +36,7 @@ const LazyBreakdownChart = React.lazy(() =>
 export const LaborCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
 }> = ({ notify }) => {
+  const [isSourcesModalOpen, setIsSourcesModalOpen] = useState(false);
   const resultsRef = React.useRef<HTMLDivElement>(null);
   const dismissalOptions: Array<{ value: DismissalType; label: string }> = [
     { value: 'injustificado', label: 'Despido injustificado' },
@@ -279,11 +282,14 @@ export const LaborCalculator: React.FC<{
       doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.rect(0, 0, 210, 40, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(22);
+      doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text('LEXLABORAL', 20, 25);
-      doc.setFontSize(10);
-      doc.text('DICTAMEN TÉCNICO DE LIQUIDACIÓN LABORAL', 20, 32);
+      doc.text('LEXLABORAL', 20, 23);
+      doc.setFontSize(9);
+      doc.text('ESTIMACIÓN INFORMATIVA DE LIQUIDACIÓN Y FINIQUITO', 20, 30);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text('HERRAMIENTA PRIVADA E INDEPENDIENTE · NO OFICIAL', 20, 36);
       
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.setFontSize(12);
@@ -318,7 +324,28 @@ export const LaborCalculator: React.FC<{
         headStyles: { fillColor: goldColor, textColor: [0, 0, 0] },
       });
 
-      await exportPdf(doc, `LexLaboral_Dictamen_${new Date().getTime()}.pdf`, 'Liquidación laboral');
+      const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 10 : 200;
+      doc.setFillColor(248, 250, 252);
+      doc.rect(15, finalY, 180, 40, 'F');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text('DESLINDE DE RESPONSABILIDAD Y FUENTES GUBERNAMENTALES:', 20, finalY + 7);
+
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      const disclaimerLines = [
+        '1. Lex Laboral es privada e independiente; NO representa al IMSS, INFONAVIT ni al Gobierno de México.',
+        '2. Este reporte es una estimación ilustrativa basada en la Ley Federal del Trabajo y no constituye resolución oficial.',
+        '3. Fuentes de información gubernamental oficiales (.gob.mx):',
+        '   - Ley Federal del Trabajo: https://www.diputados.gob.mx/LeyesBiblio/pdf/LFT.pdf',
+        '   - Salarios Mínimos (CONASAMI): https://www.gob.mx/conasami',
+        '   - Portal oficial del Gobierno de México: https://www.gob.mx/',
+      ];
+      doc.text(disclaimerLines, 20, finalY + 13);
+
+      await exportPdf(doc, `LexLaboral_Finiquito_${new Date().getTime()}.pdf`, 'Liquidación laboral');
       notify("PDF generado con éxito", "success");
     } catch (error) {
       notify("Error al generar PDF", "error");
@@ -332,7 +359,7 @@ export const LaborCalculator: React.FC<{
           <img src="/assets/icon-mobile.png" alt="Logo de Lex Laboral" className="h-12 w-12 shrink-0 rounded-2xl object-cover ring-1 ring-legal-gold/40 shadow-lg" />
           <div className="min-w-0">
             <p className="truncate text-[17px] font-bold text-legal-gold">Lex Laboral</p>
-            <p className="truncate text-[10px] text-slate-300">Sistema de Inteligencia Jurídica</p>
+            <p className="truncate text-[10px] text-slate-300">Herramienta independiente · No oficial</p>
           </div>
         </div>
         <button
@@ -353,6 +380,11 @@ export const LaborCalculator: React.FC<{
             Calcula una estimación de tus prestaciones e indemnizaciones.
           </p>
         </div>
+
+        <GovernmentDisclaimerBanner
+          onOpenSources={() => setIsSourcesModalOpen(true)}
+          className="mb-5"
+        />
 
         <AnimatePresence mode="wait">
           {activeTab === 'form' ? (
@@ -476,7 +508,7 @@ export const LaborCalculator: React.FC<{
                 </div>
               ) : (
                 <>
-                  <ResultContext savedAt={savedAt} onEdit={() => setActiveTab('form')} />
+                  <ResultContext savedAt={savedAt} onEdit={() => setActiveTab('form')} onOpenSources={() => setIsSourcesModalOpen(true)} />
                   <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-legal-gold/10 rounded-full blur-3xl" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-legal-gold">Total Estimado</span>
@@ -530,6 +562,12 @@ export const LaborCalculator: React.FC<{
           )}
         </AnimatePresence>
       </div>
+
+      <GovernmentSourcesModal
+        isOpen={isSourcesModalOpen}
+        onClose={() => setIsSourcesModalOpen(false)}
+        categoryFilter="labor"
+      />
     </div>
   );
 };

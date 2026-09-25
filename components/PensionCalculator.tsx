@@ -16,12 +16,15 @@ import { MEXICO_LABOR_DEFAULTS_2026 } from '../lib/legal-constants';
 import { CALCULATION_STORAGE_KEYS, loadCalculationSnapshot, saveCalculationSnapshot } from '../lib/calculation-storage';
 import { exportPdf } from '../lib/pdf-export';
 import { ResultContext } from './ResultContext';
+import { GovernmentDisclaimerBanner } from './GovernmentDisclaimerBanner';
+import { GovernmentSourcesModal } from './GovernmentSourcesModal';
 
 type PensionRegime = '1973' | '1997';
 
 export const PensionCalculator: React.FC<{
   notify: (m: string, t?: NotificationType) => void;
 }> = ({ notify }) => {
+  const [isSourcesModalOpen, setIsSourcesModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'form' | 'results'>('form');
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<'age' | 'weeks' | 'amount', string>>>({});
@@ -257,11 +260,14 @@ export const PensionCalculator: React.FC<{
       doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.rect(0, 0, 210, 40, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(22);
+      doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text('LEXLABORAL', 20, 25);
-      doc.setFontSize(10);
-      doc.text('ESTIMACIÓN DE PENSIÓN IMSS', 20, 32);
+      doc.text('LEXLABORAL', 20, 23);
+      doc.setFontSize(9);
+      doc.text('ESTIMACIÓN DE PENSIÓN IMSS', 20, 30);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text('HERRAMIENTA PRIVADA E INDEPENDIENTE · NO OFICIAL', 20, 36);
 
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.setFontSize(12);
@@ -302,6 +308,28 @@ export const PensionCalculator: React.FC<{
         headStyles: { fillColor: goldColor, textColor: [0, 0, 0] },
       });
 
+      const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 10 : 200;
+      doc.setFillColor(248, 250, 252);
+      doc.rect(15, finalY, 180, 40, 'F');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text('AVISO LEGAL, DESLINDE GUBERNAMENTAL Y FUENTES OFICIALES:', 20, finalY + 7);
+
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      const disclaimerLines = [
+        '1. Lex Laboral es una herramienta de cálculo de iniciativa privada e independiente.',
+        '2. NO representa ni está afiliada al Instituto Mexicano del Seguro Social (IMSS) ni a la CONSAR.',
+        '3. Esta proyección es de carácter orientativo. La resolución vinculante sólo puede ser emitida por el IMSS.',
+        '4. Fuentes oficiales gubernamentales (.gob.mx):',
+        '   - Portal IMSS Pensiones: https://www.imss.gob.mx/pensiones',
+        '   - CONSAR: https://www.gob.mx/consar',
+        '   - Ley del Seguro Social: https://www.diputados.gob.mx/LeyesBiblio/pdf/LSS.pdf',
+      ];
+      doc.text(disclaimerLines, 20, finalY + 13);
+
       await exportPdf(doc, `LexLaboral_Pension_${new Date().getTime()}.pdf`, 'Estimación de pensión IMSS');
       notify("PDF generado con éxito", "success");
     } catch (error) {
@@ -314,7 +342,7 @@ export const PensionCalculator: React.FC<{
       <div className="rounded-b-[2rem] bg-slate-950 px-5 pb-6 pt-[calc(env(safe-area-inset-top)+1rem)] shadow-md">
         <div className="flex items-center gap-3">
           <img src="/assets/icon-mobile.png" alt="Logo de Lex Laboral" className="h-12 w-12 rounded-2xl object-cover ring-1 ring-legal-gold/40 shadow-lg" />
-          <div><h1 className="text-2xl font-serif font-bold text-white">Pensiones IMSS</h1><p className="mt-1 text-sm text-slate-400">Simula tu pensión Ley 73 o 97</p></div>
+          <div><h1 className="text-2xl font-serif font-bold text-white">Pensiones IMSS</h1><p className="mt-1 text-sm text-slate-400">Simulación informativa Ley 73 o 97 · No oficial</p></div>
         </div>
         
         {/* Android Native-like Tabs */}
@@ -339,6 +367,10 @@ export const PensionCalculator: React.FC<{
       </div>
 
       <div className="px-4 mt-6 max-w-lg mx-auto">
+        <GovernmentDisclaimerBanner
+          onOpenSources={() => setIsSourcesModalOpen(true)}
+          className="mb-4"
+        />
         <AnimatePresence mode="wait">
           {activeTab === 'form' ? (
             <motion.div
@@ -463,7 +495,7 @@ export const PensionCalculator: React.FC<{
                 </div>
               ) : (
                 <>
-                  <ResultContext savedAt={savedAt} onEdit={() => setActiveTab('form')} />
+                  <ResultContext savedAt={savedAt} onEdit={() => setActiveTab('form')} onOpenSources={() => setIsSourcesModalOpen(true)} />
                   <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-legal-gold/10 rounded-full blur-3xl" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-legal-gold">Pensión Mensual Aprox.</span>
@@ -529,9 +561,19 @@ export const PensionCalculator: React.FC<{
 
                   <div className="mt-2 p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3">
                     <Info size={16} className="text-orange-500 shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-orange-700 leading-relaxed font-bold">
-                      Este resultado es una estimación. El cálculo oficial debe ser emitido por el IMSS.
-                    </p>
+                    <div className="text-[10px] text-orange-900 leading-relaxed">
+                      <p className="font-bold">Aviso de no afiliación gubernamental:</p>
+                      <p className="mt-0.5">
+                        Lex Laboral es privada e independiente. Este resultado es una proyección orientativa y el cálculo oficial y vinculante debe ser emitido directamente por el IMSS.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setIsSourcesModalOpen(true)}
+                        className="mt-1.5 font-bold text-orange-950 underline hover:text-orange-800 inline-block"
+                      >
+                        Ver fuentes oficiales (.gob.mx)
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
@@ -539,6 +581,12 @@ export const PensionCalculator: React.FC<{
           )}
         </AnimatePresence>
       </div>
+
+      <GovernmentSourcesModal
+        isOpen={isSourcesModalOpen}
+        onClose={() => setIsSourcesModalOpen(false)}
+        categoryFilter="pension"
+      />
     </div>
   );
 };
